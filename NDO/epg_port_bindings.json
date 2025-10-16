@@ -1,0 +1,1102 @@
+[
+    {
+        "epg_name": "EPG-NAC",
+        "vlan": "3000",
+        "tenant": "EUR",
+        "app_profile": "AppProf-RCC",
+        "bd_name": "BD-INFRA-MGMT",
+        "vrf_name": "VRF-INFRA-MGMT",
+        "deployment_pattern": "production_standard",
+        "ports": [
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-NAC Production VPC D1A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D1A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D1A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3000"
+            },
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-NAC Production VPC D2A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D2A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D2A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3000"
+            }
+        ]
+    },
+    {
+        "epg_name": "EPG-CFG-MGMT",
+        "vlan": "3001",
+        "tenant": "EUR",
+        "app_profile": "AppProf-RCC",
+        "bd_name": "BD-INFRA-MGMT",
+        "vrf_name": "VRF-INFRA-MGMT",
+        "deployment_pattern": "production_standard",
+        "ports": [
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-CFG-MGMT Production VPC D1A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D1A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D1A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3001"
+            },
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-CFG-MGMT Production VPC D2A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D2A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D2A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3001"
+            }
+        ]
+    },
+    {
+        "epg_name": "EPG-GEF-MGMT",
+        "vlan": "3002",
+        "tenant": "EUR",
+        "app_profile": "AppProf-RCC",
+        "bd_name": "BD-INFRA-MGMT",
+        "vrf_name": "VRF-INFRA-MGMT",
+        "deployment_pattern": "production_with_edge",
+        "ports": [
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-GEF-MGMT Production VPC D1A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D1A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D1A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3002"
+            },
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-GEF-MGMT Production VPC D2A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D2A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D2A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3002"
+            },
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-GEF-MGMT GEF External",
+                "is_trunk": true,
+                "policy_group": "VPC_GEF_A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_GEF_A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3002"
+            }
+        ]
+    },
+    {
+        "epg_name": "EPG-MECM",
+        "vlan": "3003",
+        "tenant": "EUR",
+        "app_profile": "AppProf-RCC",
+        "bd_name": "BD-INFRA-MGMT",
+        "vrf_name": "VRF-INFRA-MGMT",
+        "deployment_pattern": "production_standard",
+        "ports": [
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-MECM Production VPC D1A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D1A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D1A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3003"
+            },
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-MECM Production VPC D2A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D2A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D2A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3003"
+            }
+        ]
+    },
+    {
+        "epg_name": "EPG-LB",
+        "vlan": "3004",
+        "tenant": "EUR",
+        "app_profile": "AppProf-RCC",
+        "bd_name": "BD-NET-SERVICES",
+        "vrf_name": "VRF-NET-SERVICES",
+        "deployment_pattern": "production_standard",
+        "ports": [
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-LB Production VPC D1A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D1A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D1A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3004"
+            },
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-LB Production VPC D2A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D2A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D2A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3004"
+            }
+        ]
+    },
+    {
+        "epg_name": "EPG-DNS-MGMT",
+        "vlan": "3005",
+        "tenant": "EUR",
+        "app_profile": "AppProf-RCC",
+        "bd_name": "BD-NET-SERVICES",
+        "vrf_name": "VRF-NET-SERVICES",
+        "deployment_pattern": "production_standard",
+        "ports": [
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-DNS-MGMT Production VPC D1A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D1A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D1A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3005"
+            },
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-DNS-MGMT Production VPC D2A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D2A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D2A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3005"
+            }
+        ]
+    },
+    {
+        "epg_name": "EPG-RCC-DNS",
+        "vlan": "3006",
+        "tenant": "EUR",
+        "app_profile": "AppProf-RCC",
+        "bd_name": "BD-NET-SERVICES",
+        "vrf_name": "VRF-NET-SERVICES",
+        "deployment_pattern": "production_standard",
+        "ports": [
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-RCC-DNS Production VPC D1A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D1A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D1A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3006"
+            },
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-RCC-DNS Production VPC D2A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D2A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D2A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3006"
+            }
+        ]
+    },
+    {
+        "epg_name": "EPG-DHCP-SVR",
+        "vlan": "3007",
+        "tenant": "EUR",
+        "app_profile": "AppProf-RCC",
+        "bd_name": "BD-NET-SERVICES",
+        "vrf_name": "VRF-NET-SERVICES",
+        "deployment_pattern": "production_standard",
+        "ports": [
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-DHCP-SVR Production VPC D1A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D1A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D1A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3007"
+            },
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-DHCP-SVR Production VPC D2A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D2A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D2A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3007"
+            }
+        ]
+    },
+    {
+        "epg_name": "EPG-SMTP-SVR",
+        "vlan": "3008",
+        "tenant": "EUR",
+        "app_profile": "AppProf-RCC",
+        "bd_name": "BD-NET-SERVICES",
+        "vrf_name": "VRF-NET-SERVICES",
+        "deployment_pattern": "production_standard",
+        "ports": [
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-SMTP-SVR Production VPC D1A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D1A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D1A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3008"
+            },
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-SMTP-SVR Production VPC D2A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D2A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D2A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3008"
+            }
+        ]
+    },
+    {
+        "epg_name": "EPG-VVOIP-MGMT",
+        "vlan": "3009",
+        "tenant": "EUR",
+        "app_profile": "AppProf-RCC",
+        "bd_name": "BD-VOICE-COMM",
+        "vrf_name": "VRF-VOICE-COMM",
+        "deployment_pattern": "production_standard",
+        "ports": [
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-VVOIP-MGMT Production VPC D1A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D1A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D1A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3009"
+            },
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-VVOIP-MGMT Production VPC D2A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D2A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D2A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3009"
+            }
+        ]
+    },
+    {
+        "epg_name": "EPG-VVOIP-PROXY",
+        "vlan": "3010",
+        "tenant": "EUR",
+        "app_profile": "AppProf-RCC",
+        "bd_name": "BD-VOICE-COMM",
+        "vrf_name": "VRF-VOICE-COMM",
+        "deployment_pattern": "production_standard",
+        "ports": [
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-VVOIP-PROXY Production VPC D1A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D1A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D1A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3010"
+            },
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-VVOIP-PROXY Production VPC D2A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D2A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D2A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3010"
+            }
+        ]
+    },
+    {
+        "epg_name": "EPG-LMR",
+        "vlan": "3011",
+        "tenant": "EUR",
+        "app_profile": "AppProf-RCC",
+        "bd_name": "BD-VOICE-COMM",
+        "vrf_name": "VRF-VOICE-COMM",
+        "deployment_pattern": "production_standard",
+        "ports": [
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-LMR Production VPC D1A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D1A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D1A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3011"
+            },
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-LMR Production VPC D2A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D2A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D2A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3011"
+            }
+        ]
+    },
+    {
+        "epg_name": "EPG-E911-SVR",
+        "vlan": "3012",
+        "tenant": "EUR",
+        "app_profile": "AppProf-RCC",
+        "bd_name": "BD-VOICE-COMM",
+        "vrf_name": "VRF-VOICE-COMM",
+        "deployment_pattern": "production_standard",
+        "ports": [
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-E911-SVR Production VPC D1A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D1A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D1A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3012"
+            },
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-E911-SVR Production VPC D2A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D2A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D2A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3012"
+            }
+        ]
+    },
+    {
+        "epg_name": "EPG-ACAS-SCANNERS",
+        "vlan": "3013",
+        "tenant": "EUR",
+        "app_profile": "AppProf-RCC",
+        "bd_name": "BD-SECURITY",
+        "vrf_name": "VRF-SECURITY",
+        "deployment_pattern": "production_standard",
+        "ports": [
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-ACAS-SCANNERS Production VPC D1A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D1A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D1A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3013"
+            },
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-ACAS-SCANNERS Production VPC D2A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D2A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D2A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3013"
+            }
+        ]
+    },
+    {
+        "epg_name": "EPG-C2C-SCANNERS",
+        "vlan": "3014",
+        "tenant": "EUR",
+        "app_profile": "AppProf-RCC",
+        "bd_name": "BD-SECURITY",
+        "vrf_name": "VRF-SECURITY",
+        "deployment_pattern": "production_standard",
+        "ports": [
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-C2C-SCANNERS Production VPC D1A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D1A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D1A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3014"
+            },
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-C2C-SCANNERS Production VPC D2A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D2A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D2A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3014"
+            }
+        ]
+    },
+    {
+        "epg_name": "EPG-OCSP",
+        "vlan": "3015",
+        "tenant": "EUR",
+        "app_profile": "AppProf-RCC",
+        "bd_name": "BD-SECURITY",
+        "vrf_name": "VRF-SECURITY",
+        "deployment_pattern": "production_standard",
+        "ports": [
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-OCSP Production VPC D1A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D1A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D1A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3015"
+            },
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-OCSP Production VPC D2A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D2A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D2A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3015"
+            }
+        ]
+    },
+    {
+        "epg_name": "EPG-PKI-SRV",
+        "vlan": "3016",
+        "tenant": "EUR",
+        "app_profile": "AppProf-RCC",
+        "bd_name": "BD-SECURITY",
+        "vrf_name": "VRF-SECURITY",
+        "deployment_pattern": "production_standard",
+        "ports": [
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-PKI-SRV Production VPC D1A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D1A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D1A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3016"
+            },
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-PKI-SRV Production VPC D2A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D2A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D2A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3016"
+            }
+        ]
+    },
+    {
+        "epg_name": "EPG-AD",
+        "vlan": "3017",
+        "tenant": "EUR",
+        "app_profile": "AppProf-RCC",
+        "bd_name": "BD-DIRECTORY-AUTH",
+        "vrf_name": "VRF-DIRECTORY-AUTH",
+        "deployment_pattern": "production_standard",
+        "ports": [
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-AD Production VPC D1A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D1A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D1A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3017"
+            },
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-AD Production VPC D2A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D2A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D2A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3017"
+            }
+        ]
+    },
+    {
+        "epg_name": "EPG-ADFS",
+        "vlan": "3018",
+        "tenant": "EUR",
+        "app_profile": "AppProf-RCC",
+        "bd_name": "BD-DIRECTORY-AUTH",
+        "vrf_name": "VRF-DIRECTORY-AUTH",
+        "deployment_pattern": "production_standard",
+        "ports": [
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-ADFS Production VPC D1A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D1A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D1A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3018"
+            },
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-ADFS Production VPC D2A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D2A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D2A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3018"
+            }
+        ]
+    },
+    {
+        "epg_name": "EPG-D64-PROXY",
+        "vlan": "3019",
+        "tenant": "EUR",
+        "app_profile": "AppProf-RCC",
+        "bd_name": "BD-PROXY",
+        "vrf_name": "VRF-PROXY",
+        "deployment_pattern": "production_standard",
+        "ports": [
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-D64-PROXY Production VPC D1A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D1A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D1A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3019"
+            },
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-D64-PROXY Production VPC D2A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D2A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D2A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3019"
+            }
+        ]
+    },
+    {
+        "epg_name": "EPG-RWEB-PROXY",
+        "vlan": "3020",
+        "tenant": "EUR",
+        "app_profile": "AppProf-RCC",
+        "bd_name": "BD-PROXY",
+        "vrf_name": "VRF-PROXY",
+        "deployment_pattern": "production_standard",
+        "ports": [
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-RWEB-PROXY Production VPC D1A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D1A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D1A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3020"
+            },
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-RWEB-PROXY Production VPC D2A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D2A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D2A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3020"
+            }
+        ]
+    },
+    {
+        "epg_name": "EPG-FWEB-PROXY",
+        "vlan": "3021",
+        "tenant": "EUR",
+        "app_profile": "AppProf-RCC",
+        "bd_name": "BD-PROXY",
+        "vrf_name": "VRF-PROXY",
+        "deployment_pattern": "production_standard",
+        "ports": [
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-FWEB-PROXY Production VPC D1A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D1A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D1A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3021"
+            },
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-FWEB-PROXY Production VPC D2A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D2A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D2A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3021"
+            }
+        ]
+    },
+    {
+        "epg_name": "EPG-APP-SVR",
+        "vlan": "3022",
+        "tenant": "EUR",
+        "app_profile": "AppProf-RCC",
+        "bd_name": "BD-APP-WEB",
+        "vrf_name": "VRF-APP-WEB",
+        "deployment_pattern": "production_standard",
+        "ports": [
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-APP-SVR Production VPC D1A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D1A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D1A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3022"
+            },
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-APP-SVR Production VPC D2A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D2A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D2A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3022"
+            }
+        ]
+    },
+    {
+        "epg_name": "EPG-WEB-SVR",
+        "vlan": "3023",
+        "tenant": "EUR",
+        "app_profile": "AppProf-RCC",
+        "bd_name": "BD-APP-WEB",
+        "vrf_name": "VRF-APP-WEB",
+        "deployment_pattern": "production_standard",
+        "ports": [
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-WEB-SVR Production VPC D1A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D1A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D1A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3023"
+            },
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-WEB-SVR Production VPC D2A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D2A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D2A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3023"
+            }
+        ]
+    },
+    {
+        "epg_name": "EPG-FMWR-SVR",
+        "vlan": "3024",
+        "tenant": "EUR",
+        "app_profile": "AppProf-RCC",
+        "bd_name": "BD-APP-WEB",
+        "vrf_name": "VRF-APP-WEB",
+        "deployment_pattern": "production_standard",
+        "ports": [
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-FMWR-SVR Production VPC D1A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D1A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D1A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3024"
+            },
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-FMWR-SVR Production VPC D2A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D2A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D2A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3024"
+            }
+        ]
+    },
+    {
+        "epg_name": "EPG-RCC-SVR",
+        "vlan": "3025",
+        "tenant": "EUR",
+        "app_profile": "AppProf-RCC",
+        "bd_name": "BD-RCC-SERVICES",
+        "vrf_name": "VRF-RCC-SERVICES",
+        "deployment_pattern": "production_standard",
+        "ports": [
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-RCC-SVR Production VPC D1A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D1A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D1A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3025"
+            },
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-RCC-SVR Production VPC D2A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D2A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D2A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3025"
+            }
+        ]
+    },
+    {
+        "epg_name": "EPG-RCC-DCO",
+        "vlan": "3026",
+        "tenant": "EUR",
+        "app_profile": "AppProf-RCC",
+        "bd_name": "BD-RCC-SERVICES",
+        "vrf_name": "VRF-RCC-SERVICES",
+        "deployment_pattern": "production_standard",
+        "ports": [
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-RCC-DCO Production VPC D1A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D1A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D1A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3026"
+            },
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-RCC-DCO Production VPC D2A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D2A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D2A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3026"
+            }
+        ]
+    },
+    {
+        "epg_name": "EPG-RCC-UNIX",
+        "vlan": "3027",
+        "tenant": "EUR",
+        "app_profile": "AppProf-RCC",
+        "bd_name": "BD-RCC-SERVICES",
+        "vrf_name": "VRF-RCC-SERVICES",
+        "deployment_pattern": "production_standard",
+        "ports": [
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-RCC-UNIX Production VPC D1A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D1A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D1A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3027"
+            },
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-RCC-UNIX Production VPC D2A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D2A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D2A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3027"
+            }
+        ]
+    },
+    {
+        "epg_name": "EPG-PRINT-SVR",
+        "vlan": "3028",
+        "tenant": "EUR",
+        "app_profile": "AppProf-RCC",
+        "bd_name": "BD-STORAGE",
+        "vrf_name": "VRF-STORAGE",
+        "deployment_pattern": "production_standard",
+        "ports": [
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-PRINT-SVR Production VPC D1A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D1A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D1A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3028"
+            },
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-PRINT-SVR Production VPC D2A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D2A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D2A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3028"
+            }
+        ]
+    },
+    {
+        "epg_name": "EPG-FILE-SVR",
+        "vlan": "3029",
+        "tenant": "EUR",
+        "app_profile": "AppProf-RCC",
+        "bd_name": "BD-STORAGE",
+        "vrf_name": "VRF-STORAGE",
+        "deployment_pattern": "production_standard",
+        "ports": [
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-FILE-SVR Production VPC D1A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D1A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D1A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3029"
+            },
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-FILE-SVR Production VPC D2A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D2A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D2A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3029"
+            }
+        ]
+    },
+    {
+        "epg_name": "EPG-BACKUP-SVR",
+        "vlan": "3030",
+        "tenant": "EUR",
+        "app_profile": "AppProf-RCC",
+        "bd_name": "BD-STORAGE",
+        "vrf_name": "VRF-STORAGE",
+        "deployment_pattern": "production_standard",
+        "ports": [
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-BACKUP-SVR Production VPC D1A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D1A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D1A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3030"
+            },
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-BACKUP-SVR Production VPC D2A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D2A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D2A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3030"
+            }
+        ]
+    },
+    {
+        "epg_name": "EPG-DB-SVR",
+        "vlan": "3031",
+        "tenant": "EUR",
+        "app_profile": "AppProf-RCC",
+        "bd_name": "BD-DATA-LOGGING",
+        "vrf_name": "VRF-DATA-LOGGING",
+        "deployment_pattern": "production_standard",
+        "ports": [
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-DB-SVR Production VPC D1A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D1A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D1A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3031"
+            },
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-DB-SVR Production VPC D2A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D2A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D2A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3031"
+            }
+        ]
+    },
+    {
+        "epg_name": "EPG-SYSLOG",
+        "vlan": "3032",
+        "tenant": "EUR",
+        "app_profile": "AppProf-RCC",
+        "bd_name": "BD-DATA-LOGGING",
+        "vrf_name": "VRF-DATA-LOGGING",
+        "deployment_pattern": "production_standard",
+        "ports": [
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-SYSLOG Production VPC D1A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D1A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D1A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3032"
+            },
+            {
+                "aci_node_id": "111",
+                "aci_port": "vpc",
+                "description": "EPG-SYSLOG Production VPC D2A-B",
+                "is_trunk": true,
+                "policy_group": "VPC_D2A-B",
+                "path": "topology/pod-1/protpaths-111-112/pathep-[VPC_D2A-B]",
+                "deployment_immediacy": "immediate",
+                "mode": "regular",
+                "encap": "vlan-3032"
+            }
+        ]
+    }
+]

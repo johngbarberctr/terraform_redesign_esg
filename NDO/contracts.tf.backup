@@ -1,0 +1,232 @@
+# contracts.tf - Individual resources (works better with some provider versions)
+
+# AIM contracts
+resource "mso_schema_template_contract" "aim_intra_esg" {
+  schema_id     = "68a72e0b3bffb5d1e2ef0e58"
+  template_name = "VRF_Template"
+  contract_name = "AIM-intra-esg"
+  display_name  = "AIM-intra-esg"
+  scope         = "context"
+}
+
+resource "mso_schema_template_contract" "aim_intra_vrf" {
+  schema_id     = "68a72e0b3bffb5d1e2ef0e58"
+  template_name = "VRF_Template"
+  contract_name = "AIM-intra-vrf"
+  display_name  = "AIM-intra-vrf"
+  scope         = "context"
+}
+
+resource "mso_schema_template_contract" "aim_permit_from_vzany" {
+  schema_id     = "68a72e0b3bffb5d1e2ef0e58"
+  template_name = "VRF_Template"
+  contract_name = "AIM-permit-from-vzAny"
+  display_name  = "AIM-permit-from-vzAny"
+  scope         = "context"
+}
+
+resource "mso_schema_template_contract" "aim_permit_to_vzany" {
+  schema_id     = "68a72e0b3bffb5d1e2ef0e58"
+  template_name = "VRF_Template"
+  contract_name = "AIM-permit-to-vzAny"
+  display_name  = "AIM-permit-to-vzAny"
+  scope         = "context"
+}
+
+# AIP contracts
+resource "mso_schema_template_contract" "aip_intra_esg" {
+  schema_id     = "68a72e0b3bffb5d1e2ef0e58"
+  template_name = "VRF_Template"
+  contract_name = "AIP-intra-esg"
+  display_name  = "AIP-intra-esg"
+  scope         = "context"
+}
+
+resource "mso_schema_template_contract" "aip_intra_vrf" {
+  schema_id     = "68a72e0b3bffb5d1e2ef0e58"
+  template_name = "VRF_Template"
+  contract_name = "AIP-intra-vrf"
+  display_name  = "AIP-intra-vrf"
+  scope         = "context"
+}
+
+resource "mso_schema_template_contract" "aip_permit_from_vzany" {
+  schema_id     = "68a72e0b3bffb5d1e2ef0e58"
+  template_name = "VRF_Template"
+  contract_name = "AIP-permit-from-vzAny"
+  display_name  = "AIP-permit-from-vzAny"
+  scope         = "context"
+}
+
+resource "mso_schema_template_contract" "aip_permit_to_vzany" {
+  schema_id     = "68a72e0b3bffb5d1e2ef0e58"
+  template_name = "VRF_Template"
+  contract_name = "AIP-permit-to-vzAny"
+  display_name  = "AIP-permit-to-vzAny"
+  scope         = "context"
+}
+
+# AIS contracts
+resource "mso_schema_template_contract" "ais_intra_esg" {
+  schema_id     = "68a72e0b3bffb5d1e2ef0e58"
+  template_name = "VRF_Template"
+  contract_name = "AIS-intra-esg"
+  display_name  = "AIS-intra-esg"
+  scope         = "context"
+}
+
+resource "mso_schema_template_contract" "ais_intra_vrf" {
+  schema_id     = "68a72e0b3bffb5d1e2ef0e58"
+  template_name = "VRF_Template"
+  contract_name = "AIS-intra-vrf"
+  display_name  = "AIS-intra-vrf"
+  scope         = "context"
+}
+
+resource "mso_schema_template_contract" "ais_permit_from_vzany" {
+  schema_id     = "68a72e0b3bffb5d1e2ef0e58"
+  template_name = "VRF_Template"
+  contract_name = "AIS-permit-from-vzAny"
+  display_name  = "AIS-permit-from-vzAny"
+  scope         = "context"
+}
+
+resource "mso_schema_template_contract" "ais_permit_to_vzany" {
+  schema_id     = "68a72e0b3bffb5d1e2ef0e58"
+  template_name = "VRF_Template"
+  contract_name = "AIS-permit-to-vzAny"
+  display_name  = "AIS-permit-to-vzAny"
+  scope         = "context"
+}
+
+# AIV contracts
+resource "mso_schema_template_contract" "aiv_intra_esg" {
+  schema_id     = "68a72e0b3bffb5d1e2ef0e58"
+  template_name = "VRF_Template"
+  contract_name = "AIV-intra-esg"
+  display_name  = "AIV-intra-esg"
+  scope         = "context"
+}
+
+resource "mso_schema_template_contract" "aiv_intra_vrf" {
+  schema_id     = "68a72e0b3bffb5d1e2ef0e58"
+  template_name = "VRF_Template"
+  contract_name = "AIV-intra-vrf"
+  display_name  = "AIV-intra-vrf"
+  scope         = "context"
+}
+
+resource "mso_schema_template_contract" "aiv_permit_from_vzany" {
+  schema_id     = "68a72e0b3bffb5d1e2ef0e58"
+  template_name = "VRF_Template"
+  contract_name = "AIV-permit-from-vzAny"
+  display_name  = "AIV-permit-from-vzAny"
+  scope         = "context"
+}
+
+resource "mso_schema_template_contract" "aiv_permit_to_vzany" {
+  schema_id     = "68a72e0b3bffb5d1e2ef0e58"
+  template_name = "VRF_Template"
+  contract_name = "AIV-permit-to-vzAny"
+  display_name  = "AIV-permit-to-vzAny"
+  scope         = "context"
+}
+
+# AIZ contracts
+resource "mso_schema_template_contract" "aiz_intra_esg" {
+  schema_id     = "68a72e0b3bffb5d1e2ef0e58"
+  template_name = "VRF_Template"
+  contract_name = "AIZ-intra-esg"
+  display_name  = "AIZ-intra-esg"
+  scope         = "context"
+}
+
+resource "mso_schema_template_contract" "aiz_intra_vrf" {
+  schema_id     = "68a72e0b3bffb5d1e2ef0e58"
+  template_name = "VRF_Template"
+  contract_name = "AIZ-intra-vrf"
+  display_name  = "AIZ-intra-vrf"
+  scope         = "context"
+}
+
+resource "mso_schema_template_contract" "aiz_permit_from_vzany" {
+  schema_id     = "68a72e0b3bffb5d1e2ef0e58"
+  template_name = "VRF_Template"
+  contract_name = "AIZ-permit-from-vzAny"
+  display_name  = "AIZ-permit-from-vzAny"
+  scope         = "context"
+}
+
+resource "mso_schema_template_contract" "aiz_permit_to_vzany" {
+  schema_id     = "68a72e0b3bffb5d1e2ef0e58"
+  template_name = "VRF_Template"
+  contract_name = "AIZ-permit-to-vzAny"
+  display_name  = "AIZ-permit-to-vzAny"
+  scope         = "context"
+}
+
+# AOV-UC-DMZ contracts
+resource "mso_schema_template_contract" "aov_uc_dmz_intra_esg" {
+  schema_id     = "68a72e0b3bffb5d1e2ef0e58"
+  template_name = "VRF_Template"
+  contract_name = "AOV-UC-DMZ-intra-esg"
+  display_name  = "AOV-UC-DMZ-intra-esg"
+  scope         = "context"
+}
+
+resource "mso_schema_template_contract" "aov_uc_dmz_intra_vrf" {
+  schema_id     = "68a72e0b3bffb5d1e2ef0e58"
+  template_name = "VRF_Template"
+  contract_name = "AOV-UC-DMZ-intra-vrf"
+  display_name  = "AOV-UC-DMZ-intra-vrf"
+  scope         = "context"
+}
+
+resource "mso_schema_template_contract" "aov_uc_dmz_permit_from_vzany" {
+  schema_id     = "68a72e0b3bffb5d1e2ef0e58"
+  template_name = "VRF_Template"
+  contract_name = "AOV-UC-DMZ-permit-from-vzAny"
+  display_name  = "AOV-UC-DMZ-permit-from-vzAny"
+  scope         = "context"
+}
+
+resource "mso_schema_template_contract" "aov_uc_dmz_permit_to_vzany" {
+  schema_id     = "68a72e0b3bffb5d1e2ef0e58"
+  template_name = "VRF_Template"
+  contract_name = "AOV-UC-DMZ-permit-to-vzAny"
+  display_name  = "AOV-UC-DMZ-permit-to-vzAny"
+  scope         = "context"
+}
+
+# E contracts
+resource "mso_schema_template_contract" "e_intra_esg" {
+  schema_id     = "68a72e0b3bffb5d1e2ef0e58"
+  template_name = "VRF_Template"
+  contract_name = "E-intra-esg"
+  display_name  = "E-intra-esg"
+  scope         = "context"
+}
+
+resource "mso_schema_template_contract" "e_intra_vrf" {
+  schema_id     = "68a72e0b3bffb5d1e2ef0e58"
+  template_name = "VRF_Template"
+  contract_name = "E-intra-vrf"
+  display_name  = "E-intra-vrf"
+  scope         = "context"
+}
+
+resource "mso_schema_template_contract" "e_permit_from_vzany" {
+  schema_id     = "68a72e0b3bffb5d1e2ef0e58"
+  template_name = "VRF_Template"
+  contract_name = "E-permit-from-vzAny"
+  display_name  = "E-permit-from-vzAny"
+  scope         = "context"
+}
+
+resource "mso_schema_template_contract" "e_permit_to_vzany" {
+  schema_id     = "68a72e0b3bffb5d1e2ef0e58"
+  template_name = "VRF_Template"
+  contract_name = "E-permit-to-vzAny"
+  display_name  = "E-permit-to-vzAny"
+  scope         = "context"
+}

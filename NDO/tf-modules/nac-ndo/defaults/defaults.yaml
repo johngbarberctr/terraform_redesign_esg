@@ -1,0 +1,181 @@
+---
+defaults:
+  ndo:
+    version: "3.7.2h"
+    undeploy_order: false
+    remote_locations:
+      port: 22
+      path: "/"
+      protocol: "sftp"
+      authentication: "password"
+    system_config:
+      banner:
+        type: "informational"
+        state: "active"
+    sites:
+      location:
+        long: 0
+        lat: 0
+      multisite: true
+      routed_domain_suffix: ""
+      ospf:
+        area_id: 0
+        area_type: regular
+      ospf_policies:
+        name_suffix: ""
+        network_type: point-to-point
+        priority: 1
+        interface_cost: 0
+        advertise_subnet: false
+        bfd: false
+        mtu_ignore: false
+        passive_interface: false
+        hello_interval: 10
+        dead_interval: 40
+        retransmit_interval: 5
+        retransmit_delay: 1
+      pods:
+        id: 1
+        spines:
+          bgp_peering: true
+          bgp_route_reflector: false
+          interfaces:
+            module: 1
+            mtu: inherit
+            ospf:
+              authentication_type: none
+              authentication_key_id: 1
+    fabric_connectivity:
+      bgp:
+        peering_type: full-mesh
+        ttl: 16
+        keepalive_interval: 60
+        hold_interval: 180
+        stale_interval: 300
+        graceful_restart: true
+        max_as: 0
+    policies:
+      dhcp_relays:
+        name_suffix: ""
+      dhcp_options:
+        name_suffix: ""
+        options:
+          name_suffix: ""
+          id: 1
+    tenants:
+      orchestrator_only: true
+    schemas:
+      templates:
+        type: multi_site
+        application_profiles:
+          name_suffix: ""
+          endpoint_groups:
+            name_suffix: ""
+            physical_domain_name_suffix: ""
+            vmm_domain_name_suffix: ""
+            useg: false
+            intra_epg_isolation: false
+            proxy_arp: false
+            preferred_group: false
+            subnets:
+              scope: private
+              shared: false
+              no_default_gateway: false
+              primary: false
+            sites:
+              physical_domains:
+                deployment_immediacy: lazy
+                resolution_immediacy: immediate
+              vmware_vmm_domains:
+                deployment_immediacy: lazy
+                resolution_immediacy: pre-provision
+                vlan_mode: dynamic
+                u_segmentation: false
+              static_ports:
+                type: port
+                deployment_immediacy: lazy
+                mode: regular
+                leaf_interface_policy_group_suffix: ""
+              subnets:
+                scope: private
+                shared: false
+                no_default_gateway: false
+                primary: false
+        vrfs:
+          name_suffix: ""
+          data_plane_learning: true
+          preferred_group: false
+          l3_multicast: false
+          vzany: false
+          site_aware_policy_enforcement: false
+          sites:
+            regions:
+              vpn_gateway: false
+              hub_network: false
+        bridge_domains:
+          name_suffix: ""
+          l2_unknown_unicast: proxy
+          intersite_bum_traffic: false
+          optimize_wan_bandwidth: false
+          unicast_routing: true
+          arp_flooding: false
+          l2_stretch: true
+          l3_multicast: false
+          multi_destination_flooding: bd-flood
+          unknown_ipv4_multicast: flood
+          unknown_ipv6_multicast: flood
+          ep_move_detection_mode: none
+          subnets:
+            scope: private
+            shared: false
+            no_default_gateway: false
+            querier: false
+            primary: false
+          sites:
+            advertise_host_routes: false
+            mac: 00:22:BD:F8:19:FF
+            subnets:
+              scope: private
+              shared: false
+              no_default_gateway: false
+              querier: false
+              primary: false
+        filters:
+          name_suffix: ""
+          entries:
+            name_suffix: ""
+            ethertype: ip
+            protocol: tcp
+            stateful: false
+            source_from_port: unspecified
+            destination_from_port: unspecified
+        external_endpoint_groups:
+          name_suffix: ""
+          type: on-premise
+          preferred_group: false
+          subnets:
+            import_route_control: false
+            export_route_control: false
+            shared_route_control: false
+            import_security: true
+            shared_security: false
+            aggregate_import: false
+            aggregate_export: false
+            aggregate_shared: false
+          sites:
+            route_reachability: internet
+        l3outs:
+          name_suffix: ""
+        contracts:
+          name_suffix: ""
+          scope: context
+          type: bothWay
+          filters:
+            log: false
+            policy_compression: false
+        service_graphs:
+          name_suffix: ""
+          device_name_suffix: ""
+          logical_interface_name_suffix: ""
+          redirect_policy_name_suffix: ""
+          node_type: "firewall"
