@@ -1,1 +1,42 @@
+# Terraform
+*.tfstate
+*.tfstate.*
+*.tfvars
 .terraform/
+.terraform.lock.hcl
+*.tfplan
+crash.log
+terraform_debug.log
+
+# Python
+__pycache__/
+*.py[cod]
+venv/
+env/
+
+# Generated files
+*.json
+!NDO/README.md
+
+# IDE/OS
+.DS_Store
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Credentials
+*password*
+*secret*
+
+# Everything EXCEPT NDO directory essentials
+/*
+!/NDO/
+/NDO/*
+!/NDO/.gitignore
+!/NDO/README.md
+!/NDO/bds_epgs.tf
+!/NDO/generate_ipv6_bindings.py
+!/NDO/remove_all_rcc_bindings.py
+!/NDO/check_rcc_bindings.py
