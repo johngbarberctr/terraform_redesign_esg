@@ -1772,3 +1772,1560 @@ resource "mso_schema_site_anp_epg" "site_epg_syslog_k" {
   anp_name      = mso_schema_template_anp.appprof_rcc_non_stretched.name
   epg_name      = mso_schema_template_anp_epg.epg_syslog.name
 }
+
+# ============================================================================
+# SITE BD CONFIGURATIONS - Host Route Enabled
+# Required for proper routing behavior at site level
+# ============================================================================
+
+# L2_Stretched BDs - AEDCG Site (29 BDs)
+resource "mso_schema_site_bd" "bd_nac_g" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_nac.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedcg.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_cfg_mgmt_g" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_cfg_mgmt.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedcg.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_mecm_g" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_mecm.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedcg.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_lb_g" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_lb.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedcg.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_dns_mgmt_g" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_dns_mgmt.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedcg.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_rcc_dns_g" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_rcc_dns.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedcg.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_dhcp_svr_g" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_dhcp_svr.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedcg.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_smtp_svr_g" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_smtp_svr.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedcg.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_vvoip_mgmt_g" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_vvoip_mgmt.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedcg.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_vvoip_proxy_g" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_vvoip_proxy.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedcg.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_lmr_g" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_lmr.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedcg.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_e911_svr_g" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_e911_svr.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedcg.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_acas_scanners_g" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_acas_scanners.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedcg.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_c2c_scanners_g" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_c2c_scanners.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedcg.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_ocsp_g" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_ocsp.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedcg.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_pki_srv_g" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_pki_srv.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedcg.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_ad_g" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_ad.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedcg.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_adfs_g" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_adfs.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedcg.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_d64_proxy_g" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_d64_proxy.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedcg.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_rweb_proxy_g" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_rweb_proxy.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedcg.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_fweb_proxy_g" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_fweb_proxy.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedcg.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_app_svr_g" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_app_svr.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedcg.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_web_svr_g" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_web_svr.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedcg.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_fmwr_svr_g" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_fmwr_svr.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedcg.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_rcc_svr_g" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_rcc_svr.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedcg.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_rcc_dco_g" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_rcc_dco.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedcg.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_rcc_unix_g" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_rcc_unix.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedcg.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_print_svr_g" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_print_svr.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedcg.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_file_svr_g" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_file_svr.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedcg.id
+  host_route    = true
+}
+
+# L2_Stretched BDs - AEDCK Site (29 BDs)
+resource "mso_schema_site_bd" "bd_nac_k" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_nac.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedck.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_cfg_mgmt_k" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_cfg_mgmt.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedck.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_mecm_k" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_mecm.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedck.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_lb_k" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_lb.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedck.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_dns_mgmt_k" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_dns_mgmt.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedck.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_rcc_dns_k" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_rcc_dns.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedck.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_dhcp_svr_k" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_dhcp_svr.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedck.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_smtp_svr_k" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_smtp_svr.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedck.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_vvoip_mgmt_k" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_vvoip_mgmt.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedck.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_vvoip_proxy_k" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_vvoip_proxy.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedck.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_lmr_k" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_lmr.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedck.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_e911_svr_k" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_e911_svr.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedck.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_acas_scanners_k" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_acas_scanners.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedck.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_c2c_scanners_k" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_c2c_scanners.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedck.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_ocsp_k" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_ocsp.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedck.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_pki_srv_k" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_pki_srv.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedck.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_ad_k" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_ad.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedck.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_adfs_k" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_adfs.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedck.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_d64_proxy_k" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_d64_proxy.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedck.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_rweb_proxy_k" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_rweb_proxy.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedck.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_fweb_proxy_k" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_fweb_proxy.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedck.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_app_svr_k" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_app_svr.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedck.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_web_svr_k" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_web_svr.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedck.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_fmwr_svr_k" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_fmwr_svr.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedck.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_rcc_svr_k" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_rcc_svr.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedck.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_rcc_dco_k" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_rcc_dco.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedck.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_rcc_unix_k" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_rcc_unix.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedck.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_print_svr_k" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_print_svr.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedck.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_file_svr_k" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_file_svr.name
+  template_name = "L2_Stretched"
+  site_id       = data.mso_site.aedck.id
+  host_route    = true
+}
+
+# G-Specific_Only BD - AEDCG Site (1 BD)
+resource "mso_schema_site_bd" "bd_gef_mgmt_g" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_gef_mgmt.name
+  template_name = "G-Specific_Only"
+  site_id       = data.mso_site.aedcg.id
+  host_route    = true
+}
+
+# K-Specific_Only BD - AEDCK Site (1 BD)
+resource "mso_schema_site_bd" "bd_backup_svr_k_site" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_backup_svr_k.name
+  template_name = "K-Specific_Only"
+  site_id       = data.mso_site.aedck.id
+  host_route    = true
+}
+
+# L2_Non-Stretched BDs - Both Sites (2 BDs × 2 sites = 4 resources)
+resource "mso_schema_site_bd" "bd_db_svr_g" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_db_svr.name
+  template_name = "L2_Non-Stretched"
+  site_id       = data.mso_site.aedcg.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_db_svr_k_site" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_db_svr.name
+  template_name = "L2_Non-Stretched"
+  site_id       = data.mso_site.aedck.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_syslog_g" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_syslog.name
+  template_name = "L2_Non-Stretched"
+  site_id       = data.mso_site.aedcg.id
+  host_route    = true
+}
+
+resource "mso_schema_site_bd" "bd_syslog_k_site" {
+  schema_id     = data.mso_schema.existing.id
+  bd_name       = mso_schema_template_bd.bd_syslog.name
+  template_name = "L2_Non-Stretched"
+  site_id       = data.mso_site.aedck.id
+  host_route    = true
+}
+
+# ============================================================================
+# PHYSICAL DOMAIN ASSOCIATIONS
+# Associates EPGs with PhysDom_ACI_Nexus for static port binding capability
+# ============================================================================
+
+# L2_Stretched EPGs - AEDCG (29 EPGs)
+resource "mso_schema_site_anp_epg_domain" "epg_nac_domain_g" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedcg.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_nac.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_nac_g
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_cfg_mgmt_domain_g" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedcg.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_cfg_mgmt.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_cfg_mgmt_g
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_mecm_domain_g" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedcg.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_mecm.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_mecm_g
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_lb_domain_g" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedcg.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_lb.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_lb_g
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_dns_mgmt_domain_g" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedcg.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_dns_mgmt.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_dns_mgmt_g
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_rcc_dns_domain_g" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedcg.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_rcc_dns.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_rcc_dns_g
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_dhcp_svr_domain_g" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedcg.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_dhcp_svr.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_dhcp_svr_g
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_smtp_svr_domain_g" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedcg.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_smtp_svr.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_smtp_svr_g
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_vvoip_mgmt_domain_g" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedcg.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_vvoip_mgmt.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_vvoip_mgmt_g
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_vvoip_proxy_domain_g" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedcg.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_vvoip_proxy.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_vvoip_proxy_g
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_lmr_domain_g" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedcg.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_lmr.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_lmr_g
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_e911_svr_domain_g" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedcg.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_e911_svr.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_e911_svr_g
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_acas_scanners_domain_g" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedcg.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_acas_scanners.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_acas_scanners_g
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_c2c_scanners_domain_g" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedcg.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_c2c_scanners.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_c2c_scanners_g
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_ocsp_domain_g" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedcg.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_ocsp.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_ocsp_g
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_pki_srv_domain_g" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedcg.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_pki_srv.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_pki_srv_g
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_ad_domain_g" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedcg.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_ad.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_ad_g
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_adfs_domain_g" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedcg.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_adfs.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_adfs_g
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_d64_proxy_domain_g" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedcg.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_d64_proxy.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_d64_proxy_g
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_rweb_proxy_domain_g" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedcg.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_rweb_proxy.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_rweb_proxy_g
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_fweb_proxy_domain_g" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedcg.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_fweb_proxy.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_fweb_proxy_g
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_app_svr_domain_g" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedcg.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_app_svr.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_app_svr_g
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_web_svr_domain_g" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedcg.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_web_svr.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_web_svr_g
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_fmwr_svr_domain_g" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedcg.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_fmwr_svr.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_fmwr_svr_g
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_rcc_svr_domain_g" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedcg.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_rcc_svr.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_rcc_svr_g
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_rcc_dco_domain_g" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedcg.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_rcc_dco.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_rcc_dco_g
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_rcc_unix_domain_g" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedcg.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_rcc_unix.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_rcc_unix_g
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_print_svr_domain_g" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedcg.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_print_svr.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_print_svr_g
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_file_svr_domain_g" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedcg.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_file_svr.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_file_svr_g
+  ]
+}
+
+# L2_Stretched EPGs - AEDCK (29 EPGs)
+resource "mso_schema_site_anp_epg_domain" "epg_nac_domain_k" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedck.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_nac.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_nac_k
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_cfg_mgmt_domain_k" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedck.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_cfg_mgmt.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_cfg_mgmt_k
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_mecm_domain_k" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedck.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_mecm.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_mecm_k
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_lb_domain_k" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedck.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_lb.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_lb_k
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_dns_mgmt_domain_k" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedck.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_dns_mgmt.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_dns_mgmt_k
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_rcc_dns_domain_k" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedck.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_rcc_dns.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_rcc_dns_k
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_dhcp_svr_domain_k" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedck.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_dhcp_svr.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_dhcp_svr_k
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_smtp_svr_domain_k" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedck.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_smtp_svr.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_smtp_svr_k
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_vvoip_mgmt_domain_k" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedck.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_vvoip_mgmt.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_vvoip_mgmt_k
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_vvoip_proxy_domain_k" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedck.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_vvoip_proxy.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_vvoip_proxy_k
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_lmr_domain_k" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedck.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_lmr.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_lmr_k
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_e911_svr_domain_k" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedck.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_e911_svr.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_e911_svr_k
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_acas_scanners_domain_k" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedck.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_acas_scanners.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_acas_scanners_k
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_c2c_scanners_domain_k" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedck.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_c2c_scanners.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_c2c_scanners_k
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_ocsp_domain_k" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedck.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_ocsp.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_ocsp_k
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_pki_srv_domain_k" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedck.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_pki_srv.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_pki_srv_k
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_ad_domain_k" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedck.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_ad.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_ad_k
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_adfs_domain_k" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedck.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_adfs.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_adfs_k
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_d64_proxy_domain_k" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedck.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_d64_proxy.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_d64_proxy_k
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_rweb_proxy_domain_k" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedck.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_rweb_proxy.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_rweb_proxy_k
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_fweb_proxy_domain_k" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedck.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_fweb_proxy.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_fweb_proxy_k
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_app_svr_domain_k" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedck.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_app_svr.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_app_svr_k
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_web_svr_domain_k" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedck.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_web_svr.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_web_svr_k
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_fmwr_svr_domain_k" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedck.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_fmwr_svr.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_fmwr_svr_k
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_rcc_svr_domain_k" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedck.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_rcc_svr.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_rcc_svr_k
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_rcc_dco_domain_k" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedck.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_rcc_dco.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_rcc_dco_k
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_rcc_unix_domain_k" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedck.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_rcc_unix.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_rcc_unix_k
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_print_svr_domain_k" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedck.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_print_svr.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_print_svr_k
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_file_svr_domain_k" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Stretched"
+  site_id           = data.mso_site.aedck.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_file_svr.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_file_svr_k
+  ]
+}
+
+# G-Specific_Only EPG - AEDCG
+resource "mso_schema_site_anp_epg_domain" "epg_gef_mgmt_domain_g" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "G-Specific_Only"
+  site_id           = data.mso_site.aedcg.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_g_specific.name
+  epg_name          = mso_schema_template_anp_epg.epg_gef_mgmt.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_gef_mgmt_g
+  ]
+}
+
+# K-Specific_Only EPG - AEDCK
+resource "mso_schema_site_anp_epg_domain" "epg_backup_svr_domain_k" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "K-Specific_Only"
+  site_id           = data.mso_site.aedck.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_k_specific.name
+  epg_name          = mso_schema_template_anp_epg.epg_backup_svr_k.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_backup_svr_k
+  ]
+}
+
+# L2_Non-Stretched EPGs - AEDCG
+resource "mso_schema_site_anp_epg_domain" "epg_db_svr_domain_g" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Non-Stretched"
+  site_id           = data.mso_site.aedcg.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_non_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_db_svr.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_db_svr_g
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_syslog_domain_g" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Non-Stretched"
+  site_id           = data.mso_site.aedcg.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_non_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_syslog.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_syslog_g
+  ]
+}
+
+# L2_Non-Stretched EPGs - AEDCK
+resource "mso_schema_site_anp_epg_domain" "epg_db_svr_domain_k" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Non-Stretched"
+  site_id           = data.mso_site.aedck.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_non_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_db_svr.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_db_svr_k
+  ]
+}
+
+resource "mso_schema_site_anp_epg_domain" "epg_syslog_domain_k" {
+  schema_id         = data.mso_schema.existing.id
+  template_name     = "L2_Non-Stretched"
+  site_id           = data.mso_site.aedck.id
+  anp_name          = mso_schema_template_anp.appprof_rcc_non_stretched.name
+  epg_name          = mso_schema_template_anp_epg.epg_syslog.name
+  domain_type       = "physicalDomain"
+  domain_name       = "PhysDom_ACI_Nexus"
+  deploy_immediacy  = "immediate"
+  resolution_immediacy = "immediate"
+  
+  depends_on = [
+    mso_schema_site_anp_epg.site_epg_syslog_k
+  ]
+}
