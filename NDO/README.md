@@ -348,7 +348,7 @@ Exclusions (Filtered Out)
 
 Automation Scripts
 
-generate_ipv6_bindings.py
+generate_ipv6_bindingsnew.py
 
 Purpose: Auto-generates port bindings for IPv6 RCC EPGs based on existing IPv4 infrastructure.
 
