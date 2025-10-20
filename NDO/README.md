@@ -153,7 +153,7 @@ aci-mso-ipv6-rcc/
 ├── .gitignore                         # Git exclusion rules
 ├── README.md                          # This file
 ├── bds_epgs.tf                       # Main Terraform configuration (~2500 lines)
-├── generate_ipv6_bindings.py        # Auto-generates port bindings
+├── generate_ipv6_bindingsnew.py        # Auto-generates port bindings
 ├── remove_all_rcc_bindings.py       # Removes existing bindings
 └── check_rcc_bindings.py            # Diagnostic tool
 
@@ -241,7 +241,7 @@ grep -E "paths-10[12]|protpaths-101-102" ipv6_rcc_port_bindings.json
 # Should return nothing
 
 # 10. Deploy port bindings
-python3 generate_ipv6_bindings.py deploy
+python3 generate_ipv6_bindingsnew.py deploy
 
 # Duration: 30-60 seconds
 # Creates: ~200 static port bindings
@@ -368,9 +368,9 @@ Usage:
 
 bash
 Copy Code
-python3 generate_ipv6_bindings.py generate    # Generate JSON only
-python3 generate_ipv6_bindings.py deploy      # Generate and deploy
-python3 generate_ipv6_bindings.py             # Generate with prompt
+python3 generate_ipv6_bindingsnew.py generate    # Generate JSON only
+python3 generate_ipv6_bindingsnew.py deploy      # Generate and deploy
+python3 generate_ipv6_bindingsnew.py             # Generate with prompt
 
 Output: ipv6_rcc_port_bindings.json
 
@@ -769,7 +769,7 @@ Steps:
 
 Add resources to Terraform (BD, subnet, EPG, site associations, domains)
 Run terraform apply
-Run python3 generate_ipv6_bindings.py deploy
+Run python3 generate_ipv6_bindingsnew.py deploy
 Script auto-discovers new EPG and applies port pattern
 
 Example:
@@ -801,7 +801,7 @@ Modifying Port Bindings
 To change which IPv4 EPG is used as reference:
 
 
-Edit generate_ipv6_bindings.py:
+Edit generate_ipv6_bindingsnew.py:
 
 
 python
@@ -820,7 +820,7 @@ Then:
 bash
 Copy Code
 python3 remove_all_rcc_bindings.py
-python3 generate_ipv6_bindings.py deploy
+python3 generate_ipv6_bindingsnew.py deploy
 
 
 Backup Procedures
@@ -898,7 +898,7 @@ Files to Commit
 README.md - This documentation
 .gitignore - Exclusion rules
 bds_epgs.tf - Terraform configuration
-generate_ipv6_bindings.py - Binding generator
+generate_ipv6_bindingsnew.py - Binding generator
 remove_all_rcc_bindings.py - Cleanup script
 check_rcc_bindings.py - Diagnostic script
 
@@ -1056,14 +1056,14 @@ terraform init && terraform plan && terraform apply
 
 # Python
 python3 check_rcc_bindings.py
-python3 generate_ipv6_bindings.py generate
-python3 generate_ipv6_bindings.py deploy
+python3 generate_ipv6_bindingsnew.py generate
+python3 generate_ipv6_bindingsnew.py deploy
 python3 remove_all_rcc_bindings.py --dry-run
 
 Critical Files
 
 bds_epgs.tf - Infrastructure definition
-generate_ipv6_bindings.py - Port automation
+generate_ipv6_bindingsnew.py - Port automation
 terraform.tfvars - Credentials (NOT IN REPO)
 
 Key Resources
