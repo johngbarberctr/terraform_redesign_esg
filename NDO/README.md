@@ -44,7 +44,7 @@ This implementation deploys a comprehensive IPv6 network infrastructure with:
 - **1 Virtual Routing & Forwarding (VRF)** instance: VRF-RCC
 - **33 Bridge Domains** with IPv6 subnets
 - **33 Endpoint Groups (EPGs)** for service segmentation
-- **Multi-site deployment** across AEDCG (  Grafenwoehr     = true) and AEDCK (Kaiserslautern)
+- **Multi-site deployment** across AEDCG (Grafenwoehr) and AEDCK (Kaiserslautern)
 - **Template-based organization** for stretched and site-specific resources
 - **VLAN range:** 3000-3032
 
