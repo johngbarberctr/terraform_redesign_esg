@@ -496,11 +496,6 @@ Main Menu → Application Management → Schemas
 → Schema: AEDCE
 → Template: UpgradeTemplate1 (display name: "VRF_Template")
 → Click: VRF-RCC
-Enable vzAny:
-
-Locate the "vzAny" checkbox
-Check the box
-vzAny configuration panel appears below
 Add Provider Contract:
 
 Section: "vzAny Provider Contracts"
