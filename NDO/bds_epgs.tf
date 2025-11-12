@@ -88,7 +88,7 @@ resource "mso_schema_template_bd_subnet" "bd_nac_subnet" {
   bd_name       = mso_schema_template_bd.bd_nac.name
   ip            = "fd00:10:10:15::1/64"
   scope         = "public"
-  shared        = true
+  shared        = false
 }
 
 resource "mso_schema_template_anp_epg" "epg_nac" {
@@ -121,7 +121,7 @@ resource "mso_schema_template_bd_subnet" "bd_cfg_mgmt_subnet" {
   bd_name       = mso_schema_template_bd.bd_cfg_mgmt.name
   ip            = "fd00:10:10:69::1/64"
   scope         = "public"
-  shared        = true
+  shared        = false
 }
 
 resource "mso_schema_template_anp_epg" "epg_cfg_mgmt" {
@@ -154,7 +154,7 @@ resource "mso_schema_template_bd_subnet" "bd_mecm_subnet" {
   bd_name       = mso_schema_template_bd.bd_mecm.name
   ip            = "fd00:10:10:ec::1/64"
   scope         = "public"
-  shared        = true
+  shared        = false
 }
 
 resource "mso_schema_template_anp_epg" "epg_mecm" {
@@ -188,7 +188,7 @@ resource "mso_schema_template_bd_subnet" "bd_lb_subnet" {
   bd_name       = mso_schema_template_bd.bd_lb.name
   ip            = "fd00:10:20:1b::1/64"
   scope         = "public"
-  shared        = true
+  shared        = false
 }
 
 resource "mso_schema_template_anp_epg" "epg_lb" {
@@ -221,7 +221,7 @@ resource "mso_schema_template_bd_subnet" "bd_dns_mgmt_subnet" {
   bd_name       = mso_schema_template_bd.bd_dns_mgmt.name
   ip            = "fd00:10:20:53::1/64"
   scope         = "public"
-  shared        = true
+  shared        = false
 }
 
 resource "mso_schema_template_anp_epg" "epg_dns_mgmt" {
@@ -254,7 +254,7 @@ resource "mso_schema_template_bd_subnet" "bd_rcc_dns_subnet" {
   bd_name       = mso_schema_template_bd.bd_rcc_dns.name
   ip            = "fd00:10:20:bd::1/64"
   scope         = "public"
-  shared        = true
+  shared        = false
 }
 
 resource "mso_schema_template_anp_epg" "epg_rcc_dns" {
@@ -287,7 +287,7 @@ resource "mso_schema_template_bd_subnet" "bd_dhcp_svr_subnet" {
   bd_name       = mso_schema_template_bd.bd_dhcp_svr.name
   ip            = "fd00:10:20:d2::1/64"
   scope         = "public"
-  shared        = true
+  shared        = false
 }
 
 resource "mso_schema_template_anp_epg" "epg_dhcp_svr" {
@@ -320,7 +320,7 @@ resource "mso_schema_template_bd_subnet" "bd_smtp_svr_subnet" {
   bd_name       = mso_schema_template_bd.bd_smtp_svr.name
   ip            = "fd00:10:20:d5::1/64"
   scope         = "public"
-  shared        = true
+  shared        = false
 }
 
 resource "mso_schema_template_anp_epg" "epg_smtp_svr" {
@@ -354,7 +354,7 @@ resource "mso_schema_template_bd_subnet" "bd_vvoip_mgmt_subnet" {
   bd_name       = mso_schema_template_bd.bd_vvoip_mgmt.name
   ip            = "fd00:10:30:41::1/64"
   scope         = "public"
-  shared        = true
+  shared        = false
 }
 
 resource "mso_schema_template_anp_epg" "epg_vvoip_mgmt" {
@@ -387,7 +387,7 @@ resource "mso_schema_template_bd_subnet" "bd_vvoip_proxy_subnet" {
   bd_name       = mso_schema_template_bd.bd_vvoip_proxy.name
   ip            = "fd00:10:30:42::1/64"
   scope         = "public"
-  shared        = true
+  shared        = false
 }
 
 resource "mso_schema_template_anp_epg" "epg_vvoip_proxy" {
@@ -420,7 +420,7 @@ resource "mso_schema_template_bd_subnet" "bd_lmr_subnet" {
   bd_name       = mso_schema_template_bd.bd_lmr.name
   ip            = "fd00:10:30:cb::1/64"
   scope         = "public"
-  shared        = true
+  shared        = false
 }
 
 resource "mso_schema_template_anp_epg" "epg_lmr" {
@@ -453,7 +453,7 @@ resource "mso_schema_template_bd_subnet" "bd_e911_svr_subnet" {
   bd_name       = mso_schema_template_bd.bd_e911_svr.name
   ip            = "fd00:10:30:e9::1/64"
   scope         = "public"
-  shared        = true
+  shared        = false
 }
 
 resource "mso_schema_template_anp_epg" "epg_e911_svr" {
@@ -487,7 +487,7 @@ resource "mso_schema_template_bd_subnet" "bd_acas_scanners_subnet" {
   bd_name       = mso_schema_template_bd.bd_acas_scanners.name
   ip            = "fd00:10:40:c0::1/64"
   scope         = "public"
-  shared        = true
+  shared        = false
 }
 
 resource "mso_schema_template_anp_epg" "epg_acas_scanners" {
@@ -520,7 +520,7 @@ resource "mso_schema_template_bd_subnet" "bd_c2c_scanners_subnet" {
   bd_name       = mso_schema_template_bd.bd_c2c_scanners.name
   ip            = "fd00:10:40:c1::1/64"
   scope         = "public"
-  shared        = true
+  shared        = false
 }
 
 resource "mso_schema_template_anp_epg" "epg_c2c_scanners" {
@@ -553,7 +553,7 @@ resource "mso_schema_template_bd_subnet" "bd_ocsp_subnet" {
   bd_name       = mso_schema_template_bd.bd_ocsp.name
   ip            = "fd00:10:40:c5::1/64"
   scope         = "public"
-  shared        = true
+  shared        = false
 }
 
 resource "mso_schema_template_anp_epg" "epg_ocsp" {
@@ -586,7 +586,7 @@ resource "mso_schema_template_bd_subnet" "bd_pki_srv_subnet" {
   bd_name       = mso_schema_template_bd.bd_pki_srv.name
   ip            = "fd00:10:40:ca::1/64"
   scope         = "public"
-  shared        = true
+  shared        = false
 }
 
 resource "mso_schema_template_anp_epg" "epg_pki_srv" {
@@ -620,7 +620,7 @@ resource "mso_schema_template_bd_subnet" "bd_ad_subnet" {
   bd_name       = mso_schema_template_bd.bd_ad.name
   ip            = "fd00:10:50:ad::1/64"
   scope         = "public"
-  shared        = true
+  shared        = false
 }
 
 resource "mso_schema_template_anp_epg" "epg_ad" {
@@ -653,7 +653,7 @@ resource "mso_schema_template_bd_subnet" "bd_adfs_subnet" {
   bd_name       = mso_schema_template_bd.bd_adfs.name
   ip            = "fd00:10:50:af::1/64"
   scope         = "public"
-  shared        = true
+  shared        = false
 }
 
 resource "mso_schema_template_anp_epg" "epg_adfs" {
@@ -687,7 +687,7 @@ resource "mso_schema_template_bd_subnet" "bd_d64_proxy_subnet" {
   bd_name       = mso_schema_template_bd.bd_d64_proxy.name
   ip            = "fd00:10:60:d6::1/64"
   scope         = "public"
-  shared        = true
+  shared        = false
 }
 
 resource "mso_schema_template_anp_epg" "epg_d64_proxy" {
@@ -720,7 +720,7 @@ resource "mso_schema_template_bd_subnet" "bd_rweb_proxy_subnet" {
   bd_name       = mso_schema_template_bd.bd_rweb_proxy.name
   ip            = "fd00:10:60:d7::1/64"
   scope         = "public"
-  shared        = true
+  shared        = false
 }
 
 resource "mso_schema_template_anp_epg" "epg_rweb_proxy" {
@@ -753,7 +753,7 @@ resource "mso_schema_template_bd_subnet" "bd_fweb_proxy_subnet" {
   bd_name       = mso_schema_template_bd.bd_fweb_proxy.name
   ip            = "fd00:10:60:d8::1/64"
   scope         = "public"
-  shared        = true
+  shared        = false
 }
 
 resource "mso_schema_template_anp_epg" "epg_fweb_proxy" {
@@ -787,7 +787,7 @@ resource "mso_schema_template_bd_subnet" "bd_app_svr_subnet" {
   bd_name       = mso_schema_template_bd.bd_app_svr.name
   ip            = "fd00:10:70:e0::1/64"
   scope         = "public"
-  shared        = true
+  shared        = false
 }
 
 resource "mso_schema_template_anp_epg" "epg_app_svr" {
@@ -820,7 +820,7 @@ resource "mso_schema_template_bd_subnet" "bd_web_svr_subnet" {
   bd_name       = mso_schema_template_bd.bd_web_svr.name
   ip            = "fd00:10:70:e4::1/64"
   scope         = "public"
-  shared        = true
+  shared        = false
 }
 
 resource "mso_schema_template_anp_epg" "epg_web_svr" {
@@ -853,7 +853,7 @@ resource "mso_schema_template_bd_subnet" "bd_fmwr_svr_subnet" {
   bd_name       = mso_schema_template_bd.bd_fmwr_svr.name
   ip            = "fd00:10:70:e3::1/64"
   scope         = "public"
-  shared        = true
+  shared        = false
 }
 
 resource "mso_schema_template_anp_epg" "epg_fmwr_svr" {
@@ -887,7 +887,7 @@ resource "mso_schema_template_bd_subnet" "bd_rcc_svr_subnet" {
   bd_name       = mso_schema_template_bd.bd_rcc_svr.name
   ip            = "fd00:10:80:bc::1/64"
   scope         = "public"
-  shared        = true
+  shared        = false
 }
 
 resource "mso_schema_template_anp_epg" "epg_rcc_svr" {
@@ -920,7 +920,7 @@ resource "mso_schema_template_bd_subnet" "bd_rcc_dco_subnet" {
   bd_name       = mso_schema_template_bd.bd_rcc_dco.name
   ip            = "fd00:10:80:be::1/64"
   scope         = "public"
-  shared        = true
+  shared        = false
 }
 
 resource "mso_schema_template_anp_epg" "epg_rcc_dco" {
@@ -953,7 +953,7 @@ resource "mso_schema_template_bd_subnet" "bd_rcc_unix_subnet" {
   bd_name       = mso_schema_template_bd.bd_rcc_unix.name
   ip            = "fd00:10:80:bf::1/64"
   scope         = "public"
-  shared        = true
+  shared        = false
 }
 
 resource "mso_schema_template_anp_epg" "epg_rcc_unix" {
@@ -987,7 +987,7 @@ resource "mso_schema_template_bd_subnet" "bd_print_svr_subnet" {
   bd_name       = mso_schema_template_bd.bd_print_svr.name
   ip            = "fd00:10:90:d0::1/64"
   scope         = "public"
-  shared        = true
+  shared        = false
 }
 
 resource "mso_schema_template_anp_epg" "epg_print_svr" {
@@ -1020,7 +1020,7 @@ resource "mso_schema_template_bd_subnet" "bd_file_svr_subnet" {
   bd_name       = mso_schema_template_bd.bd_file_svr.name
   ip            = "fd00:10:90:d1::1/64"
   scope         = "public"
-  shared        = true
+  shared        = false
 }
 
 resource "mso_schema_template_anp_epg" "epg_file_svr" {
@@ -1552,7 +1552,7 @@ resource "mso_schema_template_bd_subnet" "bd_gef_mgmt_subnet" {
   bd_name       = mso_schema_template_bd.bd_gef_mgmt.name
   ip            = "fd00:10:10:ef::1/64"
   scope         = "public"
-  shared        = true
+  shared        = false
 }
 
 resource "mso_schema_template_anp_epg" "epg_gef_mgmt" {
@@ -1614,7 +1614,7 @@ resource "mso_schema_template_bd_subnet" "bd_backup_svr_k_subnet" {
   bd_name       = mso_schema_template_bd.bd_backup_svr_k.name
   ip            = "fd00:10:90:dd::1/64"
   scope         = "public"
-  shared        = true
+  shared        = false
 }
 
 resource "mso_schema_template_anp_epg" "epg_backup_svr_k" {
@@ -1677,7 +1677,7 @@ resource "mso_schema_template_bd_subnet" "bd_db_svr_subnet" {
   bd_name       = mso_schema_template_bd.bd_db_svr.name
   ip            = "fd00:10:a0:db::1/64"
   scope         = "public"
-  shared        = true
+  shared        = false
 }
 
 resource "mso_schema_template_anp_epg" "epg_db_svr" {
@@ -1712,7 +1712,7 @@ resource "mso_schema_template_bd_subnet" "bd_syslog_subnet" {
   bd_name       = mso_schema_template_bd.bd_syslog.name
   ip            = "fd00:10:a0:d9::1/64"
   scope         = "public"
-  shared        = true
+  shared        = false
 }
 
 resource "mso_schema_template_anp_epg" "epg_syslog" {

@@ -234,7 +234,7 @@ python3 generate_ipv6_bindingsnew.py generate
 # Output: ipv6_rcc_port_bindings.json
 
 # 9. Review generated bindings
-cat ipv6_rcc_port_bindingsnew.json | less
+cat ipv6_rcc_port_bindings.json | less
 
 # Verify no management ports
 grep -E "paths-10[12]|protpaths-101-102" ipv6_rcc_port_bindings.json
