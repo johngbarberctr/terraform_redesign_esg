@@ -1,7 +1,14 @@
 #!/usr/bin/env python3
 """
-NDO IPv6 Binding Generator - Complete VLAN Mapping from Actual Data
-All VLANs extracted from VM deployment spreadsheet
+NDO IPv6 Binding Generator - Production Version
+Complete VLAN Mapping from Actual Data
+CONFIGURED FOR LEAVES 101/102 (111/112 will be done later)
+
+Features:
+- Schema backup before deployment
+- Environment variable support for credentials
+- Dry-run mode
+- Uses original working binding logic
 """
 import requests
 import json
@@ -11,108 +18,143 @@ from collections import defaultdict
 import sys
 import re
 import traceback
+import os
+from datetime import datetime
+from getpass import getpass
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+
 class NDOIPv6BindingGenerator:
-    def __init__(self, ndo_host, username, password, schema_name="AEDCE"):
+    def __init__(self, ndo_host, username, password, schema_name="AEDCE", dry_run=False):
         self.ndo_host = ndo_host
         self.schema_name = schema_name
         self.session = requests.Session()
         self.session.verify = False
+        self.dry_run = dry_run
+        self.backup_file = None
         
         print(f"Initializing connection to {ndo_host}...")
+        if dry_run:
+            print("⚠️  DRY RUN MODE - No changes will be made to NDO")
+        
         self.auth_token = self._authenticate(username, password)
         
         # COMPLETE VLAN mapping from actual VM deployment data
-        # All VLANs verified from spreadsheet
         self.epg_mapping = {
             # Infrastructure Management
             'EPG-NAC': {
                 'reference': 'EPG-V0015', 
-                'vlan': 3021,  # Function 15 → VLAN 3021 ✅ VERIFIED
+                'vlan': 3021,
                 'template': 'L2_Stretched',
                 'function': '15',
                 'subnet': '1500::/56'
             },
             'EPG-CFG-MGMT': {
                 'reference': 'EPG-V0021', 
-                'vlan': 3105,  # Function 69 → VLAN 3105 ✅ VERIFIED
+                'vlan': 3105,
                 'template': 'L2_Stretched',
                 'function': '69',
                 'subnet': '6900::/56'
             },
             'EPG-MECM': {
                 'reference': 'EPG-V0033', 
-                'vlan': 3236,  # Function ec → VLAN 3236 ✅ VERIFIED
+                'vlan': 3236,
                 'template': 'L2_Stretched',
                 'function': 'ec',
                 'subnet': 'ec00::/56'
+            },
+            'EPG-NMS': {
+                'reference': 'EPG-V0015',
+                'vlan': 3001,
+                'template': 'L2_Stretched',
+                'function': '01',
+                'subnet': '0100::/56'
+            },
+            'EPG-VHOST-MGMT': {
+                'reference': 'EPG-V0033',
+                'vlan': 3102,
+                'template': 'L2_Stretched',
+                'function': '66',
+                'subnet': '6600::/56'
+            },
+            'EPG-SYSMAN': {
+                'reference': 'EPG-V0021',
+                'vlan': 3195,
+                'template': 'L2_Stretched',
+                'function': 'c3',
+                'subnet': 'c300::/56'
+            },
+            'EPG-PATCH': {
+                'reference': 'EPG-V0033',
+                'vlan': 3230,
+                'template': 'L2_Stretched',
+                'function': 'e6',
+                'subnet': 'e600::/56'
             },
             
             # Network Services
             'EPG-LB': {
                 'reference': 'EPG-V0210', 
-                'vlan': 3050,  # Function 1b → NOT IN DATA, using safe value
+                'vlan': 3050,
                 'template': 'L2_Stretched',
                 'function': '1b',
                 'subnet': '1b00::/56'
             },
             'EPG-DNS-MGMT': {
                 'reference': 'EPG-V0216', 
-                'vlan': 3083,  # Function 53 → VLAN 3083 ✅ VERIFIED
+                'vlan': 3083,
                 'template': 'L2_Stretched',
                 'function': '53',
                 'subnet': '5300::/56'
             },
             'EPG-RCC-DNS': {
                 'reference': 'EPG-V0218', 
-                'vlan': 3051,  # Function bd → NOT IN DATA, using safe value
+                'vlan': 3051,
                 'template': 'L2_Stretched',
                 'function': 'bd',
                 'subnet': 'bd00::/56'
             },
             'EPG-DHCP-SVR': {
                 'reference': 'EPG-V0219', 
-                'vlan': 3210,  # Function d2 → VLAN 3210 ✅ VERIFIED
+                'vlan': 3210,
                 'template': 'L2_Stretched',
                 'function': 'd2',
                 'subnet': 'd200::/56'
             },
             'EPG-SMTP-SVR': {
                 'reference': 'EPG-V0220', 
-                'vlan': 3213,  # Function d5 → VLAN 3213 ✅ VERIFIED
+                'vlan': 3213,
                 'template': 'L2_Stretched',
                 'function': 'd5',
                 'subnet': 'd500::/56'
             },
             
             # Voice and Communications
-            # ⚠️ ATTENTION: Data shows function 40 (not 41) with VLAN 3064
             'EPG-VVOIP-MGMT': {
                 'reference': 'EPG-V0160', 
-                'vlan': 3064,  # Function 40 → VLAN 3064 ✅ VERIFIED (using data, not function table)
+                'vlan': 3064,
                 'template': 'L2_Stretched',
-                'function': '40',  # NOTE: Function table says 41, but data shows 40
-                'subnet': '4000::/56'  # NOTE: Using 4000, not 4100
+                'function': '40',
+                'subnet': '4000::/56'
             },
             'EPG-VVOIP-PROXY': {
                 'reference': 'EPG-V0161', 
-                'vlan': 3065,  # Function 41 → VLAN 3065 ✅ VERIFIED
+                'vlan': 3065,
                 'template': 'L2_Stretched',
-                'function': '41',  # NOTE: This is 41 in data, table says 42
+                'function': '41',
                 'subnet': '4100::/56'
             },
             'EPG-LMR': {
                 'reference': 'EPG-V0163', 
-                'vlan': 3052,  # Function cb → NOT IN DATA, using safe value
+                'vlan': 3052,
                 'template': 'L2_Stretched',
                 'function': 'cb',
                 'subnet': 'cb00::/56'
             },
             'EPG-E911-SVR': {
                 'reference': 'EPG-V0178', 
-                'vlan': 3053,  # Function e9 → NOT IN DATA, using safe value
+                'vlan': 3053,
                 'template': 'L2_Stretched',
                 'function': 'e9',
                 'subnet': 'e900::/56'
@@ -121,7 +163,7 @@ class NDOIPv6BindingGenerator:
             # Security Services
             'EPG-ACAS-SCANNERS': {
                 'reference': 'EPG-V0140', 
-                'vlan': 3192,  # Function c0 → VLAN 3192 (general type) ✅ VERIFIED
+                'vlan': 3192,
                 'template': 'L2_Stretched',
                 'function': 'c0',
                 'subnet': 'c000::/56',
@@ -129,37 +171,44 @@ class NDOIPv6BindingGenerator:
             },
             'EPG-C2C-SCANNERS': {
                 'reference': 'EPG-V0141', 
-                'vlan': 3442,  # Function c1 → VLAN 3442 ✅ VERIFIED (uses c001 subnet)
+                'vlan': 3442,
                 'template': 'L2_Stretched',
                 'function': 'c1',
                 'subnet': 'c001::/56'
             },
             'EPG-OCSP': {
                 'reference': 'EPG-V0142', 
-                'vlan': 3197,  # Function c5 → VLAN 3197 ✅ VERIFIED
+                'vlan': 3197,
                 'template': 'L2_Stretched',
                 'function': 'c5',
                 'subnet': 'c500::/56'
             },
             'EPG-PKI-SRV': {
                 'reference': 'EPG-V0144', 
-                'vlan': 3054,  # Function ca → NOT IN DATA, using safe value
+                'vlan': 3054,
                 'template': 'L2_Stretched',
                 'function': 'ca',
                 'subnet': 'ca00::/56'
+            },
+            'EPG-ACAS-MGMT': {
+                'reference': 'EPG-V0140',
+                'vlan': 3198,
+                'template': 'L2_Stretched',
+                'function': 'c6',
+                'subnet': 'c600::/56'
             },
             
             # Directory and Authentication
             'EPG-AD': {
                 'reference': 'EPG-V0150', 
-                'vlan': 3173,  # Function ad → VLAN 3173 ✅ VERIFIED
+                'vlan': 3173,
                 'template': 'L2_Stretched',
                 'function': 'ad',
                 'subnet': 'ad00::/56'
             },
             'EPG-ADFS': {
                 'reference': 'EPG-V0160', 
-                'vlan': 3175,  # Function af → VLAN 3175 ✅ VERIFIED
+                'vlan': 3175,
                 'template': 'L2_Stretched',
                 'function': 'af',
                 'subnet': 'af00::/56'
@@ -168,14 +217,14 @@ class NDOIPv6BindingGenerator:
             # Proxy Services
             'EPG-D64-PROXY': {
                 'reference': 'EPG-V0260', 
-                'vlan': 3055,  # Function d6 → NOT IN DATA, using safe value
+                'vlan': 3055,
                 'template': 'L2_Stretched',
                 'function': 'd6',
                 'subnet': 'd600::/56'
             },
             'EPG-RWEB-PROXY': {
                 'reference': 'EPG-V0261', 
-                'vlan': 3056,  # Function d7 → NOT IN DATA, using safe value
+                'vlan': 3056,
                 'template': 'L2_Stretched',
                 'function': 'd7',
                 'subnet': 'd700::/56',
@@ -183,7 +232,7 @@ class NDOIPv6BindingGenerator:
             },
             'EPG-FWEB-PROXY': {
                 'reference': 'EPG-V0262', 
-                'vlan': 3057,  # Function d8 → NOT IN DATA, using safe value
+                'vlan': 3057,
                 'template': 'L2_Stretched',
                 'function': 'd8',
                 'subnet': 'd800::/56',
@@ -193,14 +242,14 @@ class NDOIPv6BindingGenerator:
             # Application and Web Servers
             'EPG-APP-SVR': {
                 'reference': 'EPG-V0420', 
-                'vlan': 3224,  # Function e0 → VLAN 3224 ✅ VERIFIED
+                'vlan': 3224,
                 'template': 'L2_Stretched',
                 'function': 'e0',
                 'subnet': 'e000::/56'
             },
             'EPG-WEB-SVR': {
                 'reference': 'EPG-V0420', 
-                'vlan': 3228,  # Function e4 → VLAN 3228 ✅ VERIFIED
+                'vlan': 3228,
                 'template': 'L2_Stretched',
                 'function': 'e4',
                 'subnet': 'e400::/56',
@@ -208,7 +257,7 @@ class NDOIPv6BindingGenerator:
             },
             'EPG-FMWR-SVR': {
                 'reference': 'EPG-V0450', 
-                'vlan': 3058,  # Function e3 → NOT IN DATA, using safe value
+                'vlan': 3058,
                 'template': 'L2_Stretched',
                 'function': 'e3',
                 'subnet': 'e300::/56'
@@ -217,44 +266,51 @@ class NDOIPv6BindingGenerator:
             # RCC Services
             'EPG-RCC-SVR': {
                 'reference': 'EPG-V0470', 
-                'vlan': 3059,  # Function bc → NOT IN DATA, using safe value
+                'vlan': 3059,
                 'template': 'L2_Stretched',
                 'function': 'bc',
                 'subnet': 'bc00::/56'
             },
             'EPG-RCC-DCO': {
                 'reference': 'EPG-V0471', 
-                'vlan': 3060,  # Function be → NOT IN DATA, using safe value
+                'vlan': 3060,
                 'template': 'L2_Stretched',
                 'function': 'be',
                 'subnet': 'be00::/56'
             },
             'EPG-RCC-UNIX': {
                 'reference': 'EPG-V0472', 
-                'vlan': 3061,  # Function bf → NOT IN DATA, using safe value
+                'vlan': 3061,
                 'template': 'L2_Stretched',
                 'function': 'bf',
                 'subnet': 'bf00::/56'
+            },
+            'EPG-ADM-DCO': {
+                'reference': 'EPG-V0471',
+                'vlan': 3163,
+                'template': 'L2_Stretched',
+                'function': 'a3',
+                'subnet': 'a300::/56'
             },
             
             # Storage Services
             'EPG-PRINT-SVR': {
                 'reference': 'EPG-V0520', 
-                'vlan': 3208,  # Function d0 → VLAN 3208 ✅ VERIFIED
+                'vlan': 3208,
                 'template': 'L2_Stretched',
                 'function': 'd0',
                 'subnet': 'd000::/56'
             },
             'EPG-FILE-SVR': {
                 'reference': 'EPG-V0521', 
-                'vlan': 3209,  # Function d1 → VLAN 3209 ✅ VERIFIED
+                'vlan': 3209,
                 'template': 'L2_Stretched',
                 'function': 'd1',
                 'subnet': 'd100::/56'
             },
             'EPG-BACKUP-SVR': {
                 'reference': 'EPG-V0522', 
-                'vlan': 3221,  # Function dd → VLAN 3221 ✅ VERIFIED
+                'vlan': 3221,
                 'template': 'K-Specific_Only',
                 'function': 'dd',
                 'subnet': 'dd00::/56'
@@ -263,14 +319,14 @@ class NDOIPv6BindingGenerator:
             # Database and Logging
             'EPG-DB-SVR': {
                 'reference': 'EPG-V0570', 
-                'vlan': 3219,  # Function db → VLAN 3219 ✅ VERIFIED
+                'vlan': 3219,
                 'template': 'L2_Non-Stretched',
                 'function': 'db',
                 'subnet': 'db00::/56'
             },
             'EPG-SYSLOG': {
                 'reference': 'EPG-V0572', 
-                'vlan': 3217,  # Function d9 → VLAN 3217 ✅ VERIFIED
+                'vlan': 3217,
                 'template': 'L2_Non-Stretched',
                 'function': 'd9',
                 'subnet': 'd900::/56'
@@ -279,12 +335,19 @@ class NDOIPv6BindingGenerator:
             # G-Specific Only
             'EPG-GEF-MGMT': {
                 'reference': 'EPG-V0260', 
-                'vlan': 3062,  # Function ef → NOT IN DATA, using safe value
+                'vlan': 3062,
                 'template': 'G-Specific_Only',
                 'function': 'ef',
                 'subnet': 'ef00::/56'
             },
         }
+        
+        # Verified VLANs from actual data
+        self.verified_vlans = [
+            3001, 3021, 3064, 3065, 3083, 3102, 3105, 3163, 3173, 3175, 
+            3192, 3195, 3197, 3198, 3208, 3209, 3210, 3213, 3217, 3219, 
+            3221, 3224, 3228, 3230, 3236, 3442
+        ]
         
     def _authenticate(self, username, password):
         """Authenticate and get token"""
@@ -322,6 +385,20 @@ class NDOIPv6BindingGenerator:
         except Exception as e:
             print(f"✗ Error getting schema: {str(e)}")
             raise
+    
+    def backup_schema(self, schema, schema_id):
+        """Backup current schema state before changes"""
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        self.backup_file = f'schema_backup_{schema_id}_{timestamp}.json'
+        
+        try:
+            with open(self.backup_file, 'w') as f:
+                json.dump(schema, f, indent=2)
+            print(f"✓ Schema backed up to: {self.backup_file}")
+            return self.backup_file
+        except Exception as e:
+            print(f"⚠️  Warning: Could not create backup: {str(e)}")
+            return None
     
     def discover_rcc_epgs(self, schema):
         """Auto-discover all RCC EPGs across all templates"""
@@ -367,11 +444,7 @@ class NDOIPv6BindingGenerator:
                             function = mapping['function']
                             subnet = mapping['subnet']
                             
-                            # Check if VLAN is from verified data
-                            verified_vlans = [3021, 3064, 3065, 3083, 3105, 3173, 3175, 3192, 3197, 
-                                            3208, 3209, 3210, 3213, 3217, 3219, 3221, 3224, 3228, 3236, 3442]
-                            status = "✅ DATA" if vlan in verified_vlans else "⚠️ SAFE"
-                            
+                            status = "✅ DATA" if vlan in self.verified_vlans else "⚠️ SAFE"
                             print(f"  {epg_name:<25} {bd_name:<25} {function:<6} {subnet:<18} {vlan:<6} {status}")
                         else:
                             print(f"  {epg_name:<25} {bd_name:<25} {'??':<6} {'??':<18} {'??':<6} ✗ UNMAPPED")
@@ -380,10 +453,10 @@ class NDOIPv6BindingGenerator:
         return sorted(rcc_epgs, key=lambda x: x['epg_name'])
     
     def extract_all_ipv4_bindings(self, schema):
-        """Extract port bindings from ALL IPv4 EPGs (excluding leaves 101/102)"""
+        """Extract port bindings from ALL IPv4 EPGs (excluding leaves 111/112 - will be configured later)"""
         print(f"\n" + "="*80)
         print(f"EXTRACTING ALL IPv4 EPG PORT BINDINGS")
-        print("(Filtering out leaves 101/102)")
+        print("(Filtering out leaves 111/112 - will be configured later)")
         print("="*80)
         
         try:
@@ -392,7 +465,7 @@ class NDOIPv6BindingGenerator:
             sites_map = {site['id']: site['name'] for site in sites_response.json()['sites']}
             
             all_bindings = defaultdict(list)
-            skipped_101_102 = 0
+            skipped_111_112 = 0
             
             sites = schema.get('sites', [])
             print(f"Scanning {len(sites)} site/template deployment combinations...")
@@ -416,9 +489,9 @@ class NDOIPv6BindingGenerator:
                                 for port in static_ports:
                                     path = port.get('path', '')
                                     
-                                    # Skip bindings on leaves 101/102
-                                    if re.search(r'/(?:paths|protpaths)-10[12](?:/|-10[12])', path):
-                                        skipped_101_102 += 1
+                                    # Skip bindings on leaves 111/112 (will configure later)
+                                    if re.search(r'/(?:paths|protpaths)-11[12](?:/|-11[12])', path):
+                                        skipped_111_112 += 1
                                         continue
                                     
                                     binding = {
@@ -432,7 +505,7 @@ class NDOIPv6BindingGenerator:
             
             print(f"✓ Physical sites: {sorted(unique_sites)}")
             print(f"✓ Found bindings for {len(all_bindings)} IPv4 EPGs")
-            print(f"✓ Skipped {skipped_101_102} bindings on leaves 101/102")
+            print(f"✓ Skipped {skipped_111_112} bindings on leaves 111/112 (will be configured later)")
             
             # Show reference EPGs
             print("\nReference EPG Status:")
@@ -451,33 +524,33 @@ class NDOIPv6BindingGenerator:
             return {}
     
     def _get_default_bindings(self):
-        """Provide default port bindings (VPC only, no leaves 101/102)"""
+        """Provide default port bindings (VPC only, leaves 101/102)"""
         return [
             {
                 'site': 'APIC1',
                 'type': 'vpc',
-                'path': 'topology/pod-1/protpaths-111-112/pathep-[VPC_D1A-B]',
+                'path': 'topology/pod-1/protpaths-101-102/pathep-[VPC_D1A-B]',
                 'deployment_immediacy': 'immediate',
                 'mode': 'regular'
             },
             {
                 'site': 'APIC1',
                 'type': 'vpc',
-                'path': 'topology/pod-1/protpaths-111-112/pathep-[VPC_D2A-B]',
+                'path': 'topology/pod-1/protpaths-101-102/pathep-[VPC_D2A-B]',
                 'deployment_immediacy': 'immediate',
                 'mode': 'regular'
             },
             {
                 'site': 'APIC2',
                 'type': 'vpc',
-                'path': 'topology/pod-1/protpaths-111-112/pathep-[VPC_D1A-B]',
+                'path': 'topology/pod-1/protpaths-101-102/pathep-[VPC_D1A-B]',
                 'deployment_immediacy': 'immediate',
                 'mode': 'regular'
             },
             {
                 'site': 'APIC2',
                 'type': 'vpc',
-                'path': 'topology/pod-1/protpaths-111-112/pathep-[VPC_D2A-B]',
+                'path': 'topology/pod-1/protpaths-101-102/pathep-[VPC_D2A-B]',
                 'deployment_immediacy': 'immediate',
                 'mode': 'regular'
             }
@@ -487,6 +560,7 @@ class NDOIPv6BindingGenerator:
         """Generate IPv6 bindings with VERIFIED VLANs"""
         print("\n" + "="*80)
         print("GENERATING IPv6 BINDINGS - USING VERIFIED VLANs FROM ACTUAL DATA")
+        print("CONFIGURED FOR LEAVES 101/102 ONLY")
         print("="*80)
         
         ipv6_bindings = []
@@ -518,9 +592,7 @@ class NDOIPv6BindingGenerator:
                 vlan_assignments[vlan] = epg_name
                 
                 public_flag = " [PUBLIC]" if is_public else ""
-                verified_vlans = [3021, 3064, 3065, 3083, 3105, 3173, 3175, 3192, 3197, 
-                                3208, 3209, 3210, 3213, 3217, 3219, 3221, 3224, 3228, 3236, 3442]
-                vlan_status = "✅ VERIFIED" if vlan in verified_vlans else "⚠️ ASSIGNED (not in data)"
+                vlan_status = "✅ VERIFIED" if vlan in self.verified_vlans else "⚠️ ASSIGNED (not in data)"
                 
                 print(f"\n{epg_name} - {vlan_status}{public_flag}")
                 print(f"  Function: {function} | VLAN: {vlan} | Subnet: {subnet}")
@@ -534,7 +606,7 @@ class NDOIPv6BindingGenerator:
                     ports_to_use = all_ipv4_bindings[reference_epg]
                     print(f"  ✓ Using {len(ports_to_use)} port bindings from {reference_epg}")
                 else:
-                    print(f"  ⚠️  Reference EPG not found, using defaults")
+                    print(f"  ⚠️  Reference EPG not found, using defaults (leaves 101/102)")
                     ports_to_use = self._get_default_bindings()
             else:
                 # Unmapped EPG
@@ -576,8 +648,8 @@ class NDOIPv6BindingGenerator:
                 'ipv6_subnet': subnet,
                 'reference_epg': reference_epg if epg_name in self.epg_mapping else 'default',
                 'is_public': is_public if epg_name in self.epg_mapping else False,
-                'verified_from_data': vlan in [3021, 3064, 3065, 3083, 3105, 3173, 3175, 3192, 3197, 
-                                              3208, 3209, 3210, 3213, 3217, 3219, 3221, 3224, 3228, 3236, 3442],
+                'verified_from_data': vlan in self.verified_vlans,
+                'leaf_pair': '101-102',
                 'ports': []
             }
             
@@ -643,8 +715,10 @@ class NDOIPv6BindingGenerator:
                 for port in epg['ports']:
                     by_site[port['site']] += 1
             
-            print(f"\n📊 DEPLOYMENT SUMMARY")
+            print(f"\n📊 DEPLOYMENT SUMMARY - LEAVES 101/102")
             print(f"{'='*80}")
+            print(f"  Target Leaf Pair: 101-102")
+            print(f"  Leaves 111-112: SKIPPED (will be configured later)")
             print(f"  Total EPGs: {len(bindings)}")
             print(f"  Total Port Bindings: {total_ports}")
             print(f"  VLAN Range: {min(vlans_used)} - {max(vlans_used)}")
@@ -689,24 +763,35 @@ class NDOIPv6BindingGenerator:
                 print(f"  Please verify these VLANs don't conflict with your network:")
                 for epg in unverified:
                     print(f"    - {epg['epg_name']}: VLAN {epg['vlan']} (Function: {epg['function_code']})")
+            
+            # Reminder about 111/112
+            print(f"\n  📝 REMINDER: Leaves 111/112 need to be configured separately")
+            print(f"     Run this script again with modified settings for 111/112 when ready")
                 
         except Exception as e:
             print(f"✗ Error saving file: {str(e)}")
             raise
     
     def deploy_bindings(self, bindings):
-        """Deploy IPv6 bindings to NDO"""
+        """Deploy IPv6 bindings to NDO - ORIGINAL WORKING LOGIC"""
         print("\n" + "="*80)
-        print("DEPLOYING IPv6 BINDINGS TO NDO")
+        print("DEPLOYING IPv6 BINDINGS TO NDO - LEAVES 101/102 ONLY")
         print("="*80)
+        
+        if self.dry_run:
+            print("\n⚠️  DRY RUN MODE - Simulating deployment (no changes will be made)")
         
         try:
             schema_id = self.get_schema_id()
             schema_url = f"https://{self.ndo_host}/api/v1/schemas/{schema_id}"
             
+            # Fetch fresh schema - EXACTLY LIKE ORIGINAL
             response = self.session.get(schema_url)
             response.raise_for_status()
             schema = response.json()
+            
+            # Backup current state
+            self.backup_schema(schema, schema_id)
             
             epg_cache = self._build_epg_cache(schema)
             print(f"✓ Cached {len(epg_cache)} EPG locations")
@@ -735,6 +820,7 @@ class NDOIPv6BindingGenerator:
                             "mode": port['mode']
                         }
                         
+                        # NO DUPLICATE CHECK - MATCHES ORIGINAL WORKING SCRIPT
                         patch = {
                             "op": "add",
                             "path": f"/sites/{cache_entry['site_idx']}/anps/{cache_entry['anp_idx']}/epgs/{cache_entry['epg_idx']}/staticPorts/-",
@@ -759,13 +845,24 @@ class NDOIPv6BindingGenerator:
             
             print(f"\n✓ Ready to deploy {len(all_patches)} port bindings")
             
-            # Deploy in batches
+            # DRY RUN - show what would be deployed
+            if self.dry_run:
+                print("\n📋 DRY RUN - Patches that would be applied:")
+                for i, patch in enumerate(all_patches[:10]):
+                    print(f"  {i+1}. Path: {patch['value']['path']}")
+                    print(f"      Type: {patch['value']['type']}, VLAN: {patch['value']['portEncapVlan']}")
+                if len(all_patches) > 10:
+                    print(f"  ... and {len(all_patches) - 10} more patches")
+                print(f"\n✓ Dry run complete. {len(all_patches)} patches would be applied.")
+                return
+            
+            # Deploy in batches - EXACTLY LIKE ORIGINAL
             batch_size = 50
             successful = 0
             failed = 0
             start_time = time.time()
             
-            print("\n🚀 Deploying...")
+            print("\n🚀 Deploying to leaves 101/102...")
             for i in range(0, len(all_patches), batch_size):
                 batch = all_patches[i:i + batch_size]
                 batch_num = i // batch_size + 1
@@ -793,6 +890,8 @@ class NDOIPv6BindingGenerator:
             
             print("\n" + "="*80)
             print(f"✅ DEPLOYMENT COMPLETE in {end_time - start_time:.1f} seconds")
+            print(f"   Configured: Leaves 101/102")
+            print(f"   Pending: Leaves 111/112 (run script again when ready)")
             print("="*80)
             print(f"  ✓ Successful: {successful} bindings")
             if failed > 0:
@@ -800,11 +899,13 @@ class NDOIPv6BindingGenerator:
                 
         except Exception as e:
             print(f"\n✗ Deployment error: {str(e)}")
+            if self.backup_file:
+                print(f"💾 Restore from backup: {self.backup_file}")
             traceback.print_exc()
             raise
     
     def _build_epg_cache(self, schema):
-        """Build cache of EPG locations in schema"""
+        """Build cache of EPG locations in schema - EXACTLY LIKE ORIGINAL"""
         epg_cache = {}
         
         sites_response = self.session.get(f"https://{self.ndo_host}/api/v1/sites")
@@ -831,28 +932,62 @@ class NDOIPv6BindingGenerator:
         
         return epg_cache
 
-def main():
-    # Configuration
-    NDO_HOST = "198.18.133.100"
-    NDO_USER = "admin"
-    NDO_PASSWORD = "C1sco12345"
-    SCHEMA_NAME = "AEDCE"
+
+def get_credentials():
+    """Get credentials from environment variables or prompt"""
+    ndo_host = os.environ.get('NDO_HOST')
+    ndo_user = os.environ.get('NDO_USER')
+    ndo_password = os.environ.get('NDO_PASSWORD')
     
+    if not ndo_host:
+        ndo_host = input("Enter NDO host IP/hostname [198.18.133.100]: ").strip()
+        if not ndo_host:
+            ndo_host = "198.18.133.100"
+    
+    if not ndo_user:
+        ndo_user = input("Enter NDO username [admin]: ").strip()
+        if not ndo_user:
+            ndo_user = "admin"
+    
+    if not ndo_password:
+        ndo_password = getpass("Enter NDO password: ")
+    
+    return ndo_host, ndo_user, ndo_password
+
+
+def main():
+    # Parse arguments
     mode = sys.argv[1] if len(sys.argv) > 1 else "both"
+    
+    # Schema name
+    schema_name = os.environ.get('NDO_SCHEMA', 'AEDCE')
     
     print("="*80)
     print("NDO IPv6 RCC BINDING GENERATOR - VERIFIED VLAN ASSIGNMENTS")
+    print("CONFIGURED FOR LEAVES 101/102 (111/112 will be done later)")
     print("All VLANs extracted from actual VM deployment data")
     print("="*80)
-    print(f"NDO Host: {NDO_HOST}")
-    print(f"Schema: {SCHEMA_NAME}")
-    print(f"Mode: {mode}")
+    
+    # Get credentials
+    try:
+        ndo_host, ndo_user, ndo_password = get_credentials()
+    except KeyboardInterrupt:
+        print("\n\nCancelled by user")
+        sys.exit(0)
+    
+    print(f"\nConfiguration:")
+    print(f"  NDO Host: {ndo_host}")
+    print(f"  Schema: {schema_name}")
+    print(f"  Mode: {mode}")
+    print(f"  Target Leaves: 101/102")
+    print(f"  Skipped Leaves: 111/112 (pending)")
     print("="*80)
     
+    dry_run = mode == 'dry-run'
     start_time = time.time()
     
     try:
-        generator = NDOIPv6BindingGenerator(NDO_HOST, NDO_USER, NDO_PASSWORD, SCHEMA_NAME)
+        generator = NDOIPv6BindingGenerator(ndo_host, ndo_user, ndo_password, schema_name, dry_run=dry_run)
         
         # Get schema
         print("\nFetching schema...")
@@ -870,34 +1005,54 @@ def main():
             print("Run 'terraform apply' first.")
             sys.exit(1)
         
-        # Extract ALL IPv4 bindings
+        # Extract ALL IPv4 bindings (excluding 111/112)
         all_ipv4_bindings = generator.extract_all_ipv4_bindings(schema)
         
         if not all_ipv4_bindings:
-            print("\n⚠️  No IPv4 bindings found, using defaults for all EPGs")
+            print("\n⚠️  No IPv4 bindings found, using defaults for all EPGs (leaves 101/102)")
         
         # Generate IPv6 bindings
         ipv6_bindings = generator.generate_ipv6_bindings(rcc_epgs, all_ipv4_bindings)
         
         # Save to file
-        generator.save_bindings_to_file(ipv6_bindings, 'ipv6_rcc_port_bindings.json')
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        output_file = f'ipv6_rcc_port_bindings_101_102_{timestamp}.json'
+        generator.save_bindings_to_file(ipv6_bindings, output_file)
         
         # Deploy if requested
-        if mode in ['deploy', 'both']:
+        if mode in ['deploy', 'dry-run', 'both']:
             print("\n" + "="*80)
-            user_input = input("\n🚀 Deploy bindings to NDO now? (yes/no): ")
-            if user_input.lower() == 'yes':
+            
+            if dry_run:
+                print("🔍 DRY RUN MODE - Simulating deployment...")
                 generator.deploy_bindings(ipv6_bindings)
             else:
-                print("\n✓ Bindings saved to file only. No changes made to NDO.")
+                user_input = input("\n🚀 Deploy bindings to NDO now? (leaves 101/102 only) (yes/no): ")
+                if user_input.lower() == 'yes':
+                    generator.deploy_bindings(ipv6_bindings)
+                else:
+                    print("\n✓ Bindings saved to file only. No changes made to NDO.")
         
         end_time = time.time()
         print(f"\n✅ Total execution time: {end_time - start_time:.1f} seconds")
+        print(f"\n📝 NEXT STEPS:")
+        print(f"   1. Verify configuration on leaves 101/102")
+        print(f"   2. When ready for leaves 111/112, update the script:")
+        print(f"      - Change regex filter from 11[12] to 10[12]")
+        print(f"      - Change default bindings from 101-102 to 111-112")
+        print(f"      - Run the script again")
         
+        if generator.backup_file:
+            print(f"\n💾 Schema backup: {generator.backup_file}")
+        
+    except KeyboardInterrupt:
+        print("\n\n⚠️  Operation cancelled by user")
+        sys.exit(1)
     except Exception as e:
         print(f"\n✗ FATAL ERROR: {str(e)}")
         traceback.print_exc()
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()
