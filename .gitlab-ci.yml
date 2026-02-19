@@ -1,0 +1,233 @@
+---
+image: danischm/nac:0.2.0
+stages:
+  - validate
+  - plan
+  - deploy
+
+variables:
+  GIT_SSL_NO_VERIFY: "true"
+
+  NDO_USERNAME:
+    description: "Cisco NDO Username"
+  NDO_PASSWORD:
+    description: "Cisco NDO Password"
+  NDO_URL:
+    description: "Cisco NDO URL"
+  APIC_USERNAME:
+    description: "Cisco APIC Username"
+  APIC_PASSWORD:
+    description: "Cisco APIC Password"
+  APIC_URL:
+    description: "Cisco APIC URL"
+  GITLAB_TOKEN:
+    description: "User Access Token for MR comments"
+  TF_HTTP_USERNAME:
+    description: "GitLab Username"
+  TF_HTTP_PASSWORD:
+    description: "GitLab Access Token"
+  GITLAB_API_URL:
+    description: "GitLab API v4 root URL"
+    value: "${CI_API_V4_URL}"
+
+  TF_HTTP_ADDRESS_NDO:
+    value: "${GITLAB_API_URL}/projects/${CI_PROJECT_ID}/terraform/state/ndo-terraform"
+  TF_HTTP_ADDRESS_ACI:
+    value: "${GITLAB_API_URL}/projects/${CI_PROJECT_ID}/terraform/state/aci-redesign"
+
+# ============================================
+# NDO-TERRAFORM JOBS
+# ============================================
+validate-ndo:
+  stage: validate
+  script:
+    - cd ndo-terraform
+    - terraform fmt -check
+  cache: []
+  rules:
+    - if: $CI_COMMIT_TAG == null
+      changes:
+        - ndo-terraform/**/*
+
+plan-ndo:
+  stage: plan
+  resource_group: ndo
+  variables:
+    TF_HTTP_ADDRESS: "${TF_HTTP_ADDRESS_NDO}"
+    TF_HTTP_LOCK_ADDRESS: "${TF_HTTP_ADDRESS_NDO}/lock"
+    TF_HTTP_LOCK_METHOD: POST
+    TF_HTTP_UNLOCK_ADDRESS: "${TF_HTTP_ADDRESS_NDO}/lock"
+    TF_HTTP_UNLOCK_METHOD: DELETE
+    TF_VAR_ndo_username: "${NDO_USERNAME}"
+    TF_VAR_ndo_password: "${NDO_PASSWORD}"
+    TF_VAR_ndo_url: "${NDO_URL}"
+  script:
+    - cd ndo-terraform
+    - terraform init -input=false
+    - terraform plan -out=plan.tfplan -input=false
+    - terraform show -no-color plan.tfplan > plan.txt
+    - terraform show -json plan.tfplan | jq > plan.json
+    - terraform show -json plan.tfplan | jq '([.resource_changes[]?.change.actions?]|flatten)|{"create":(map(select(.=="create"))|length),"update":(map(select(.=="update"))|length),"delete":(map(select(.=="delete"))|length)}' > plan_gitlab.json
+  artifacts:
+    paths:
+      - ndo-terraform/plan.json
+      - ndo-terraform/plan.txt
+      - ndo-terraform/plan.tfplan
+      - ndo-terraform/plan_gitlab.json
+    reports:
+      terraform: ndo-terraform/plan_gitlab.json
+  needs:
+    - validate-ndo
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - ndo-terraform/**/*
+    - if: $CI_COMMIT_BRANCH == "main"
+      changes:
+        - ndo-terraform/**/*
+
+deploy-ndo:
+  stage: deploy
+  resource_group: ndo
+  variables:
+    TF_HTTP_ADDRESS: "${TF_HTTP_ADDRESS_NDO}"
+    TF_HTTP_LOCK_ADDRESS: "${TF_HTTP_ADDRESS_NDO}/lock"
+    TF_HTTP_LOCK_METHOD: POST
+    TF_HTTP_UNLOCK_ADDRESS: "${TF_HTTP_ADDRESS_NDO}/lock"
+    TF_HTTP_UNLOCK_METHOD: DELETE
+    TF_VAR_ndo_username: "${NDO_USERNAME}"
+    TF_VAR_ndo_password: "${NDO_PASSWORD}"
+    TF_VAR_ndo_url: "${NDO_URL}"
+  script:
+    - cd ndo-terraform
+    - terraform init -input=false
+    - terraform apply -input=false -auto-approve plan.tfplan
+  dependencies:
+    - plan-ndo
+  needs:
+    - plan-ndo
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      changes:
+        - ndo-terraform/**/*
+
+destroy-ndo:
+  stage: deploy
+  resource_group: ndo
+  variables:
+    TF_HTTP_ADDRESS: "${TF_HTTP_ADDRESS_NDO}"
+    TF_HTTP_LOCK_ADDRESS: "${TF_HTTP_ADDRESS_NDO}/lock"
+    TF_HTTP_LOCK_METHOD: POST
+    TF_HTTP_UNLOCK_ADDRESS: "${TF_HTTP_ADDRESS_NDO}/lock"
+    TF_HTTP_UNLOCK_METHOD: DELETE
+    TF_VAR_ndo_username: "${NDO_USERNAME}"
+    TF_VAR_ndo_password: "${NDO_PASSWORD}"
+    TF_VAR_ndo_url: "${NDO_URL}"
+  script:
+    - cd ndo-terraform
+    - terraform init -input=false
+    - terraform plan -destroy -out=destroy.tfplan -input=false
+    - terraform apply -input=false -auto-approve destroy.tfplan
+  when: manual
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+
+# ============================================
+# ACI-REDESIGN JOBS
+# ============================================
+validate-aci:
+  stage: validate
+  script:
+    - cd aci-redesign/apic-vmware
+    - terraform fmt -check
+  cache: []
+  rules:
+    - if: $CI_COMMIT_TAG == null
+      changes:
+        - aci-redesign/**/*
+
+plan-aci:
+  stage: plan
+  resource_group: aci
+  variables:
+    TF_HTTP_ADDRESS: "${TF_HTTP_ADDRESS_ACI}"
+    TF_HTTP_LOCK_ADDRESS: "${TF_HTTP_ADDRESS_ACI}/lock"
+    TF_HTTP_LOCK_METHOD: POST
+    TF_HTTP_UNLOCK_ADDRESS: "${TF_HTTP_ADDRESS_ACI}/lock"
+    TF_HTTP_UNLOCK_METHOD: DELETE
+    TF_VAR_apic_url: "${APIC_URL}"
+    TF_VAR_apic_username: "${APIC_USERNAME}"
+    TF_VAR_apic_password: "${APIC_PASSWORD}"
+    TF_VAR_apic_insecure: "true"
+  script:
+    - cd aci-redesign/apic-vmware
+    - terraform init -input=false
+    - terraform plan -out=plan.tfplan -input=false
+    - terraform show -no-color plan.tfplan > plan.txt
+    - terraform show -json plan.tfplan | jq > plan.json
+    - terraform show -json plan.tfplan | jq '([.resource_changes[]?.change.actions?]|flatten)|{"create":(map(select(.=="create"))|length),"update":(map(select(.=="update"))|length),"delete":(map(select(.=="delete"))|length)}' > plan_gitlab.json
+  artifacts:
+    paths:
+      - aci-redesign/apic-vmware/plan.json
+      - aci-redesign/apic-vmware/plan.txt
+      - aci-redesign/apic-vmware/plan.tfplan
+      - aci-redesign/apic-vmware/plan_gitlab.json
+    reports:
+      terraform: aci-redesign/apic-vmware/plan_gitlab.json
+  needs:
+    - validate-aci
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - aci-redesign/**/*
+    - if: $CI_COMMIT_BRANCH == "main"
+      changes:
+        - aci-redesign/**/*
+
+deploy-aci:
+  stage: deploy
+  resource_group: aci
+  variables:
+    TF_HTTP_ADDRESS: "${TF_HTTP_ADDRESS_ACI}"
+    TF_HTTP_LOCK_ADDRESS: "${TF_HTTP_ADDRESS_ACI}/lock"
+    TF_HTTP_LOCK_METHOD: POST
+    TF_HTTP_UNLOCK_ADDRESS: "${TF_HTTP_ADDRESS_ACI}/lock"
+    TF_HTTP_UNLOCK_METHOD: DELETE
+    TF_VAR_apic_url: "${APIC_URL}"
+    TF_VAR_apic_username: "${APIC_USERNAME}"
+    TF_VAR_apic_password: "${APIC_PASSWORD}"
+    TF_VAR_apic_insecure: "true"
+  script:
+    - cd aci-redesign/apic-vmware
+    - terraform init -input=false
+    - terraform apply -input=false -auto-approve plan.tfplan
+  dependencies:
+    - plan-aci
+  needs:
+    - plan-aci
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      changes:
+        - aci-redesign/**/*
+
+destroy-aci:
+  stage: deploy
+  resource_group: aci
+  variables:
+    TF_HTTP_ADDRESS: "${TF_HTTP_ADDRESS_ACI}"
+    TF_HTTP_LOCK_ADDRESS: "${TF_HTTP_ADDRESS_ACI}/lock"
+    TF_HTTP_LOCK_METHOD: POST
+    TF_HTTP_UNLOCK_ADDRESS: "${TF_HTTP_ADDRESS_ACI}/lock"
+    TF_HTTP_UNLOCK_METHOD: DELETE
+    TF_VAR_apic_url: "${APIC_URL}"
+    TF_VAR_apic_username: "${APIC_USERNAME}"
+    TF_VAR_apic_password: "${APIC_PASSWORD}"
+    TF_VAR_apic_insecure: "true"
+  script:
+    - cd aci-redesign/apic-vmware
+    - terraform init -input=false
+    - terraform plan -destroy -out=destroy.tfplan -input=false
+    - terraform apply -input=false -auto-approve destroy.tfplan
+  when: manual
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
