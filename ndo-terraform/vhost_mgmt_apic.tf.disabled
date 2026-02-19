@@ -1,0 +1,401 @@
+# ============================================================================
+# APIC-SPECIFIC L3OUT CONFIGURATION - VHOST-MGMT
+# ============================================================================
+# This file configures the site-level L3Out details directly on APIC
+# using the ACI Terraform provider.
+#
+# Prerequisites:
+#   - L3Outs must be deployed from NDO first (via vhost_mgmt.tf)
+#   - APIC credentials configured
+#   - ACI provider added to main.tf required_providers block
+#
+# Placeholder values (modify as needed):
+#   - VLAN: 3500
+#   - Site G IPs: fd00:66:1::1/64, fd00:66:1::2/64
+#   - Site K IPs: fd00:66:2::1/64, fd00:66:2::2/64
+#   - Nodes: 101, 102
+#   - Ports: VPC_D1A-B, VPC_D2A-B
+#
+# ============================================================================
+# DEPLOYMENT ORDER:
+#   1. First: Deploy NDO resources (terraform apply) - with this file commented
+#   2. Wait for NDO to push L3Outs to APIC
+#   3. Then: Uncomment the resources below and run terraform apply again
+# ============================================================================
+
+# ============================================================================
+# VARIABLES
+# ============================================================================
+
+variable "apic_g_url" {
+  description = "APIC URL for Site G (Grafenwoehr)"
+  type        = string
+  default     = "https://198.18.133.11"  # Change this
+}
+
+variable "apic_k_url" {
+  description = "APIC URL for Site K (Kaiserslautern)"
+  type        = string
+  default     = "https://198.18.133.12"  # Change this
+}
+
+variable "apic_username" {
+  description = "APIC username"
+  type        = string
+  default     = "admin"
+}
+
+variable "apic_password" {
+  description = "APIC password"
+  type        = string
+  sensitive   = true
+  default     = ""  # Set in terraform.tfvars
+}
+
+variable "tenant_name" {
+  description = "Tenant name"
+  type        = string
+  default     = "EUR"
+}
+
+variable "l3out_vlan" {
+  description = "VLAN for L3Out SVI"
+  type        = number
+  default     = 3500  # Change this
+}
+
+# ============================================================================
+# OSPF VARIABLES
+# ============================================================================
+
+variable "ospf_area_id" {
+  description = "OSPF Area ID"
+  type        = string
+  default     = "0.0.0.66"  # Change this - Area ID for VHOST-MGMT
+}
+
+variable "ospf_area_type" {
+  description = "OSPF Area Type (regular, stub, nssa)"
+  type        = string
+  default     = "regular"
+}
+
+variable "ospf_area_cost" {
+  description = "OSPF Area Cost"
+  type        = number
+  default     = 1
+}
+
+variable "ospf_hello_interval" {
+  description = "OSPF Hello Interval in seconds"
+  type        = number
+  default     = 10
+}
+
+variable "ospf_dead_interval" {
+  description = "OSPF Dead Interval in seconds"
+  type        = number
+  default     = 40
+}
+
+variable "ospf_network_type" {
+  description = "OSPF Network Type (bcast, p2p)"
+  type        = string
+  default     = "bcast"  # broadcast for SVI
+}
+
+# ============================================================================
+# PROVIDERS - Separate provider for each APIC
+# ============================================================================
+# NOTE: Providers are always needed even when resources are commented out
+
+provider "aci" {
+  alias    = "apic_g"
+  username = var.apic_username
+  password = var.apic_password
+  url      = var.apic_g_url
+  insecure = true
+}
+
+provider "aci" {
+  alias    = "apic_k"
+  username = var.apic_username
+  password = var.apic_password
+  url      = var.apic_k_url
+  insecure = true
+}
+
+# ============================================================================
+# ⚠️  UNCOMMENT THE RESOURCES BELOW AFTER NDO L3OUTS ARE DEPLOYED
+# ============================================================================
+# To uncomment: Remove the /* at line 94 and */ at line 267
+# ============================================================================
+
+/*
+# ============================================================================
+# SITE G (AEDCG / Grafenwoehr) - L3OUT CONFIGURATION
+# ============================================================================
+
+# Data source to reference existing L3Out (deployed from NDO)
+data "aci_l3_outside" "l3out-G_VHOST-MGMT" {
+  provider   = aci.apic_g
+  tenant_dn  = "uni/tn-${var.tenant_name}"
+  name       = "L3Out-G_VHOST-MGMT"
+}
+
+# OSPF External Policy for Site G L3Out
+resource "aci_l3out_ospf_external_policy" "l3out-G_VHOST-MGMT_ospf" {
+  provider      = aci.apic_g
+  l3_outside_dn = data.aci_l3_outside.l3out-G_VHOST-MGMT.id
+  area_cost     = var.ospf_area_cost
+  area_ctrl     = ["redistribute", "summary"]
+  area_id       = var.ospf_area_id
+  area_type     = var.ospf_area_type
+}
+
+# Node Profile for Site G
+resource "aci_logical_node_profile" "l3out-G_VHOST-MGMT_node_profile" {
+  provider   = aci.apic_g
+  l3_outside_dn = data.aci_l3_outside.l3out-G_VHOST-MGMT.id
+  name          = "NodeProfile-VHOST-MGMT-G"
+  description   = "Node profile for VHOST-MGMT L3Out - Site G"
+}
+
+# Node association - Leaf 101
+resource "aci_logical_node_to_fabric_node" "l3out-G_VHOST-MGMT_node_101" {
+  provider                  = aci.apic_g
+  logical_node_profile_dn   = aci_logical_node_profile.l3out-G_VHOST-MGMT_node_profile.id
+  tdn                       = "topology/pod-1/node-101"
+  rtr_id                    = "10.66.1.101"  # Change this - Router ID for node 101
+  rtr_id_loop_back          = "yes"
+}
+
+# Node association - Leaf 102
+resource "aci_logical_node_to_fabric_node" "l3out-G_VHOST-MGMT_node_102" {
+  provider                  = aci.apic_g
+  logical_node_profile_dn   = aci_logical_node_profile.l3out-G_VHOST-MGMT_node_profile.id
+  tdn                       = "topology/pod-1/node-102"
+  rtr_id                    = "10.66.1.102"  # Change this - Router ID for node 102
+  rtr_id_loop_back          = "yes"
+}
+
+# Logical Interface Profile for Site G
+resource "aci_logical_interface_profile" "l3out-G_VHOST-MGMT_int_profile" {
+  provider                  = aci.apic_g
+  logical_node_profile_dn   = aci_logical_node_profile.l3out-G_VHOST-MGMT_node_profile.id
+  name                      = "IntProfile-VHOST-MGMT-G"
+  description               = "Interface profile for VHOST-MGMT L3Out - Site G - SVI"
+}
+
+# OSPF Interface Profile for Site G
+resource "aci_l3out_ospf_interface_profile" "l3out-G_VHOST-MGMT_ospf_int" {
+  provider                     = aci.apic_g
+  logical_interface_profile_dn = aci_logical_interface_profile.l3out-G_VHOST-MGMT_int_profile.id
+  auth_key                     = ""
+  auth_key_id                  = "1"
+  auth_type                    = "none"
+  description                  = "OSPF Interface Profile for VHOST-MGMT - Site G"
+  
+  relation_ospf_rs_if_pol      = ""  # Use default OSPF interface policy or specify custom one
+}
+
+# SVI Path Attachment - VPC_D1A-B (Site G)
+resource "aci_l3out_path_attachment" "l3out-G_VHOST-MGMT_svi_vpc1" {
+  provider                     = aci.apic_g
+  logical_interface_profile_dn = aci_logical_interface_profile.l3out-G_VHOST-MGMT_int_profile.id
+  target_dn                    = "topology/pod-1/protpaths-101-102/pathep-[VPC_D1A-B]"
+  if_inst_t                    = "ext-svi"
+  encap                        = "vlan-${var.l3out_vlan}"
+  addr                         = "fd00:66:1::1/64"  # Primary IPv6 address for VPC_D1A-B
+  mode                         = "regular"
+  mtu                          = "inherit"
+}
+
+# Secondary IPs for VPC member-specific addresses (optional)
+# Uncomment and modify if you need separate IPs for each VPC member
+# resource "aci_l3out_path_attachment_secondary_ip" "l3out-G_VHOST-MGMT_svi_vpc1_ip_a" {
+#   provider                  = aci.apic_g
+#   l3out_path_attachment_dn  = aci_l3out_path_attachment.l3out-G_VHOST-MGMT_svi_vpc1.id
+#   addr                      = "fd00:66:1::10/64"  # Side A IP (different from primary)
+#   ipv6_dad                  = "enabled"
+# }
+
+# SVI Path Attachment - VPC_D2A-B (Site G)
+resource "aci_l3out_path_attachment" "l3out-G_VHOST-MGMT_svi_vpc2" {
+  provider                     = aci.apic_g
+  logical_interface_profile_dn = aci_logical_interface_profile.l3out-G_VHOST-MGMT_int_profile.id
+  target_dn                    = "topology/pod-1/protpaths-101-102/pathep-[VPC_D2A-B]"
+  if_inst_t                    = "ext-svi"
+  encap                        = "vlan-${var.l3out_vlan}"
+  addr                         = "fd00:66:1::2/64"  # Primary IPv6 address for VPC_D2A-B
+  mode                         = "regular"
+  mtu                          = "inherit"
+}
+
+# Secondary IPs for VPC member-specific addresses (optional)
+# Uncomment and modify if you need separate IPs for each VPC member
+# resource "aci_l3out_path_attachment_secondary_ip" "l3out-G_VHOST-MGMT_svi_vpc2_ip_a" {
+#   provider                  = aci.apic_g
+#   l3out_path_attachment_dn  = aci_l3out_path_attachment.l3out-G_VHOST-MGMT_svi_vpc2.id
+#   addr                      = "fd00:66:1::20/64"  # Side A IP (different from primary)
+#   ipv6_dad                  = "enabled"
+# }
+
+# ============================================================================
+# SITE K (AEDCK / Kaiserslautern) - L3OUT CONFIGURATION
+# ============================================================================
+
+# Data source to reference existing L3Out (deployed from NDO)
+data "aci_l3_outside" "l3out-K_VHOST-MGMT" {
+  provider   = aci.apic_k
+  tenant_dn  = "uni/tn-${var.tenant_name}"
+  name       = "L3Out-K_VHOST-MGMT"
+}
+
+# OSPF External Policy for Site K L3Out
+resource "aci_l3out_ospf_external_policy" "l3out-K_VHOST-MGMT_ospf" {
+  provider      = aci.apic_k
+  l3_outside_dn = data.aci_l3_outside.l3out-K_VHOST-MGMT.id
+  area_cost     = var.ospf_area_cost
+  area_ctrl     = ["redistribute", "summary"]
+  area_id       = var.ospf_area_id
+  area_type     = var.ospf_area_type
+}
+
+# Node Profile for Site K
+resource "aci_logical_node_profile" "l3out-K_VHOST-MGMT_node_profile" {
+  provider      = aci.apic_k
+  l3_outside_dn = data.aci_l3_outside.l3out-K_VHOST-MGMT.id
+  name          = "NodeProfile-VHOST-MGMT-K"
+  description   = "Node profile for VHOST-MGMT L3Out - Site K"
+}
+
+# Node association - Leaf 101
+resource "aci_logical_node_to_fabric_node" "l3out-K_VHOST-MGMT_node_101" {
+  provider                  = aci.apic_k
+  logical_node_profile_dn   = aci_logical_node_profile.l3out-K_VHOST-MGMT_node_profile.id
+  tdn                       = "topology/pod-1/node-101"
+  rtr_id                    = "10.66.2.101"  # Change this - Router ID for node 101
+  rtr_id_loop_back          = "yes"
+}
+
+# Node association - Leaf 102
+resource "aci_logical_node_to_fabric_node" "l3out-K_VHOST-MGMT_node_102" {
+  provider                  = aci.apic_k
+  logical_node_profile_dn   = aci_logical_node_profile.l3out-K_VHOST-MGMT_node_profile.id
+  tdn                       = "topology/pod-1/node-102"
+  rtr_id                    = "10.66.2.102"  # Change this - Router ID for node 102
+  rtr_id_loop_back          = "yes"
+}
+
+# Logical Interface Profile for Site K
+resource "aci_logical_interface_profile" "l3out-K_VHOST-MGMT_int_profile" {
+  provider                  = aci.apic_k
+  logical_node_profile_dn   = aci_logical_node_profile.l3out-K_VHOST-MGMT_node_profile.id
+  name                      = "IntProfile-VHOST-MGMT-K"
+  description               = "Interface profile for VHOST-MGMT L3Out - Site K - SVI"
+}
+
+# OSPF Interface Profile for Site K
+resource "aci_l3out_ospf_interface_profile" "l3out-K_VHOST-MGMT_ospf_int" {
+  provider                     = aci.apic_k
+  logical_interface_profile_dn = aci_logical_interface_profile.l3out-K_VHOST-MGMT_int_profile.id
+  auth_key                     = ""
+  auth_key_id                  = "1"
+  auth_type                    = "none"
+  description                  = "OSPF Interface Profile for VHOST-MGMT - Site K"
+  
+  relation_ospf_rs_if_pol      = ""  # Use default OSPF interface policy or specify custom one
+}
+
+# SVI Path Attachment - VPC_D1A-B (Site K)
+resource "aci_l3out_path_attachment" "l3out-K_VHOST-MGMT_svi_vpc1" {
+  provider                     = aci.apic_k
+  logical_interface_profile_dn = aci_logical_interface_profile.l3out-K_VHOST-MGMT_int_profile.id
+  target_dn                    = "topology/pod-1/protpaths-101-102/pathep-[VPC_D1A-B]"
+  if_inst_t                    = "ext-svi"
+  encap                        = "vlan-${var.l3out_vlan}"
+  addr                         = "fd00:66:2::1/64"  # Primary IPv6 address for VPC_D1A-B
+  mode                         = "regular"
+  mtu                          = "inherit"
+}
+
+# Secondary IPs for VPC member-specific addresses (optional)
+# Uncomment and modify if you need separate IPs for each VPC member
+# resource "aci_l3out_path_attachment_secondary_ip" "l3out-K_VHOST-MGMT_svi_vpc1_ip_a" {
+#   provider                  = aci.apic_k
+#   l3out_path_attachment_dn  = aci_l3out_path_attachment.l3out-K_VHOST-MGMT_svi_vpc1.id
+#   addr                      = "fd00:66:2::10/64"  # Side A IP (different from primary)
+#   ipv6_dad                  = "enabled"
+# }
+
+# SVI Path Attachment - VPC_D2A-B (Site K)
+resource "aci_l3out_path_attachment" "l3out-K_VHOST-MGMT_svi_vpc2" {
+  provider                     = aci.apic_k
+  logical_interface_profile_dn = aci_logical_interface_profile.l3out-K_VHOST-MGMT_int_profile.id
+  target_dn                    = "topology/pod-1/protpaths-101-102/pathep-[VPC_D2A-B]"
+  if_inst_t                    = "ext-svi"
+  encap                        = "vlan-${var.l3out_vlan}"
+  addr                         = "fd00:66:2::2/64"  # Primary IPv6 address for VPC_D2A-B
+  mode                         = "regular"
+  mtu                          = "inherit"
+}
+
+# Secondary IPs for VPC member-specific addresses (optional)
+# Uncomment and modify if you need separate IPs for each VPC member
+# resource "aci_l3out_path_attachment_secondary_ip" "l3out-K_VHOST-MGMT_svi_vpc2_ip_a" {
+#   provider                  = aci.apic_k
+#   l3out_path_attachment_dn  = aci_l3out_path_attachment.l3out-K_VHOST-MGMT_svi_vpc2.id
+#   addr                      = "fd00:66:2::20/64"  # Side A IP (different from primary)
+#   ipv6_dad                  = "enabled"
+# }
+
+# ============================================================================
+# OUTPUTS
+# ============================================================================
+
+output "site_g_l3out_node_profile" {
+  description = "Site G L3Out Node Profile DN"
+  value       = aci_logical_node_profile.l3out-G_VHOST-MGMT_node_profile.id
+}
+
+output "site_g_l3out_interface_profile" {
+  description = "Site G L3Out Interface Profile DN"
+  value       = aci_logical_interface_profile.l3out-G_VHOST-MGMT_int_profile.id
+}
+
+output "site_k_l3out_node_profile" {
+  description = "Site K L3Out Node Profile DN"
+  value       = aci_logical_node_profile.l3out-K_VHOST-MGMT_node_profile.id
+}
+
+output "site_k_l3out_interface_profile" {
+  description = "Site K L3Out Interface Profile DN"
+  value       = aci_logical_interface_profile.l3out-K_VHOST-MGMT_int_profile.id
+}
+*/
+
+# ============================================================================
+# USAGE NOTES
+# ============================================================================
+#
+# STEP 1: Deploy NDO resources first (with APIC resources commented out above)
+#    terraform apply
+#
+# STEP 2: Wait for NDO to push L3Outs to APIC (check in APIC GUI)
+#
+# STEP 3: Uncomment the APIC resources above:
+#    - Remove /* on line 94
+#    - Remove */ on line 287
+#
+# STEP 4: Update placeholder values:
+#    - APIC URLs in terraform.tfvars
+#    - VLAN (l3out_vlan)
+#    - IPv6 addresses
+#    - Router IDs
+#    - VPC names if different
+#
+# STEP 5: Apply APIC configuration:
+#    terraform apply
+#
+# ============================================================================

@@ -1,0 +1,74 @@
+ndo:
+  schemas:
+    - name: Demo-Schema
+      templates:
+        - name: Demo-Template
+          tenant: demo
+          
+          filters:
+            # ICMP Filter
+            - name: icmp
+              display_name: ICMP Filter
+              entries:
+                - name: icmp
+                  display_name: ICMP Entry
+                  ip_protocol: icmp
+            
+            # TCP Filters
+            - name: tcp-src-any-dst-80
+              display_name: TCP Port 80
+              entries:
+                - name: tcp-src-any-dst-80
+                  display_name: TCP Port 80 Entry
+                  ip_protocol: tcp
+                  destination_from: 80
+                  destination_to: 80
+                  
+            - name: tcp-src-any-dst-443
+              display_name: TCP Port 443
+              entries:
+                - name: tcp-src-any-dst-443
+                  display_name: TCP Port 443 Entry
+                  ip_protocol: tcp
+                  destination_from: 443
+                  destination_to: 443
+                  
+            - name: tcp-src-any-dst-8080
+              display_name: TCP Port 8080
+              entries:
+                - name: tcp-src-any-dst-8080
+                  display_name: TCP Port 8080 Entry
+                  ip_protocol: tcp
+                  destination_from: 8080
+                  destination_to: 8080
+            
+            # UDP Filters
+            - name: udp-src-any-dst-53
+              display_name: UDP Port 53 (DNS)
+              entries:
+                - name: udp-src-any-dst-53
+                  display_name: UDP Port 53 Entry
+                  ip_protocol: udp
+                  destination_from: 53
+                  destination_to: 53
+
+          contracts:
+            - name: permit-to-online-boutique-all-services
+              display_name: Permit to Online Boutique Services
+              scope: global
+              filter_relationships:
+                - filter:
+                    name: tcp-src-any-dst-80
+                    schema: Demo-Schema
+                    template: Demo-Template
+                  action: permit
+                - filter:
+                    name: tcp-src-any-dst-8080
+                    schema: Demo-Schema
+                    template: Demo-Template
+                  action: permit
+                - filter:
+                    name: icmp
+                    schema: Demo-Schema
+                    template: Demo-Template
+                  action: permit

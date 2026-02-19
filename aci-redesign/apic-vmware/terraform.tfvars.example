@@ -1,0 +1,3 @@
+apic_url      = "https://APIC-URL"
+apic_username = "admin"
+apic_password = ""

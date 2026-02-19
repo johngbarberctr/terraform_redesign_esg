@@ -2,6 +2,7 @@
 *.tfstate
 *.tfstate.*
 *.tfvars
+!*.tfvars.example
 .terraform/
 .terraform.lock.hcl
 *.tfplan
@@ -14,14 +15,12 @@ __pycache__/
 venv/
 env/
 
-# Generated files
-*.json
-!NDO/README.md
-
 # IDE/OS
 .DS_Store
 .vscode/
 .idea/
+*.swp
+*.code-workspace
 
 # Logs
 *.log
@@ -29,14 +28,19 @@ env/
 # Credentials
 *password*
 *secret*
+vault.yml
+vault_pass.txt
+.env
 
-# Everything EXCEPT NDO directory essentials
-/*
-!/NDO/
-/NDO/*
-!/NDO/.gitignore
-!/NDO/README.md
-!/NDO/bds_epgs.tf
-!/NDO/generate_ipv6_bindings.py
-!/NDO/remove_all_rcc_bindings.py
-!/NDO/check_rcc_bindings.py
+# Generated/binary files
+*.json
+*.tar.gz
+*.zip
+*.xlsx
+
+# Backups directory (large, contains state files and binaries)
+backups/
+
+# Ansible vault
+vault_pass.txt
+vault_plaintext.yml

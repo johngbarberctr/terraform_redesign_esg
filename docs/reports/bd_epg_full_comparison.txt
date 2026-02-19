@@ -1,0 +1,245 @@
+====================================================================================================
+BD AND EPG SETTINGS COMPARISON - NDO BACKUP vs TERRAFORM CONFIGURATION
+Backup: ScheduledBackup-20260203070000.tar.gz
+====================================================================================================
+
+================================================================================
+IPv6 BD CONFIGURATIONS (FROM NDO BACKUP)
+================================================================================
+
+BD-VHOST-MGMT:
+  arpFlood: True
+  epMoveDetectMode: none
+  intersiteBumTrafficAllow: True
+  l2Stretch: True
+  l2UnknownUnicast: proxy
+  l3MCast: False
+  multiDstPktAct: bd-flood
+  optimizeWanBandwidth: True
+  unkMcastAct: flood
+  v6unkMcastAct: flood
+  _subnets: {"ip":"6600::1/64","description":"","scope":"public","shared":false,"querier":false,"noDefaultGatewa...
+  _vrfRef: 61ded0df-41e7-4af0-8de9-db166844c136
+
+================================================================================
+IPv4 BD CONFIGURATIONS (SAMPLE FROM NDO BACKUP)
+================================================================================
+
+BD-V0140:
+  arpFlood: True
+  intersiteBumTrafficAllow: True
+  l2Stretch: True
+  l2UnknownUnicast: flood
+  l3MCast: False
+  multiDstPktAct: bd-flood
+  optimizeWanBandwidth: True
+  unkMcastAct: flood
+  v6unkMcastAct: flood
+  _vrfRef: 46d0e36e-9357-4bda-be3c-7860bb30b01c
+
+BD-V0150:
+  arpFlood: True
+  intersiteBumTrafficAllow: True
+  l2Stretch: True
+  l2UnknownUnicast: flood
+  l3MCast: False
+  multiDstPktAct: bd-flood
+  optimizeWanBandwidth: True
+  unkMcastAct: flood
+  v6unkMcastAct: flood
+  _vrfRef: 46d0e36e-9357-4bda-be3c-7860bb30b01c
+
+BD-V0172:
+  arpFlood: True
+  intersiteBumTrafficAllow: True
+  l2Stretch: True
+  l2UnknownUnicast: flood
+  l3MCast: False
+  multiDstPktAct: bd-flood
+  optimizeWanBandwidth: True
+  unkMcastAct: flood
+  v6unkMcastAct: flood
+  _vrfRef: 46d0e36e-9357-4bda-be3c-7860bb30b01c
+
+BD-V0174:
+  arpFlood: True
+  intersiteBumTrafficAllow: True
+  l2Stretch: True
+  l2UnknownUnicast: flood
+  l3MCast: False
+  multiDstPktAct: bd-flood
+  optimizeWanBandwidth: True
+  unkMcastAct: flood
+  v6unkMcastAct: flood
+  _vrfRef: 46d0e36e-9357-4bda-be3c-7860bb30b01c
+
+BD-V0191:
+  arpFlood: True
+  intersiteBumTrafficAllow: True
+  l2Stretch: True
+  l2UnknownUnicast: flood
+  l3MCast: False
+  multiDstPktAct: bd-flood
+  optimizeWanBandwidth: True
+  unkMcastAct: flood
+  v6unkMcastAct: flood
+  _vrfRef: 46d0e36e-9357-4bda-be3c-7860bb30b01c
+
+BD-V0192:
+  arpFlood: True
+  intersiteBumTrafficAllow: True
+  l2Stretch: True
+  l2UnknownUnicast: flood
+  l3MCast: False
+  multiDstPktAct: bd-flood
+  optimizeWanBandwidth: True
+  unkMcastAct: flood
+  v6unkMcastAct: flood
+  _vrfRef: 46d0e36e-9357-4bda-be3c-7860bb30b01c
+
+BD-V0316:
+  arpFlood: True
+  intersiteBumTrafficAllow: True
+  l2Stretch: True
+  l2UnknownUnicast: flood
+  l3MCast: False
+  multiDstPktAct: bd-flood
+  optimizeWanBandwidth: True
+  unkMcastAct: flood
+  v6unkMcastAct: flood
+  _vrfRef: 46d0e36e-9357-4bda-be3c-7860bb30b01c
+
+BD-V0471:
+  arpFlood: True
+  intersiteBumTrafficAllow: True
+  l2Stretch: True
+  l2UnknownUnicast: flood
+  l3MCast: False
+  multiDstPktAct: bd-flood
+  optimizeWanBandwidth: True
+  unkMcastAct: flood
+  v6unkMcastAct: flood
+  _vrfRef: 46d0e36e-9357-4bda-be3c-7860bb30b01c
+
+BD-V0481:
+  arpFlood: True
+  intersiteBumTrafficAllow: True
+  l2Stretch: True
+  l2UnknownUnicast: flood
+  l3MCast: False
+  multiDstPktAct: bd-flood
+  optimizeWanBandwidth: True
+  unkMcastAct: flood
+  v6unkMcastAct: flood
+  _vrfRef: 46d0e36e-9357-4bda-be3c-7860bb30b01c
+
+BD-V0522:
+  arpFlood: True
+  intersiteBumTrafficAllow: True
+  l2Stretch: True
+  l2UnknownUnicast: flood
+  l3MCast: False
+  multiDstPktAct: bd-flood
+  optimizeWanBandwidth: True
+  unkMcastAct: flood
+  v6unkMcastAct: flood
+  _vrfRef: 46d0e36e-9357-4bda-be3c-7860bb30b01c
+
+BD-V0540:
+  arpFlood: True
+  intersiteBumTrafficAllow: True
+  l2Stretch: True
+  l2UnknownUnicast: flood
+  l3MCast: False
+  multiDstPktAct: bd-flood
+  optimizeWanBandwidth: True
+  unkMcastAct: flood
+  v6unkMcastAct: flood
+  _vrfRef: 46d0e36e-9357-4bda-be3c-7860bb30b01c
+
+BD-V0950:
+  arpFlood: True
+  intersiteBumTrafficAllow: True
+  l2Stretch: True
+  l2UnknownUnicast: flood
+  l3MCast: False
+  multiDstPktAct: bd-flood
+  optimizeWanBandwidth: True
+  unkMcastAct: flood
+  v6unkMcastAct: flood
+  _vrfRef: 6ffe73c1-17b5-4404-af33-2ec0f1afbcef
+
+BD-V0976:
+  arpFlood: True
+  epMoveDetectMode: none
+  multiDstPktAct: bd-flood
+  unkMcastAct: flood
+  v6unkMcastAct: flood
+  _vrfRef: 6c31d72b-bae2-47d6-9458-d07d3ae5208c
+
+================================================================================
+IPv6 EPG CONFIGURATIONS (FROM NDO BACKUP)
+================================================================================
+
+EPG-VHOST-MGMT:
+  epgType: application
+  intraEpg: unenforced
+  preferredGroup: False
+  proxyArp: False
+  uSegEpg: False
+  _bdRef: 787274db-af15-4983-8444-a83d33245fb0
+
+================================================================================
+SETTINGS COMPARISON SUMMARY
+================================================================================
+
+IPv6 BD Common Settings:
+  arpFlood: True (1/1 BDs)
+  epMoveDetectMode: none (1/1 BDs)
+  intersiteBumTrafficAllow: True (1/1 BDs)
+  l2Stretch: True (1/1 BDs)
+  l2UnknownUnicast: proxy (1/1 BDs)
+  l3MCast: False (1/1 BDs)
+  multiDstPktAct: bd-flood (1/1 BDs)
+  optimizeWanBandwidth: True (1/1 BDs)
+  unkMcastAct: flood (1/1 BDs)
+  v6unkMcastAct: flood (1/1 BDs)
+
+IPv4 BD Common Settings (Sample):
+  arpFlood: True (13/13 BDs)
+  epMoveDetectMode: none (1/13 BDs)
+  intersiteBumTrafficAllow: True (12/13 BDs)
+  l2Stretch: True (12/13 BDs)
+  l2UnknownUnicast: flood (12/13 BDs)
+  l3MCast: False (12/13 BDs)
+  multiDstPktAct: bd-flood (13/13 BDs)
+  optimizeWanBandwidth: True (12/13 BDs)
+  unkMcastAct: flood (13/13 BDs)
+  v6unkMcastAct: flood (13/13 BDs)
+
+================================================================================
+POTENTIAL CONFIGURATION DIFFERENCES
+================================================================================
+
+  arpFlood: ✅ SAME (True)
+
+  epMoveDetectMode: ✅ SAME (none)
+
+  intersiteBumTrafficAllow: ✅ SAME (True)
+
+  l2Stretch: ✅ SAME (True)
+
+  l2UnknownUnicast:
+    IPv6: proxy
+    IPv4: flood
+    STATUS: ⚠️ DIFFERENT
+
+  l3MCast: ✅ SAME (False)
+
+  multiDstPktAct: ✅ SAME (bd-flood)
+
+  optimizeWanBandwidth: ✅ SAME (True)
+
+  unkMcastAct: ✅ SAME (flood)
+
+  v6unkMcastAct: ✅ SAME (flood)

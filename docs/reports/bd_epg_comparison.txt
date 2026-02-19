@@ -1,0 +1,291 @@
+================================================================================
+BD AND EPG SETTINGS COMPARISON - NDO BACKUP ANALYSIS
+================================================================================
+
+IPv4 BDs Found:
+  BD-V0005
+  BD-V0006
+  BD-V0009
+  BD-V0010
+  BD-V0014
+  BD-V0015
+  BD-V0016
+  BD-V0017
+  BD-V0020
+  BD-V0021
+  BD-V0022
+  BD-V0033
+  BD-V0055
+  BD-V0056
+  BD-V0066
+  BD-V0067
+  BD-V0091
+  BD-V0092
+  BD-V0093
+  BD-V0099
+  BD-V0106
+  BD-V0108
+  BD-V0110
+  BD-V0120
+  BD-V0122
+  BD-V0125
+  BD-V0140
+  BD-V0141
+  BD-V0142
+  BD-V0144
+  BD-V0150
+  BD-V0160
+  BD-V0161
+  BD-V0162
+  BD-V0163
+  BD-V0164
+  BD-V0170
+  BD-V0171
+  BD-V0172
+  BD-V0173
+  BD-V0174
+  BD-V0176
+  BD-V0178
+  BD-V0179
+  BD-V0191
+  BD-V0192
+  BD-V0193
+  BD-V0194
+  BD-V0210
+  BD-V0216
+  ... and 166 more
+
+IPv6 BDs Found (1):
+  BD-VHOST-MGMT
+
+================================================================================
+IPv4 BD CONFIGURATIONS (Sample)
+================================================================================
+
+BD-V0009:
+  arpFlood: True
+  l2UnknownUnicast: flood
+  intersiteBumTrafficAllow: True
+  l2Stretch: True
+  optimizeWanBandwidth: True
+  l3MCast: False
+  unkMcastAct: flood
+  v6unkMcastAct: flood
+  multiDstPktAct: bd-flood
+
+BD-V0010:
+  arpFlood: True
+  l2UnknownUnicast: flood
+  intersiteBumTrafficAllow: True
+  l2Stretch: True
+  optimizeWanBandwidth: True
+  l3MCast: False
+  unkMcastAct: flood
+  v6unkMcastAct: flood
+  multiDstPktAct: bd-flood
+
+BD-V0014:
+  arpFlood: True
+  l2UnknownUnicast: flood
+  intersiteBumTrafficAllow: True
+  l2Stretch: True
+  optimizeWanBandwidth: True
+  l3MCast: False
+  unkMcastAct: flood
+  v6unkMcastAct: flood
+  multiDstPktAct: bd-flood
+
+BD-V0015:
+  arpFlood: True
+  l2UnknownUnicast: flood
+  intersiteBumTrafficAllow: False
+  l2Stretch: False
+  optimizeWanBandwidth: False
+  l3MCast: False
+  unkMcastAct: flood
+  v6unkMcastAct: flood
+  multiDstPktAct: bd-flood
+
+BD-V0020:
+  arpFlood: True
+  l2UnknownUnicast: flood
+  intersiteBumTrafficAllow: True
+  l2Stretch: True
+  optimizeWanBandwidth: True
+  l3MCast: False
+  unkMcastAct: flood
+  v6unkMcastAct: flood
+  multiDstPktAct: bd-flood
+
+BD-V0021:
+  arpFlood: True
+  l2UnknownUnicast: flood
+  intersiteBumTrafficAllow: True
+  l2Stretch: True
+  optimizeWanBandwidth: True
+  l3MCast: False
+  unkMcastAct: flood
+  v6unkMcastAct: flood
+  multiDstPktAct: bd-flood
+
+BD-V0022:
+  arpFlood: True
+  l2UnknownUnicast: flood
+  intersiteBumTrafficAllow: True
+  l2Stretch: True
+  optimizeWanBandwidth: True
+  l3MCast: False
+  unkMcastAct: flood
+  v6unkMcastAct: flood
+  multiDstPktAct: bd-flood
+
+BD-V0033:
+  arpFlood: True
+  l2UnknownUnicast: flood
+  intersiteBumTrafficAllow: True
+  l2Stretch: True
+  optimizeWanBandwidth: True
+  l3MCast: False
+  unkMcastAct: flood
+  v6unkMcastAct: flood
+  multiDstPktAct: bd-flood
+
+BD-V0091:
+  arpFlood: True
+  l2UnknownUnicast: flood
+  intersiteBumTrafficAllow: True
+  l2Stretch: True
+  optimizeWanBandwidth: True
+  l3MCast: False
+  unkMcastAct: flood
+  v6unkMcastAct: flood
+  multiDstPktAct: bd-flood
+
+BD-V0092:
+  arpFlood: True
+  l2UnknownUnicast: flood
+  intersiteBumTrafficAllow: True
+  l2Stretch: True
+  optimizeWanBandwidth: True
+  l3MCast: False
+  unkMcastAct: flood
+  v6unkMcastAct: flood
+  multiDstPktAct: bd-flood
+
+BD-V0099:
+  arpFlood: True
+  l2UnknownUnicast: flood
+  intersiteBumTrafficAllow: True
+  l2Stretch: True
+  optimizeWanBandwidth: True
+  l3MCast: False
+  unkMcastAct: flood
+  v6unkMcastAct: flood
+  multiDstPktAct: bd-flood
+
+BD-V0106:
+  arpFlood: True
+  l2UnknownUnicast: flood
+  intersiteBumTrafficAllow: True
+  l2Stretch: True
+  optimizeWanBandwidth: True
+  l3MCast: False
+  unkMcastAct: flood
+  v6unkMcastAct: flood
+  multiDstPktAct: bd-flood
+
+BD-V0108:
+  arpFlood: True
+  l2UnknownUnicast: flood
+  intersiteBumTrafficAllow: True
+  l2Stretch: True
+  optimizeWanBandwidth: True
+  l3MCast: False
+  unkMcastAct: flood
+  v6unkMcastAct: flood
+  multiDstPktAct: bd-flood
+
+BD-V0110:
+  arpFlood: True
+  l2UnknownUnicast: flood
+  intersiteBumTrafficAllow: True
+  l2Stretch: True
+  optimizeWanBandwidth: True
+  l3MCast: False
+  unkMcastAct: flood
+  v6unkMcastAct: flood
+  multiDstPktAct: bd-flood
+
+BD-V0162:
+  arpFlood: True
+  l2UnknownUnicast: flood
+  intersiteBumTrafficAllow: True
+  l2Stretch: True
+  optimizeWanBandwidth: True
+  l3MCast: False
+  unkMcastAct: flood
+  v6unkMcastAct: flood
+  multiDstPktAct: bd-flood
+
+BD-V0164:
+  arpFlood: True
+  l2UnknownUnicast: flood
+  intersiteBumTrafficAllow: True
+  l2Stretch: True
+  optimizeWanBandwidth: True
+  l3MCast: False
+  unkMcastAct: flood
+  v6unkMcastAct: flood
+  multiDstPktAct: bd-flood
+
+BD-V0194:
+  arpFlood: True
+  l2UnknownUnicast: flood
+  intersiteBumTrafficAllow: True
+  l2Stretch: True
+  optimizeWanBandwidth: True
+  l3MCast: False
+  unkMcastAct: flood
+  v6unkMcastAct: flood
+  multiDstPktAct: bd-flood
+
+BD-V0229:
+  arpFlood: True
+  l2UnknownUnicast: flood
+  intersiteBumTrafficAllow: True
+  l2Stretch: True
+  optimizeWanBandwidth: True
+  l3MCast: False
+  unkMcastAct: flood
+  v6unkMcastAct: flood
+  multiDstPktAct: bd-flood
+
+BD-V0230:
+  arpFlood: True
+  l2UnknownUnicast: flood
+  intersiteBumTrafficAllow: True
+  l2Stretch: True
+  optimizeWanBandwidth: True
+  l3MCast: False
+  unkMcastAct: flood
+  v6unkMcastAct: flood
+  multiDstPktAct: bd-flood
+
+BD-V0231:
+  arpFlood: True
+  l2UnknownUnicast: flood
+  intersiteBumTrafficAllow: True
+  l2Stretch: True
+  optimizeWanBandwidth: True
+  l3MCast: False
+  unkMcastAct: flood
+  v6unkMcastAct: flood
+  multiDstPktAct: bd-flood
+
+================================================================================
+IPv6 BD CONFIGURATIONS
+================================================================================
+
+================================================================================
+EPG CONFIGURATIONS
+================================================================================

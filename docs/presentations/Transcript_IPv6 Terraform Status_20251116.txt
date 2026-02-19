@@ -1,0 +1,421 @@
+0:04 : John Barber : And then I'm gonna record it too.
+0:08 : John Barber : Excuse me.
+0:17 : John Barber : Okay.
+0:19 : John Barber : Let's see if I can.
+0:23 : John Barber : Minimize this thing.
+0:26 : John Barber : Let me I'm gonna share my screen.
+0:39 : John Barber : Minimize this. Okay, so.
+0:45 : John Barber : Yeah, Manasa so that's what that's what he had told me and he said, I said, well, yeah, I wanna I wanna update everybody on what I've been doing and because definitely I wasn't aware that you and I mean I knew Sam was gonna be involved. I wasn't sure if you were gonna be involved in this, but.
+1:06 : John Barber : But Conrad said, yeah, invite, invite Manasa and, you know, set up a meeting and we can go over what you, what you've done. So, so really just, just to start it off, I've.
+1:23 : John Barber : I've built a Terraform plan and, and then a Python script. So the Terraform plan.
+1:32 : John Barber : Takes.
+1:35 : John Barber : Takes the different function codes.
+1:39 : John Barber : That are assigned based on the function of the Vmiss and that kind of stuff. Ask me questions anytime and and either myself or Sam can, can answer them.
+1:52 : John Barber : And so, servers, right? Different servers are are assigned to different depending on their function. They're assigned function code.
+2:01 : John Barber : For the IPv6 address. So it's part of the IPv6 address and so Nathan, I don't know, do you know Nathan.
+2:13 : Manasa : Yes, yeah, yeah.
+2:15 : John Barber : So Nathan, he sent out an email to all his, I guess, VM VM, the responsible people for all the different Vmiss and said, Hey, this, we're doing this, these are the function codes and I, you know, need you guys to make sure this is ok, that this looks right.
+2:36 : John Barber : And then he created this master sheet, and I can actually show that.
+2:43 : John Barber : So you can see this, right?
+2:46 : John Barber : So he created this and it has all the, it has all the Vmiss on it, and then it has what their function code is, and then it has what VLAN they're in, and then the subnet.
+3:00 : John Barber : And you can see.
+3:03 : Manasa : So what is this function code based on, like.
+3:06 : John Barber : It's it's based on the type of.
+3:10 : Manasa : Like he comes up with a number, that's why I'm asking.
+3:14 : John Barber : No, this is, this is actually, I mean it's from higher higher, higher headquarters, right? I don't I I think it's, I think it.
+3:23 : Sam : Nate actually came up with a system that's kind of that he just made up cause he didn't know what else to do.
+3:32 : Sam : Like there was Yes, Sean, he didn't use the spreadsheet but also they had a system inside to kind of subdivide I'll find I'll dig up the email and forward it to you guys.
+3:42 : John Barber : Yeah cause I know I mean I'm hoping, right? The one that.
+3:48 : John Barber : The one that is out there from Ucon or whatever or wherever it's from, right, Sam, like, hey, these are the function codes for the different servers, and I'm hoping he took it from that and kind of based it based it on that.
+4:04 : Manasa : One question, so these are all just VMs, right? No physicals servers or is it.
+4:12 : Manasa : NV.
+4:14 : John Barber : Yeah, there might be both.
+4:16 : John Barber : I think probably, probably both.
+4:20 : John Barber : And so, so what I did, right, we were waiting on him to.
+4:27 : John Barber : Build out ACI so we can make sure we we build out the EPGs, the bridge domains, the gateways.
+4:40 : John Barber : And we tie all that stuff to the, to the right ports that they need to be deployed on and that kind of thing. So I can, so that's kind of what I did, right? I took this information.
+4:52 : John Barber : And I kind of based it on our IPv4 structure.
+4:57 : John Barber : In a way like, ok, what.
+5:01 : John Barber : What does this particular subnet do? And, you know, what kind of server is it? And, and I kind of, and I determined that, right?
+5:11 : John Barber : Based on just AI and some other stuff like.
+5:14 : Manasa : Take a look at this.
+5:16 : John Barber : And so, so I took, so I took all that and once that was, once that was decided, then I, then I developed a Terraform plan that builds out ACI, so all the new, all the new IPv6. So a se.
+5:39 : John Barber : A separate VRF or actually I think it's the same VRF, a separate, you know, separate application profile and underneath that profile a bunch of bunch of EPGs that are just IPv6, and then.
+5:55 : John Barber : Nassa also asked me questions about ACI I think you know a little bit about it. Yeah. But.
+6:02 : Manasa : One question is, are you dual stacking when you're talking about.
+6:08 : John Barber : No, we're not doing.
+6:09 : Manasa : It's just.
+6:10 : John Barber : Okay.
+6:12 : John Barber : It's IPv6. Let me start something real quick and then, and then cause it's gonna take about fifteen minutes to build out the lab.
+6:21 : John Barber : Between thirteen and fifteen minutes, so I'll just show you that real quick and then we come back and, and discuss, discuss this, discuss this again.
+6:35 : John Barber : Yeah I won't go too much into this right now. We can look at it and I can share it with you and stuff, but basically.
+6:46 : John Barber : This is all of the EPGs and bridge domains that are, the Terraform file that are gonna be built in ACI, actually in NDO, and then once it's in NDO, then we push it out to the, to the different sites. So.
+7:07 : John Barber : It configures all of this for all the different ebgps, it makes it a stretched or non stretched or G specific and I'll show you that'll make more sense when I, when I actually show you it. But it attaches right the physical domain that we have already created in ACI. So a lot of stuff's created in a.
+7:27 : John Barber : ACI and I'm reusing what I can within ACI. So this builds all that out, puts in all the gateways.
+7:37 : John Barber : And then, and then there's, then the Python script actually binds or creates all the static bindings to the ports. So it will, it will take an EPG, that's where they get, that's where the static port gets mapped and it will, it will create the inter.
+7:58 : John Barber : Not really create them, right? But it will, it will attach that EPG or deploy that EPG over a specific port and so that's what the Python script will do. So first I'm gonna run, I'm just gonna run this and like I said cause it takes, it takes about thirteen to fifteen minutes or something to.
+8:18 : John Barber : To run it. So.
+8:22 : John Barber : First thing I'm gonna do, I really only need to do like a terraform LAN because I've already done a knit, and all that kind of stuff. So I don't know ye I think you're familiar with this, right, Manasa?
+8:34 : Manasa : The terraform, I have not. So that's why on the weekend I was searching what it is and I just.
+8:40 : Manasa : Reading about it.
+8:41 : John Barber : I wanna too much detail, but there's.
+8:44 : Manasa : Lansible but not plan.
+8:48 : John Barber : Yeah. You can ask questions. A plan will it just kind of tells you what's what's gonna happen, and before you, before you actually apply it. But I can do a Terraform apply.
+9:00 : John Barber : And it will still tell me like what it's gonna do and I can, I can decide.
+9:06 : John Barber : Whether to, whether to do it or not, right? So it looks at that file, my, my BDs underscore EPGs dot TF file, and it, oh, you know what?
+9:17 : John Barber : This isn't gonna work. Let's see if I can control see this. Yeah cause I don't think I'm connected to the.
+9:25 : John Barber : The right VPN, let me do this real quick.
+9:49 : John Barber : This is an internal, internal lab.
+9:55 : Manasa : Internal lab in the sense is it.
+9:59 : John Barber : Cisco, I can give you guys access but I I still need to figure it out, like because it's it's a little weird, right? Cause normally you connect.
+10:11 : John Barber : You connect with a, with a VPN client like any.
+10:15 : Manasa : Right. And.
+10:17 : John Barber : And once you do that, then you put in the specific information for this particular lab. Like I just did, a password and stuff, and then.
+10:28 : John Barber : And then you can get access to it. So, so when I do this Terraform, Terraform apply, right? It's telling me this is everything that it's gonna do, right? It's telling you, I'm gonna do all this stuff. I'm gonna create all this. I'm gonna, you know.
+10:45 : Manasa : Yeah.
+10:47 : John Barber : Our flooding I'm gonna create, you know, all this on all the BDs and et cetera et cetera. So, and it tells you here, right, it's gonna add three hundred and three objects basically.
+11:00 : John Barber : And it's not gonna change any or destroy any. And then it asks you, do you wanna do this? So I'm just gonna say yes and so this is gonna take, like I said, they're about thirteen to fifteen minutes, and I can talk about. So what.
+11:15 : Manasa : Creating a VM with the.
+11:17 : John Barber : Yeah, but it's it's creating all the network infrastructure.
+11:21 : Manasa : Okay. So.
+11:24 : John Barber : Everything in Nexus dashboard orchestrator. It's creating all that stuff, checking all the right boxes and and I'll show you some of that when it's done.
+11:35 : John Barber : Any, any questions on this right now?
+11:46 : John Barber : So yeah, and this is a better way to do it with Terraform because Terraform, it keeps, it keeps state, it keeps track of everything, all the changes, and, and then if you needed to destroy it, you can do a Terraform destroy and it will destroy everything, right? And start it from a clean slate again. So the only.
+12:06 : John Barber : The only reason I'm using Pipon on Python's better at, at doing some things in one of those things is s something that takes a long time because this requires different.
+12:20 : John Barber : Terraform requires diff, you know, it has different dependencies and and it's gotta check different things in Python is just Python, right? It's just the language so it doesn't, it doesn't all have to have all those different dependencies and stuff that it needed needs. So it can create things really fast. But this is the best I think this is the best for this.
+12:41 : John Barber : Yeah, if we go back, I don't know if you have any more questions on, on this, but basically.
+12:48 : John Barber : I'm I'm gonna create this and show you within NDO, what it did and I'm sure you'll, I'm sure you'll have some more questions and.
+13:00 : John Barber : Let me share.
+13:02 : John Barber : Something else.
+13:06 : John Barber : Yeah, this was one of this was one of Nathan's that he sent out to all his.
+13:13 : John Barber : Okay virtual machine customers and just kind of explain how to do some stuff. But that's not important.
+13:24 : John Barber : Yeah, so this is, I have a lot of documentation on this stuff, but this, this kind of tells you.
+13:32 : Manasa : He has given out his what they're doing manually or like.
+13:39 : John Barber : Yeah, I get I don't know how they're doing their stuff. I just gotta make sure that all their Vmiss have IPv6 connectivity to to ACI, right? And to the.
+13:50 : John Barber : To the network.
+13:52 : John Barber : And.
+13:54 : John Barber : And let me see.
+13:59 : John Barber : Little bit of detail about what that.
+14:03 : John Barber : With the Terraform and and Python script too, right? So, so like network access.
+14:10 : John Barber : It has a code of fifteen, it has this address, right? Database.
+14:16 : John Barber : And this is the function code, right? DB, and, and E four for web server.
+14:26 : John Barber : So right now we have everything set up with IP addresses and it's EPGs are based on VLANs and it's, it's difficult, right? To know, ok, what is ECPG actually do? So I'm sure there's gonna be some changes to this because the names may not work, right? Conrad may not.
+14:44 : John Barber : Like the name or or whatever, like something may make more sense.
+14:50 : John Barber : So.
+14:52 : John Barber : You know, so we know, like, right, if we go to the DB network, we know that's gonna be databases, right? If we go to the, if we go to the web server, we know those are web servers and that's, that's what.
+15:02 : Manasa : So he's trying to standardize just like for the firewalls that he was trying to come up with.
+15:09 : Manasa : A standard across board, ok. Yeah brian.
+15:14 : John Barber : I know Sam had a lot more, they did a lot in the fire the new firewall side, and I haven't, I haven't really done much there. But.
+15:24 : John Barber : Anyway, yeah, yeah, so there was a python.
+15:27 : Sam : This is separate from the firewalls or is the same. It's, it's all networks. It's their IPv6 equivalent.
+15:40 : Manasa : Okay.
+15:41 : Sam : I don't know if that explains the scope of the project more.
+15:47 : Manasa : So when you mean all networks.
+15:57 : Manasa : Networks.
+16:00 : Manasa : Data center? Yeah.
+16:02 : Manasa : Okay.
+16:03 : John Barber : And.
+16:05 : Manasa : Absolutely.
+16:09 : Manasa : The other question I have is.
+16:13 : Manasa : If is it, so these Vms are getting IPv6 address, create and then what about the.
+16:23 : Manasa : The other servers? I mean, I don't know how much of network for IPv6 has been set up in the data center.
+16:36 : Manasa : I'm just asking this question because few months back there was some discussion in the email thread saying that O ACI fabric cannot have IPv6, I'm just.
+16:49 : Manasa : Asking that.
+16:50 : John Barber : No, it's it's it's fully supported. There's, there's a few things that it doesn't matter that it doesn't support. So, yeah, it's fully supported and and we're ready to, we're ready to go forward and and configure config, you know, after we, after we test a few things, right? And everybody kind of.
+17:11 : John Barber : Puts in their.
+17:13 : John Barber : Their responses or are there, you know, basically, their ideas and what maybe what can, what can be done better and that kind of thing. So this was just my.
+17:25 : Manasa : It should take Spines, everything will get an IPv6 address.
+17:32 : John Barber : Oh, we're not really concerned about.
+17:35 : John Barber : The leafs and spines. We're just concerned really about the network traffic itself. Okay. So eventually leafs and spines will get it, but they don't have to have IPv6 in order, they'll they'll communicate internally with themselves based on IPv4 for now.
+17:56 : John Barber : Our, our key objective is to just make sure that all the VMs.
+18:01 : John Barber : And that stuff are all the user traffic basically, right? Is, is communicating via IPv6. So when that, if that doesn't work for some reason, right, then they'll fall back to, to IPv4.
+18:18 : Manasa : But there's a fallback as well, ok. Yeah.
+18:20 : John Barber : Is where we are still running IPv4, but we're also gonna run IPv6, but it's not a dual stack per se because they're totally separate, like we're not, we're not, we have separate bridge domains separate EPGs, and all that kind of stuff, right? If we wanted to do dual stack within ACI.
+18:41 : John Barber : We would put them all in the same EPGs and in the same BDs. So.
+18:49 : John Barber : If I can.
+18:53 : John Barber : Kinda talks about.
+19:01 : Manasa : Maybe I I missed out. So why are we not dual stacking if there is a possibility of doing that? Is it or is it something? Yeah I think.
+19:11 : John Barber : Yeah, I think because, because the idea is to eventually not have IPv4 in.
+19:17 : Manasa : Let's.
+19:17 : John Barber : Sometime in the future.
+19:19 : Manasa : Sometime in the future, ok.
+19:20 : John Barber : Yeah, so it doesn't it doesn't make sense for us to configure dual stack because then we'll have to.
+19:29 : John Barber : I have to recreate the BDs and the EPGs anyway, because.
+19:34 : Manasa : Concern would be just if all the applications would work with IPv6, I mean that I mean, maybe.
+19:41 : John Barber : Yeah.
+19:42 : Manasa : I don't know, I've not tried it. Yeah.
+19:44 : John Barber : That's why we'll have IPv4 two, right? So we can figure that out and.
+19:49 : Manasa : Yeah, ok.
+19:51 : John Barber : It's gonna be a slow process.
+19:54 : John Barber : I think it's just it's gonna But, you know, as you know, all the mandates and we need to get this done and and so we'll do what we have to do, right? To.
+20:04 : John Barber : To get it up and going.
+20:07 : John Barber : And so that's why we decided to, and Conrad wanted to rename stuff too, which makes sense to me because.
+20:14 : Manasa : We said the names. Yeah.
+20:16 : John Barber : Show you the names are not, you know, all we have is the EPG based on a VLAN, right? And the BD, the corresponding BD pays based on the VLAN. So we don't know, in a lot of cases we really don't know what kind of servers or what, who owns it, who, you know, who manages.
+20:38 : John Barber : We don't, we don't know. We have to really dig into it to figure out, oh, that's an AD server or something. But if we have that in the name of the EPG, then we know, oh, this is a database server. This is a active directory server, right? This is an ICE server or whatever. So we just wanna make it easier.
+20:59 : John Barber : And the VLANs don't correspond, right? There's VLANs like the same VLAN maybe spread out over multiple servers so they're not together. Yeah. And, and we wanted to try to consolidate.
+21:13 : John Barber : VLAN or whatever has all the same type of servers in it and that kind of thing.
+21:20 : John Barber : So let me look and see.
+21:23 : John Barber : This is basically just talking about, about what I did. Let me just look at this and see how this is doing. Yeah, it's still going on.
+21:34 : John Barber : So, but this will probably bring up more questions if I just kind of talk about.
+21:41 : John Barber : Talk about some of this.
+21:45 : John Barber : So, so again, right, these are the different.
+21:49 : John Barber : Function codes, you know, and then the benefits, right? Easy troubleshooting, you know that the DB zero zero is database.
+21:58 : John Barber : Matt Try to make it consistent.
+22:01 : John Barber : And there's this, there's there was this Python script that I ran and it looked at the IPV for network it's a, it tried to find out, hey, where is this service connected? And then based on that script, it found out it was on these ports and so the same thing, right? We took that information and.
+22:21 : John Barber : And made sure that.
+22:22 : John Barber : Six followed those same guidelines. So there's, there's a total of about thirty three EPGs and thirty three BDs that are getting created. And, and that's across two data centers. Well I mean there's thirty three in each and and so there's sixty six ebgps and and like sixty.
+22:44 : John Barber : Or so, Right bridge domains, so one for one based on what their function code is.
+22:53 : John Barber : And, you know, it's.
+22:56 : John Barber : Rather than it taking like days, right? This is gonna do it and.
+23:00 : Manasa : Yeah.
+23:01 : John Barber : The longest part, like thirteen minutes or something and then the the bindings get done super quick. So, most things are layer two stretched across both data centers.
+23:12 : John Barber : And we can change, you know, all this is can we can be changed. So there's not too many L two non tretched I don't know that we need to have. Maybe, I don't even know that we need to have any. We'll figure it out and you know, there's only one service in Gravie and one in, in K Town.
+23:33 : John Barber : So it's just super quick, right? As opposed to multiple days, we can do it in like fifteen minutes.
+23:41 : John Barber : And then, of course, as we know, the accuracy of it's so much better than having to manually go in and.
+23:50 : John Barber : And Sam Sam can attest to the GUI and how hard it is to find stuff within that GUI and and all the different levels and, and that kind of stuff. So this just makes it so much easier for the data center team to deploy this new.
+24:09 : John Barber : Architecture.
+24:13 : John Barber : So there and it just talks about the manual process, right? What has to happen normally you go to the GUI, you create this BD, you assign the subnet to it, you create this EBGP, you associate the EPG, and then you configure the bindings, right? Which takes the super long time because you have all these ports and then you have to assig.
+24:34 : John Barber : The VLAN, then you have to test it, you know, so this is talking like four hours. And then automated process.
+24:43 : Manasa : Clients VLAN, ok, the VLAN changes according to yeah.
+24:48 : John Barber : So based on this, I just took these, this spreadsheet, right? And just, just map the VLANs based on that spreadsheet.
+24:57 : John Barber : So.
+24:59 : John Barber : Yeah, so here's where it talks about there's thirty active services, right? And G And then there's thirty active services in K.
+25:09 : John Barber : Both sites, twenty nine services, you know, the numbers aren't a hundred percent accurate, but.
+25:20 : John Barber : Yeah, so and then we apply a contract, right? So we decte who can communicate with who. Right now we're just allowing everybody to communicate, but we can, we can make that much more granular.
+25:34 : John Barber : That so that we can prevent people, you know, a server from communicate with another server etc.
+25:43 : John Barber : So I don't know, this kind of just tells about.
+25:46 : John Barber : And we're using, you know, we use GitLab, right? So that we.
+25:50 : Manasa : Yeah.
+25:51 : John Barber : Lack of track of changes and all that stuff.
+25:56 : John Barber : And this tells you everything that's created like there's three hundred and eight resources and then all this, right, this site associations and all that stuff that has to be done. Let's go back and look at this thing. So it's done. So now I'm gonna run the, before we go get it on the run the Python script that will.
+26:16 : John Barber : Like I said, do all the static bindings of all the EPGs to the right ports.
+26:24 : John Barber : And one thing we kind of lucked out on is that most of our stuff is a VPC and it's connected to.
+26:30 : John Barber : It's connected currently to like a bunch of.
+26:35 : John Barber : A bunch of five ks, right.
+26:36 : Manasa : That you know, as you know, we're trying to get.
+26:40 : John Barber : So, so let me run, let me run this. So this will generate all the, all the bindings.
+26:49 : John Barber : And it don't, this, this won't take long at all. It, it fetches the schema, which is a ADCE.
+27:00 : John Barber : And then, and then once it does that, you know, it tells you everything it's gonna do, right? So it's like.
+27:08 : Manasa : It's.
+27:08 : John Barber : See these are all the ebgps, these are all the subnets.
+27:13 : John Barber : This is a status verified, these are assigned, and then it tells you.
+27:21 : John Barber : So that it tells me there's they're not in the spreadsheet Vive, please verify these VLANs, and then I'm just gonna say yes, and then it would take about less than a minute.
+27:33 : John Barber : To, to go ahead and bind everything together. I'll send you out, I have some documentation too that will help you.
+27:41 : John Barber : Help you understand.
+27:44 : John Barber : Some of this stuff.
+27:47 : John Barber : And so see it does these bindings like it can't do them all at once because it does a bunch of API calls and the API calls are, are regulated.
+27:58 : John Barber : Just make sure, you know, it's not a, you know, it's not a, I guess, what word am I looking for? It's not.
+28:09 : John Barber : A denial of service or something. So, so you can't do like everything at once, but it here it says successful, a hundred and 70 bindings. So now if I go to.
+28:20 : John Barber : The NDO.
+28:25 : John Barber : I can move this.
+28:27 : John Barber : Okay, come on. Okay, here's the NDO right now, this is before I I made any changes. As you can see, there's like, these are all the current contracts we have. It's gonna create one more contract and and then if I click on anything, it's gonna.
+28:49 : John Barber : And we have some different templates.
+28:52 : John Barber : Right like here's the biggest one is the L two stretched. And as you can see here, like we don't have any of the new EPGs. It's actually gonna create a different application profile and put all those IPv6 ebgs and that other profile. What it will, what it's going to do though is.
+29:12 : John Barber : Oh.
+29:16 : John Barber : Sorry I didn't want it to log me out or something.
+29:33 : John Barber : That works not the greatest here, but.
+29:49 : John Barber : Let me see while we're letting that come back up.
+29:52 : John Barber : Up.
+30:13 : John Barber : This doesn't say this is just kind of like, as I mentioned.
+30:20 : John Barber : Just kind of giving you an overview of, of what it does, and I have some more.
+30:27 : John Barber : Some more documentation. Okay, let's log in here.
+30:47 : Manasa : Okay, give me two minutes, please. I would have to take this call.
+30:59 : John Barber : I'm gonna do you drop?
+31:00 : Sam : I'm gonna drop. Okay now.
+31:06 : Sam : We have a pretty good idea of how these programs work and I think unless we have them installed on our boxes, we're not gonna be able to do much.
+31:19 : Sam : You know what I mean?
+31:21 : John Barber : Yeah, yeah. I already have Terraform. Yeah, I have Terraform installed, right? Right. Well, it's on a server, so you can get access to it too, and you can use that. So.
+31:32 : Sam : I think that should be next.
+31:38 : John Barber : Go ahead.
+31:41 : Sam : It muted me, I don't know why. Yeah, I think that should be next steps I'll make a note to start that getting the access so I can start building this library.
+31:55 : John Barber : Yeah, Terraform, yeah, it'd be pretty easy to get it, to get it for you to get I mean it's already running on that server, so for you to get access to it, it should, it shouldn't be alright.
+32:07 : John Barber : To you tomorrow.
+32:09 : Sam : Namurrow.
+32:10 : John Barber : Right, take care of it.
+32:13 : Sam : I don't.
+32:14 : John Barber : Bye.
+32:57 : Manasa : Sorry, I'm back.
+32:59 : John Barber : No problem.
+33:02 : John Barber : That was EAT. Eating some peanuts.
+33:08 : John Barber : So I'm just gonna continue recording this thing.
+33:13 : John Barber : Alright, so, so now like I said, we pushed everything to NDO, so that's why we have this red because it's out of sync, and it's showing there's two sites that are out of sync.
+33:29 : John Barber : Because there's new stuff on ndio, but we haven't pushed it to the sites yet. So we haven't pushed it out to the apics that are at G and K. And, and if I do, you'll see this was the only profile that was in there, this application profile, and now it created.
+33:50 : John Barber : Profile, which is called APP prof RCC, and then you can see that it created these twenty nine EPGs. And see how these are called like scanners, AD, ADFS, see this is what they, this is what they're called.
+34:10 : John Barber : Currently, like EPG VLAN nine EPG VLAN ten, fourteen, right? There's no clue really to unless you have a lot of knowledge about the network, you wouldn't know what those are for. So, so we wanna, and these names are probably gonna change I'm sure.
+34:28 : John Barber : Just for testing and and for initial deployment, these these were the runs that were created. And, and you can see if you click on one of these, it shows you some stuff. So we're doing contract at the, at the VRF level. It's.
+34:49 : John Barber : Not at the EBGP level because it's a VZ any contract, which means that anything within that VRF can use the same contract. So it just makes it easier and then we can go back and, and make it more granular.
+35:05 : John Barber : At a later, at a later time. And you'll see like here, right, there is a subnet on here, but it doesn't show it under this view. So what we have to do is you have to actually click on the site up here. So this is ADCG and then K So if I click on G, see it shows these are green because.
+35:26 : John Barber : It's showing, hey, there's, these were created or changed and they need to be, they need to be pushed out to the sites. So if I, if I click on this one again, right, then it tells me, right, it gives me, it gives me the static ports. Okay, so these.
+35:45 : John Barber : This EPG is gonna be deployed on these two nodes on this VPC. So at the end of, so it's basically just a connection, right? So out of, out of that VPC, right? It connects to the N five Ks, right? Which then connects to.
+36:04 : John Barber : VMware infrastructure. So, so all that it created all this, right? Would I ran, so that was the Terraform plan that created all that. And then it, it attached this domain to it. This is already in ACI and it just attached this domain because it's, we, we don't have any virtual domains. We just have a.
+36:25 : John Barber : Have a physical domain, and.
+36:28 : John Barber : So that's for, and some of these settings are defaults, we don't have to get into them right now, but so that's for the apgs, and then it created. Now BDs, it did not create like there's no application profile for BDs, it's just under, it's just under network management or just under network. So.
+36:48 : John Barber : You'll see all these are brand new, all the ones again that are green are brand new, and these are the old ones that were, that were in place. And there's one other one down at the bottom. I think or three of them actually. So it's, it's alphabetical. So if I, if I click on like one that we had, like let's just click.
+37:09 : John Barber : Click on nine.
+37:11 : John Barber : It shows you that it's L two stretched so across both sides, right? So this is the L two stretch template. This is allowing bum traffic, unicast routing, you know, some other things, and this is actually doing ARP flooding, and.
+37:32 : John Barber : And this doesn't actually have an L three out attached to it. Some of them do, some of them don't. Let me see if I can.
+37:39 : John Barber : Pick a different one.
+37:45 : John Barber : So most of our, right, most of our EP our BDs are configured the same way. Like if I click on one of these, right? It does the same thing, right? L two stretch, inter site bomb, optim optimized bandwidth, unicast routing, host routes.
+38:03 : John Barber : And that type of stuff. This doesn't have art flooding. I'm not sure that we need it cause it's using like hardware proxy, but some things will have to, some things will have to check.
+38:13 : John Barber : But so that's everything that's gonna configured under and that's the same for all the different templates, so we have a VRF template which just has the vrfs and the L three outs in it. And then this is just for.
+38:28 : John Barber : Graph that just it's not stretched across sites. This is just for K Town. These, all these that I just showed you are stretched between both sides, and this is L two non stretched. And the reason we had to create this.
+38:50 : John Barber : Like these EPGs exist at both sites, but they're different gateways. So, so that's why we don't wanna stretch it, but they do, they do exist the different Vmiss exist at both sites, so that's, that's why this was created as a non stretched type thing.
+39:13 : John Barber : So that's basically.
+39:16 : John Barber : What it created and then let me show you.
+39:19 : John Barber : Like going back to the.
+39:22 : John Barber : This is the, this is the non stretch, so there's not a whole lot of EPGs in here. But if you look at the BD, right, you'll see that the gateway IP address here, right? Which is, which is some of those like D D nine, if we go back to that spreadsheet, you'll see.
+39:44 : John Barber : You'll see D nine here, right? And it's got the D nine zero zero colon colon slash five six. And so.
+39:53 : John Barber : This is the gateway, right? So it gave it dot one or it gave it a one, right? This is the last one. So it, so that's what it did, the Terraform did all this, right? Based on the information that, that I fed it and, and it assigned the VRF, and.
+40:14 : John Barber : Well, we do host routing and we can talk about a lot of stuff at a, at a different time when you, when we need to. But so right now this stuff does not exist on the apics, right? So if I go to an APIC.
+40:28 : John Barber : Then I'll have to re log in probably. Let me see. Let me click on something.
+40:37 : John Barber : Let me see if I can refresh here.
+40:42 : John Barber : Let me go here.
+40:45 : John Barber : We'll probably log me out.
+40:55 : John Barber : So have you worked with ACI much?
+40:57 : Manasa : I haven't worked with ACI at all. Okay, now it's just been traditional.
+41:06 : Manasa : You know.
+41:08 : Manasa : Okay, so you don't really. Yeah, you don'.
+41:09 : John Barber : Know anything.
+41:10 : Manasa : You should access, so.
+41:16 : John Barber : So this is.
+41:18 : Manasa : Started reading about, oh, ACI fabric. So, yeah.
+41:22 : John Barber : So you know a little bit of the a few of the concepts.
+41:30 : Manasa : I just, start.
+41:32 : Manasa : Started a course and I was just reading what it, what these tenants are, what EBGP is, what domain is, and then how do you build the underlying physical network for it, things like that. Okay. So, yeah.
+41:54 : Manasa : The thing is I was in network security, so I did firewalls and.
+42:00 : Manasa : Okay.
+42:01 : John Barber : Okay, yeah, we won't. Yeah, so it probably doesn't make a whole lot of sense to you. But basically, yeah, I mean a bridge domain's layer two, right? It's just basically a layer two.
+42:14 : John Barber : VRF is layer three.
+42:17 : Manasa : Yeah, I I know those concepts. Yeah.
+42:28 : John Barber : I'll just log into one of them. And.
+42:33 : John Barber : As you can see right now, once this opens up, right? This is the, this is the tenant, right here, this EUR.
+42:40 : John Barber : And.
+42:42 : John Barber : And underneath that tenant, right, you have your application profiles and underneath this is the application profile under that you have all the EPGs, and then under networking, you have all the bridge domains, and then you have all the V RFS underneath that, underneath networking.
+43:02 : John Barber : And those are basically the, you know, you know what a VRF, right? It's the same thing in networking, same thing in ACI, right? It's just routing separation basically, right? It just separates the communication and the routing tables et cetera. So that's what this does this, it's really a lot like networking, there's just a lot.
+43:23 : John Barber : Concepts.
+43:24 : Manasa : Yeah.
+43:24 : John Barber : And, and that kind of thing I mean it basically it operates the same way, right? But it can, but it does more.
+43:33 : John Barber : It's more of a controller based configuration.
+43:37 : John Barber : Etc. And it has definitely a lot of different concepts. But.
+43:42 : John Barber : Like as you can see now, right, we, we created that other application profile inside of NDO, but it's not here because I haven't pushed it out to the sites yet. So, and none of the, there's two hundred and eleven EPGs right now, right? None of these EPGs are the new ones. These are just the current EPGs.
+44:06 : John Barber : That are already configured within, within our network.
+44:11 : John Barber : So nothing, nothing was pushed out, right? So if I go back to, if I go back to this, and I'm gonna start I'm gonna, I'm gonna deploy it from, from NDO the first thing I'll do is the, so this is gonna deploy the VRF cause it created a new VRF, it created this VRF. And one thing.
+44:32 : John Barber : I need to, it's not a big deal, but I need to fix this because it it's selected VZN, but it didn't apply the contract. So I'm just gonna do that manually and HVRF has to have its own contract. So.
+44:50 : John Barber : You do a consumer.
+44:52 : John Barber : And then you then you go ahead and do a provider, and.
+44:58 : John Barber : So I'll do that real quick.
+45:02 : John Barber : Right, so now I need to say, OK, I need to say I don't really need to save it, I can just deploy it. And so this is gonna push out a VRF and that's really all this does is, is in within this template, we only have contracts, which is the communication.
+45:21 : John Barber : Right between different EPGs and the vrfs. So that's the only thing here, so all it's gonna deploy is that one, so I can do deploy template, and then.
+45:33 : John Barber : It's gonna come up and tell me what it's, what it's gonna deploy. So we'll wait for that.
+45:47 : John Barber : Come on.
+45:51 : John Barber : Okay, see, so it's saying.
+45:55 : John Barber : It did create a contract too. So.
+46:00 : John Barber : It's gonna create this VRF in this contract, so I'm gonna say deploy.
+46:07 : John Barber : And then it tells you, right, it was successfully deployed.
+46:11 : John Barber : It did it for both sites. So I'm just gonna look at, I'm just gonna look at one of the sites. So now you can see, right, that this VRF was created.
+46:20 : John Barber : Down here, and then if you go down to contract.
+46:26 : John Barber : You'll see that that contract was created also. So, and so then I'm just gonna go in and.
+46:34 : John Barber : Do that for all the different vrfs. You can see they're out of sync, so I'm just gonna do this and I'm gonna say deploy template.
+46:42 : John Barber : And it tells you what it's gonna do, and so I'm gonna deploy it, and then I'm gonna go to the next one.
+46:50 : John Barber : And I'm gonna deploy this template.
+46:54 : John Barber : And deploy.
+46:57 : John Barber : And I'm gonna go to the next one.
+47:01 : John Barber : And I'm gonna deploy this one.
+47:05 : John Barber : We say this is where it's doing a lot of the that's where we have most of our EPGs and bridge domains are in that stretch template.
+47:31 : John Barber : All right. And now you can see that everything's green. So everything's in sync, so this is basically saying yes the APIC and the NDO are in sync with each other. And so then if I go back here, right, and I refresh this.
+47:51 : John Barber : Sometimes I don't. This refresh, I don't know about it.
+47:59 : Manasa : Oh.
+48:00 : John Barber : By there, so let me do this.
+48:08 : John Barber : Yeah, I didn't have to do that. Because that was, that was that other application profile, so there's not gonna be any more in that application profile, but in the new application profile, that's where all the new ebgps are.
+48:32 : John Barber : Nasa I'm not sure how you're gonna be, I mean.
+48:36 : John Barber : Like what your role is gonna be if you're even interested in this kind of stuff.
+48:41 : Manasa : But yeah yeah.
+48:45 : Manasa : Right now I'm I'm trying to understand. So.
+48:53 : John Barber : Yeah. So here's that other application profile, right? So it created this other application profile, and all these EPGs, right? These are all new that you saw within NDO, and then, and then if I just click on one, expand it, then we can go to the static ports.
+49:13 : John Barber : And it shows here too, right? That it was deployed on.
+49:17 : John Barber : You know leaf one eleven and one twelve and this was the VPC that it was, that it was deployed on. And, and it does that for all the EPGs, right? And then if we go down to networking, all those bridge domains are here too. Now there's two hundred and forty three of them, see it created these, all these, right? That have the names on them.
+49:38 : John Barber : And, and not the numbers. And then if we, if we just select one of them, they can double click on it and it open, it will open it up over here on the left side.
+49:50 : John Barber : And then you can look at all the settings if we go to policy and you can look at, you can see this what I mentioned it was hardware proxy. Most of ours are flood, but.
+50:04 : John Barber : I don't know that it needs to be flood and hardware proxies. So what hardware proxy just in a nutshell, it's basically, it won't flood it in the if it doesn't know.
+50:17 : John Barber : The Mac address, it won't flood it within this, within this bridge domain, it will send it to the spine and if the spine doesn't know it, then it will drop Cause spines are supposed to know everything, soaple, right?
+50:32 : Manasa : So.
+50:32 : John Barber : So and then if we look at the L three configs, see how that I, that IPv6 address is, is assigned and this is this is the gateway address of this particular bridge domain, and we see we have to advertise them externally so that it gets advertised outside of ACI. And we also need to ATT.
+50:52 : John Barber : Attach an L three out so it knows how to get out. But I haven't created those. I don't know those are normally to the, to the firewall. So, so those will have to be created.
+51:07 : John Barber : And I think that's about all I had. Do you have, do you have any questions right now of anything that top of your mind?
+51:16 : Manasa : Right now that was a lot of information. Thank you, but if you can please send me this recording and also any documentation you have, I will go through them and I'm sure I will come up with questions as I try to.
+51:32 : Manasa : Definitely I'll.
+51:33 : John Barber : So it's it's gonna yeah it's all kind of rough draft stuff right now, but I'll send it to you and then just know that it's not, it's not written in stone and things are gonna change for sure.
+51:43 : Manasa : Yeah, sure. I mean.
+51:44 : John Barber : And what's gone red, yeah. Conrad have to listen to this and, and, you know, we'll get together, right? All of us and and just talk about it. Yeah, and if you're looking through it and you have questions, just hit me up on Teams or whatever, and, and yeah, if you just don't understand something.
+52:05 : John Barber : Just let me know and, and I'll do my best to, to explain it all to you. So, any questions like on the IPv6 stuff that, so my goal was to.
+52:21 : John Barber : Our hardest thing for the data center was gonna be.
+52:26 : John Barber : Okay we need to create all these new EPGs, all these new bridge domains.
+52:32 : John Barber : With all the right settings. We have to create the L three outs, we have to create all the bindings, and.
+52:41 : John Barber : I was just like, you know, this is gonna take us, this is gonna take us a long time.
+52:46 : John Barber : If not, if not weeks, right? Definite days like and and so I definitely wanted to automate it.
+52:56 : John Barber : So yeah, I think this would be, I think this would be a good thing for, for everybody, and, and.
+53:02 : Manasa : You know, like, eh, you have it all figured out. Yeah.
+53:09 : John Barber : Yeah, so alright, yeah. So I'll send you information and.
+53:14 : John Barber : Yeah, just, just let me know. Let me stop this recording here.
+53:20 : John Barber : And, so this I'll send you this meeting recording and it will also have, it will also have.
+53:27 : John Barber : A summary and.
+53:29 : John Barber : And all that kind of sort of kind of go over the main topics and, and that kind of thing so I love this Webex stuff, right? It doesn't have, you don't have to take notes anymore.
+53:43 : John Barber : It makes it very nice and then I'll take a lot of times like it keeps track of the whole conversation with everybody said, and I'll take that.
+53:51 : John Barber : And I'll I'll have AI summarize it, right? Like, give me all the, all the main points of, of this conversation, all the detail of this conversation. So.
+54:06 : John Barber : It works. It works well.
+54:10 : Manasa : So.
+54:10 : John Barber : Yeah, so next thing I'm gonna work on is getting you guys access to this lab so you can play around with it and, you know, you can kind of get in there and you you don't worry you won't hurt anything, right? I mean, you can, you can If you're if you're learning something you wanna come in and just right create a, create.
+54:31 : John Barber : Create an application profile or something. Yeah. Right, you can, you can do that cause I'll just I can just blow it away and then.
+54:40 : John Barber : Or you can just delete it when you're done, but, you know, you can kind of learn, learn kind of where stuff is and and that kind of stuff, and there's, there's a lot of documentation out there, right? There's some good courses.
+54:54 : John Barber : I found one of the best ones. I think it was.
+55:00 : John Barber : Was it.
+55:02 : John Barber : Is it called K bits or something? Or.
+55:06 : John Barber : I'll look at it and I'll find it and I'll send it to you. And it's a very like basic, this is ACI, right? And like, but I thought it was pretty good instruction and.
+55:18 : Manasa : Yeah, anything that you send to me helps yeah, thanks. Okay.
+55:22 : John Barber : Yeah, let me just let me know what you need and and I'll send you some initial stuff. And yeah, reach out to me with, with any questions and I'm sure like I said, we'll get together, we'll get together again with Conrad too, and, and talk about some stuff. Once you, yeah, once you can kind of look at it and go over some stuff, then I think you'll have questions.
+55:43 : John Barber : I'm sure.
+55:44 : Manasa : Yeah, yeah, I mean I I I've been reading through stuff but looking at it felt more.
+55:53 : Manasa : Natable. So maybe if I play around a little, I.
+55:58 : John Barber : India, and.
+55:59 : Manasa : Then I will come up with questions, that's how I feel. So.
+56:04 : John Barber : Do you have another minute or two.
+56:06 : Manasa : Yeah, sure. So.
+56:08 : John Barber : I don't know if you, have you heard of D.
+56:11 : Manasa : Haven't I don't know if I can get access.
+56:14 : John Barber : You'll have to have access. I think you should have access. If you don't have access.
+56:21 : Manasa : Cloud let me write down. Okay, I will I think.
+56:24 : John Barber : Can just go to, you can actually just go to D cloud dot Cisco dot com D cloud dot Cisco dot com, and.
+56:35 : John Barber : And it will take you to that site.
+56:41 : John Barber : And then if you don't have access, let me know and we can get you access.
+56:48 : John Barber : So that you can, oh, I can actually add you now, I think.
+56:53 : John Barber : I think as long as you, you do have a Cisco ID, right? A CCO account.
+57:00 : Manasa : Yes yeah.
+57:03 : John Barber : Okay, cause I can give you, oh, why can't it be.
+57:06 : Manasa : Yeah, that would be great. Yeah.
+57:11 : John Barber : With this right now because it messes things up.
+57:20 : John Barber : Cause I was VPN right into, we have, we have like a lab and.
+57:26 : John Barber : In London and.
+57:30 : John Barber : Our research triangle Park in the States and some other places, Asia and.
+57:38 : John Barber : And I don't know what's going on right now, but.
+57:43 : John Barber : Yeah, if you wanna, why don't you, do you wanna send me your CCO ID and.
+57:50 : John Barber : Give you access to D cloud.
+57:54 : John Barber : And then you can And then you just play with you can you can like search for different labs if I can get to this site, I could show you.
+58:02 : John Barber : I'm not sure what it's doing.
+58:05 : John Barber : Right now. It'.
+58:07 : Manasa : Maybe it's.
+58:08 : John Barber : Connections and that's so great.
+58:11 : Manasa : Alright now, the network's leepy. That's, ok. I can send you my Cisco ID and then.
+58:18 : John Barber : Yeah, and just check out the.
+58:20 : Manasa : And I can just if if I'm stuck I'll start messaging you on teams. Sounds good. If you're on the third floor I can just walk over there.
+58:29 : John Barber : I've I've been here a lot lately because.
+58:31 : John Barber : I'm just trying to work on all this stuff in in the lab and and that kind of stuff. So I'll probably, yeah, I'll probably be here most of the week.
+58:40 : John Barber : So yeah, feel free to come up and anyway, yeah. Send me that and I will I'll give you access and then you can play around cause there's a bunch of different labs that you can, that you can schedule and play around with and and learn some stuff. So, it's a pretty good, pretty good site.
+59:01 : Manasa : Thanks John. I will have to.
+59:08 : Manasa : I will have to go to an appointment now so thank you for the.
+59:17 : Manasa : For the training because you're welcome. It, it really opened up a lot of things for me, so yeah. Like I said, I'm here.
+59:26 : John Barber : I'm here for you, so.
+59:30 : John Barber : Back soon. Thank you.
+59:32 : Manasa : Thank you, bye. Have a good evening.
+59:34 : John Barber : You too. Bye bye.
+

@@ -1,0 +1,542 @@
+========================================================================================================================
+COMPLETE IPv4 → IPv6 BD CORRELATION MAP
+Using: VRF + nameAlias + Subnet Pattern Analysis
+========================================================================================================================
+
+SUMMARY:
+  Total IPv4 BDs: 215
+  HIGH confidence mapping: 90 (41%)
+  MED confidence mapping:  50 (23%)
+  LOW confidence mapping:  73 (33%)
+  Unmapped:                2 (0%)
+
+========================================================================================================================
+DETAILED MAPPING BY IPv6 TARGET BD
+========================================================================================================================
+
+====================================================================================================
+>>> BD-ACAS-SCANNERS - ACAS/Vulnerability Scanners (3 IPv4 BDs)
+    HIGH: 3, MED: 0, LOW: 0
+====================================================================================================
+  [HIGH] BD-V0474        | APCK_RETINA_REM_V474                     | EUR-AIS         | 136.215.66.1/27
+         Reason: EUR-AIS + scanner keyword
+  [HIGH] BD-V0099        | APCG_RETINA_SERVERS                      | EUR-E           | (no subnet)
+         Reason: EUR-E + scanner
+  [HIGH] BD-V0174        | APCG_ACAS_V174                           | EUR-AIS         | 136.215.194.1/27
+         Reason: EUR-AIS + scanner keyword
+
+====================================================================================================
+>>> BD-AD - Active Directory (3 IPv4 BDs)
+    HIGH: 3, MED: 0, LOW: 0
+====================================================================================================
+  [HIGH] BD-V0172        | APCG_AD_V172                             | EUR-AIS         | 136.215.193.1/26
+         Reason: EUR-AIS + AD keyword
+  [HIGH] BD-V0322        | APCG_AD                                  | EUR-AIS         | 155.155.136.1/26
+         Reason: EUR-AIS + AD keyword
+  [HIGH] BD-V0222        | APCK_AD                                  | EUR-AIS         | 155.155.72.1/26
+         Reason: EUR-AIS + AD keyword
+
+====================================================================================================
+>>> BD-ADM-DCO - Admin DCO (1 IPv4 BDs)
+    HIGH: 1, MED: 0, LOW: 0
+====================================================================================================
+  [HIGH] BD-V0481        | DCOD_IDS                                 | EUR-AIS         | 155.155.230.97/28
+         Reason: EUR-AIS + DCO keyword
+
+====================================================================================================
+>>> BD-APP-SVR - Application Servers (54 IPv4 BDs)
+    HIGH: 0, MED: 22, LOW: 32
+====================================================================================================
+  [MED ] BD-V1591        | USAREUR_EUR_UNREST_APP_SVRS              | EUR-E           | (no subnet)
+         Reason: EUR-E + app/ITSM
+  [MED ] BD-V0125        | JMTC_VM                                  | EUR-AIS         | 136.215.137.1/25
+         Reason: EUR-AIS + specific app
+  [MED ] BD-V0265        | APCG_ITSM_IPSEC                          | EUR-AIZ         | 206.39.28.161/28
+         Reason: EUR-AIZ + ITSM apps
+  [MED ] BD-V0267        | APCG_ITSM-ADDM                           | EUR-AIZ         | 206.39.28.177/28
+         Reason: EUR-AIZ + ITSM apps
+  [MED ] BD-V0253        | ITSM_OOBM                                | EUR-E           | (no subnet)
+         Reason: EUR-E + app/ITSM
+  [MED ] BD-V0142        | APCG_SPEC_ELEM_MGR                       | EUR-AIS         | 136.215.161.1/27
+         Reason: EUR-AIS + specific app
+  [MED ] BD-V0572        | APCE_EUR_APPS_V572                       | EUR-AIS         | 155.155.236.65/26
+         Reason: EUR-AIS + app keyword
+  [MED ] BD-V0372        | APCG_EUR_APPS                            | EUR-AIS         | 155.155.172.1/24
+         Reason: EUR-AIS + app keyword
+  [MED ] BD-V0255        | ITSM_IPSEC                               | EUR-E           | (no subnet)
+         Reason: EUR-E + app/ITSM
+  [MED ] BD-V0210        | APCK_USER_INSIDE                         | EUR-AIS         | 155.155.64.1/23
+         Reason: EUR-AIS + user/VDI pattern
+  [MED ] BD-V0260        | APCG_ITSM_APPS                           | EUR-E           | (no subnet)
+         Reason: EUR-E + app/ITSM
+  [MED ] BD-V0033        | ITSM_v33                                 | EUR-E           | (no subnet)
+         Reason: EUR-E + app/ITSM
+  [MED ] BD-V0272        | APCK_EUR_APPS                            | EUR-AIS         | 155.155.108.1/24
+         Reason: EUR-AIS + app keyword
+  [MED ] BD-V0455        | APCK_RDS                                 | EUR-AIS         | 136.215.37.129/26
+         Reason: EUR-AIS + user/VDI pattern
+  [MED ] BD-V0528        | APCE_VDI_DESKTOPS_V528                   | EUR-AIS         | 155.155.231.1/27
+         Reason: EUR-AIS + user/VDI pattern
+  [MED ] BD-V1592        | USAREUR_EUR_REST_APP_SVRS                | EUR-E           | (no subnet)
+         Reason: EUR-E + app/ITSM
+  [MED ] BD-V0268        | APCG_ITSM-APPS-2                         | EUR-E           | (no subnet)
+         Reason: EUR-E + app/ITSM
+  [MED ] BD-V0542        | APCE_SPEC_ELEM_MGR_V542                  | EUR-AIS         | 155.155.234.65/27
+         Reason: EUR-AIS + specific app
+  [MED ] BD-V0472        | APCK_FINANCE_472                         | EUR-AIS         | 136.215.64.193/26
+         Reason: EUR-AIS + specific app
+  [MED ] BD-V0310        | APCG_USER_INSIDE                         | EUR-AIS         | 155.155.128.1/23
+         Reason: EUR-AIS + user/VDI pattern
+  [MED ] BD-V0419        | VDI_Host_VLAN                            | EUR-AIS         | 136.215.3.1/24
+         Reason: EUR-AIS + user/VDI pattern
+  [MED ] BD-V0263        | APCG_ITSM_OOB                            | EUR-AIZ         | 206.39.28.1/25
+         Reason: EUR-AIZ + ITSM apps
+  [LOW ] BD-V0580        | APCE_MIL_V580                            | EUR-AIS         | 155.155.239.129/27
+         Reason: EUR-AIS default (has subnet)
+  [LOW ] BD-V0067        | (no alias)                               | EUR-AIZ         | 155.155.62.241/29
+         Reason: EUR-AIZ VRF default
+  [LOW ] BD-V0520        | APCE_DNAB_V520                           | EUR-AIS         | 155.155.224.1/23
+         Reason: EUR-AIS default (has subnet)
+  [LOW ] BD-V0531        | APCE_TEMPLATE_V531                       | EUR-AIS         | 155.155.226.1/27
+         Reason: EUR-AIS default (has subnet)
+  [LOW ] BD-V0582        | APCE_EXERCISE_EXTERNAL_V582              | EUR-AIS         | 155.155.238.1/27
+         Reason: EUR-AIS default (has subnet)
+  [LOW ] BD-V0373        | (no alias)                               | EUR-AIS         | 155.155.84.1/23
+         Reason: EUR-AIS default (has subnet)
+  [LOW ] BD-V0575        | ARCSIGHT                                 | EUR-AIS         | 155.155.237.129/25
+         Reason: EUR-AIS default (has subnet)
+  [LOW ] BD-V0576        | APCE_EUR_SEC_V576                        | EUR-AIS         | 155.155.236.193/26
+         Reason: EUR-AIS default (has subnet)
+  [LOW ] BD-V0521        | APCE_MSB_V521                            | EUR-AIS         | 155.155.230.65/27
+         Reason: EUR-AIS default (has subnet)
+  [LOW ] BD-V0256        | Army_Metering_Public                     | EUR-AIZ         | 206.39.28.249/29
+         Reason: EUR-AIZ VRF default
+  [LOW ] BD-V0791        | EEDRS_Siemens                            | EUR-AIS         | 10.254.8.65/26
+         Reason: EUR-AIS default (has subnet)
+  [LOW ] BD-V0066        | (no alias)                               | EUR-AIZ         | 155.155.62.249/29
+         Reason: EUR-AIZ VRF default
+  [LOW ] BD-V0570        | APCE_EUR_SVCS_V570                       | EUR-AIS         | 155.155.236.1/27
+         Reason: EUR-AIS default (has subnet)
+  [LOW ] BD-V0793        | EEDRS_JCI                                | EUR-AIS         | 10.254.8.193/26
+         Reason: EUR-AIS default (has subnet)
+  [LOW ] BD-V0475        | APCK_SVCS_V475                           | EUR-AIS         | 136.215.66.129/26
+         Reason: EUR-AIS default (has subnet)
+  [LOW ] BD-V0122        | APCG_MGMT_JCIS                           | EUR-AIS         | 136.215.135.1/24
+         Reason: EUR-AIS default (has subnet)
+  [LOW ] BD-V0422        | APCK_MGMT_JCIS                           | EUR-AIS         | 136.215.6.129/25
+         Reason: EUR-AIS default (has subnet)
+  [LOW ] BD-V1119        | (no alias)                               | EUR-AIZ         | 139.139.251.1/28
+         Reason: EUR-AIZ VRF default
+  [LOW ] BD-V0794        | EEDRS_Honeywell                          | EUR-AIS         | 10.254.9.4/26
+         Reason: EUR-AIS default (has subnet)
+  [LOW ] BD-V0522        | APCE_RCERT_V522                          | EUR-AIS         | 155.155.230.129/26
+         Reason: EUR-AIS default (has subnet)
+  [LOW ] BD-V0470        | (no alias)                               | EUR-AIS         | 136.215.64.1/25
+         Reason: EUR-AIS default (has subnet)
+  [LOW ] BD-V0792        | EEDRS_WEC                                | EUR-AIS         | 10.254.8.129/26
+         Reason: EUR-AIS default (has subnet)
+  [LOW ] BD-V0529        | APCE_etnosc_bridge_Remove                | EUR-AIS         | 155.155.231.65/27
+         Reason: EUR-AIS default (has subnet)
+  [LOW ] BD-V1595        | (no alias)                               | EUR-AIS         | 155.155.94.129/26
+         Reason: EUR-AIS default (has subnet)
+  [LOW ] BD-V0616        | APCKEXT_G2IMS_V616                       | EUR-AIS         | 155.155.120.129/27
+         Reason: EUR-AIS default (has subnet)
+  [LOW ] BD-V1596        | (no alias)                               | EUR-AIS         | 155.155.94.193/26
+         Reason: EUR-AIS default (has subnet)
+  [LOW ] BD-V0299        | (no alias)                               | EUR-AIS         | 136.215.97.1/28
+         Reason: EUR-AIS default (has subnet)
+  [LOW ] BD-V0219        | EEP_BACKEND                              | EUR-AIS         | 155.155.71.129/27
+         Reason: EUR-AIS default (has subnet)
+  [LOW ] BD-V0524        | APCE_DNAB_V524                           | EUR-AIS         | 155.155.230.1/27
+         Reason: EUR-AIS default (has subnet)
+  [LOW ] BD-V0581        | APCE_EUROPE_V581                         | EUR-AIS         | 155.155.239.65/27
+         Reason: EUR-AIS default (has subnet)
+  [LOW ] BD-V0170        | (no alias)                               | EUR-AIS         | 136.215.192.1/25
+         Reason: EUR-AIS default (has subnet)
+  [LOW ] BD-V0790        | Calibre_MDMS_Private                     | EUR-AIS         | 10.254.8.1/26
+         Reason: EUR-AIS default (has subnet)
+
+====================================================================================================
+>>> BD-BACKUP-SVR - Backup/DR Servers (5 IPv4 BDs)
+    HIGH: 5, MED: 0, LOW: 0
+====================================================================================================
+  [HIGH] BD-V0544        | APCE_DR_FE_V544                          | EUR-AIS         | 155.155.234.129/27
+         Reason: EUR-AIS + backup/DR keyword
+  [HIGH] BD-V0514        | APCE_DR_MGMT_V514                        | EUR-E           | (no subnet)
+         Reason: EUR-E + backup keyword
+  [HIGH] BD-V0144        | APCG_DR_MS_V144                          | EUR-AIS         | 136.215.162.1/23
+         Reason: EUR-AIS + backup/DR keyword
+  [HIGH] BD-V0444        | APCK_DR_MS_V444                          | EUR-AIS         | 136.215.34.1/27
+         Reason: EUR-AIS + backup/DR keyword
+  [HIGH] BD-V0809        | EMC_RECOVERPOINT_HEARTBEAT               | EUR-AIV         | 136.215.128.193/26
+         Reason: EUR-AIV + storage replication
+
+====================================================================================================
+>>> BD-CFG-MGMT - Configuration Management (60 IPv4 BDs)
+    HIGH: 0, MED: 19, LOW: 41
+====================================================================================================
+  [MED ] BD-V0410        | APCK_OOB_V410                            | EUR-E           | (no subnet)
+         Reason: EUR-E + management
+  [MED ] BD-V0010        | OOB_MPLS                                 | EUR-E           | (no subnet)
+         Reason: EUR-E + management
+  [MED ] BD-V0120        | APCG_MGMT_V120                           | EUR-AIS         | 136.215.132.1/24
+         Reason: EUR-AIS + management keyword
+  [MED ] BD-V0595        | (no alias)                               | EUR-AIM         | 155.155.250.1/23
+         Reason: EUR-AIM VRF default (management)
+  [MED ] BD-V0504        | VMI_MOTION_V504                          | EUR-E           | (no subnet)
+         Reason: EUR-E + VMware infra
+  [MED ] BD-V0530        | APCE_ETNOSC_MGMT_INBAND_V530             | EUR-E           | (no subnet)
+         Reason: EUR-E + management
+  [MED ] BD-V0022        | ATM_MGMT_VLAN                            | EUR-E           | (no subnet)
+         Reason: EUR-E + management
+  [MED ] BD-V0420        | APCK_MGMT_V420                           | EUR-AIS         | 136.215.4.1/24
+         Reason: EUR-AIS + management keyword
+  [MED ] BD-V0020        | TMP_SATTest_VRF_EUR-AIM_IBMgmt           | EUR-AIM         | (no subnet)
+         Reason: EUR-AIM VRF default (management)
+  [MED ] BD-V0106        | APCG_SRVR_HEARTBEAT_V106                 | EUR-E           | (no subnet)
+         Reason: EUR-E + management
+  [MED ] BD-V0510        | APCE_OOB_V510                            | EUR-E           | (no subnet)
+         Reason: EUR-E + management
+  [MED ] BD-V0015        | InbandMGT                                | EUR-AIM         | 155.155.30.1/26
+         Reason: EUR-AIM VRF default (management)
+  [MED ] BD-V0501        | DRAC_CIMC_OOB_V501                       | EUR-E           | (no subnet)
+         Reason: EUR-E + management
+  [MED ] BD-V0611        | IACS_SVR_MGMT_V611                       | EUR-E           | (no subnet)
+         Reason: EUR-E + management
+  [MED ] BD-V0108        | APCG_SRVR_JCIS_HEARTBEAT_V108            | EUR-E           | (no subnet)
+         Reason: EUR-E + management
+  [MED ] BD-V0058        | (no alias)                               | EUR-AIM         | (no subnet)
+         Reason: EUR-AIM VRF default (management)
+  [MED ] BD-V0292        | APCK_HQU_MGMT_V292                       | EUR-E           | (no subnet)
+         Reason: EUR-E + management
+  [MED ] BD-V0503        | VMI_MGMT_V503                            | EUR-E           | (no subnet)
+         Reason: EUR-E + management
+  [MED ] BD-V0110        | APCG_OOB_V110                            | EUR-E           | (no subnet)
+         Reason: EUR-E + management
+  [LOW ] BD-V1149        | (no alias)                               | EUR-E           | (no subnet)
+         Reason: EUR-E default
+  [LOW ] BD-V1144        | (no alias)                               | EUR-E           | (no subnet)
+         Reason: EUR-E default
+  [LOW ] BD-V1143        | (no alias)                               | EUR-E           | (no subnet)
+         Reason: EUR-E default
+  [LOW ] BD-V1147        | (no alias)                               | EUR-E           | (no subnet)
+         Reason: EUR-E default
+  [LOW ] BD-V1140        | (no alias)                               | EUR-E           | (no subnet)
+         Reason: EUR-E default
+  [LOW ] BD-V1145        | (no alias)                               | EUR-E           | (no subnet)
+         Reason: EUR-E default
+  [LOW ] BD-V1148        | (no alias)                               | EUR-E           | (no subnet)
+         Reason: EUR-E default
+  [LOW ] BD-V1146        | (no alias)                               | EUR-E           | (no subnet)
+         Reason: EUR-E default
+  [LOW ] BD-V1141        | (no alias)                               | EUR-E           | (no subnet)
+         Reason: EUR-E default
+  [LOW ] BD-V1142        | (no alias)                               | EUR-E           | (no subnet)
+         Reason: EUR-E default
+  [LOW ] BD-2250         | (no alias)                               | EUR-E           | (no subnet)
+         Reason: EUR-E default
+  [LOW ] BD-V0005        | (no alias)                               | EUR-E           | (no subnet)
+         Reason: EUR-E default
+  [LOW ] BD-V0006        | (no alias)                               | EUR-E           | (no subnet)
+         Reason: EUR-E default
+  [LOW ] BD-V2003        | TMP_SATTest_VRF_EUR-AIV                  | EUR-E           | (no subnet)
+         Reason: EUR-E default
+  [LOW ] BD-V2005        | TMP_SATTest_VRF_EUR-AIG                  | EUR-E           | (no subnet)
+         Reason: EUR-E default
+  [LOW ] BD-V0314        | Audio_Server_RTP                         | EUR-E           | (no subnet)
+         Reason: EUR-E default
+  [LOW ] BD-V0610        | IACS_SVR_V610                            | EUR-E           | (no subnet)
+         Reason: EUR-E default
+  [LOW ] BD-V1117        | (no alias)                               | EUR-E           | (no subnet)
+         Reason: EUR-E default
+  [LOW ] BD-V0239        | CAIR_VLAN_MANAGEMENT                     | EUR-E           | (no subnet)
+         Reason: EUR-E default
+  [LOW ] BD-V0021        | ATM_VLAN_may_need_to_remove              | EUR-E           | (no subnet)
+         Reason: EUR-E default
+  [LOW ] BD-V0229        | CAIR_DMVPN                               | EUR-E           | (no subnet)
+         Reason: EUR-E default
+  [LOW ] BD-V0233        | CAIR_NIPRnet_DISA                        | EUR-E           | (no subnet)
+         Reason: EUR-E default
+  [LOW ] BD-V2004        | TMP_SATTest_VRF_EUR-AIZ                  | EUR-E           | (no subnet)
+         Reason: EUR-E default
+  [LOW ] BD-V0240        | CAIR_DMVPN_FW                            | EUR-E           | (no subnet)
+         Reason: EUR-E default
+  [LOW ] BD-V0092        | F5_HA_VLAN                               | EUR-E           | (no subnet)
+         Reason: EUR-E default
+  [LOW ] BD-V0230        | CAIR_NIPRnet_INT                         | EUR-E           | (no subnet)
+         Reason: EUR-E default
+  [LOW ] BD-V0612        | APCK_IACS_LAN_V612                       | EUR-E           | (no subnet)
+         Reason: EUR-E default
+  [LOW ] BD-V2002        | TMP_SATTest_VRF_EUR-AIS                  | EUR-E           | (no subnet)
+         Reason: EUR-E default
+  [LOW ] BD-V2001        | TMP_SATTest_VRF_EUR-AIM                  | EUR-E           | (no subnet)
+         Reason: EUR-E default
+  [LOW ] BD-V2150        | (no alias)                               | EUR-E           | (no subnet)
+         Reason: EUR-E default
+  [LOW ] BD-V1571        | (no alias)                               | EUR-E           | (no subnet)
+         Reason: EUR-E default
+  [LOW ] BD-V1120        | (no alias)                               | EUR-E           | (no subnet)
+         Reason: EUR-E default
+  [LOW ] BD-V0970        | (no alias)                               | EUR-E           | (no subnet)
+         Reason: EUR-E default
+  [LOW ] BD-V0312        | IP_MCU_VLAN                              | EUR-E           | (no subnet)
+         Reason: EUR-E default
+  [LOW ] BD-V0958        | (no alias)                               | EUR-E           | (no subnet)
+         Reason: EUR-E default
+  [LOW ] BD-V0009        | Def_Native_vlan                          | EUR-E           | (no subnet)
+         Reason: EUR-E default
+  [LOW ] BD-V0613        | APCG_IACS_LAN_V613                       | EUR-E           | (no subnet)
+         Reason: EUR-E default
+  [LOW ] BD-V0238        | CAIR_ASA_FAILOVER                        | EUR-E           | (no subnet)
+         Reason: EUR-E default
+  [LOW ] BD-V0237        | CAIR_ASA_MANAGEMENT                      | EUR-E           | (no subnet)
+         Reason: EUR-E default
+  [LOW ] BD-V0231        | CAIR_NIPRnet_EXT                         | EUR-E           | (no subnet)
+         Reason: EUR-E default
+  [LOW ] BD-V1116        | (no alias)                               | EUR-E           | (no subnet)
+         Reason: EUR-E default
+
+====================================================================================================
+>>> BD-DB-SVR - Database Servers (11 IPv4 BDs)
+    HIGH: 11, MED: 0, LOW: 0
+====================================================================================================
+  [HIGH] BD-V0445        | APCK_AWRDS_DB_V445                       | EUR-AIS         | 136.215.35.1/27
+         Reason: EUR-AIS + database keyword
+  [HIGH] BD-V0516        | APCE_DB_BACKEND_V516                     | EUR-E           | (no subnet)
+         Reason: EUR-E + database keyword
+  [HIGH] BD-V0250        | APCK_BACKEND_DATABASE                    | EUR-AIS         | 155.155.80.1/25
+         Reason: EUR-AIS + database keyword
+  [HIGH] BD-V0141        | APCG_DB_SQL_SERVERS                      | EUR-AIS         | 136.215.160.129/26
+         Reason: EUR-AIS + database keyword
+  [HIGH] BD-V0532        | APCE_DB_FRONTEND_V532                    | EUR-AIS         | 155.155.228.1/27
+         Reason: EUR-AIS + database keyword
+  [HIGH] BD-V0140        | APCG_DB_SQL_V140                         | EUR-AIS         | 136.215.160.1/25
+         Reason: EUR-AIS + database keyword
+  [HIGH] BD-V0262        | APCG_ITSM_DB_HEARTBEAT                   | EUR-E           | (no subnet)
+         Reason: EUR-E + database keyword
+  [HIGH] BD-V0293        | APCK_HQU_SQL_V293                        | EUR-AIS         | 136.215.98.1/25
+         Reason: EUR-AIS + database keyword
+  [HIGH] BD-V0350        | APCG_BACKEND_DATABASE                    | EUR-AIS         | 155.155.144.1/25
+         Reason: EUR-AIS + database keyword
+  [HIGH] BD-V0441        | APCK_DB_SQL_SERVERS                      | EUR-AIS         | 136.215.32.129/26
+         Reason: EUR-AIS + database keyword
+  [HIGH] BD-V0261        | APCG_ITSM_DB_INT                         | EUR-E           | (no subnet)
+         Reason: EUR-E + database keyword
+
+====================================================================================================
+>>> BD-DNS-MGMT - DNS Management (2 IPv4 BDs)
+    HIGH: 2, MED: 0, LOW: 0
+====================================================================================================
+  [HIGH] BD-V0976        | v976.army-eur-ems-dmz.EPDNS-mgt          | EUR-E           | (no subnet)
+         Reason: EUR-E + DNS keyword
+  [HIGH] BD-V2176        | v2176.army-eur-dns-dmz.EPDNS-pro         | EUR-E           | (no subnet)
+         Reason: EUR-E + DNS keyword
+
+====================================================================================================
+>>> BD-FILE-SVR - File/Storage Servers (6 IPv4 BDs)
+    HIGH: 6, MED: 0, LOW: 0
+====================================================================================================
+  [HIGH] BD-V0512        | APCE_SAN_MGMT_V512                       | EUR-E           | (no subnet)
+         Reason: EUR-E + storage keyword
+  [HIGH] BD-V0150        | APCG_STORAGE_NFS_CIFS_V550               | EUR-AIS         | 136.215.165.1/25
+         Reason: EUR-AIS + storage keyword
+  [HIGH] BD-V0450        | APCK_STORAGE_PUB                         | EUR-AIM         | 136.215.37.1/25
+         Reason: EUR-AIM + storage
+  [HIGH] BD-V0505        | VMI_STORAGE_V505                         | EUR-E           | (no subnet)
+         Reason: EUR-E + storage keyword
+  [HIGH] BD-V0550        | APCE_STORAGE_NFS_CIFS_V550               | EUR-AIS         | 155.155.235.129/26
+         Reason: EUR-AIS + storage keyword
+  [HIGH] BD-V0513        | APCE_SAN_NETAPP_V513                     | EUR-E           | (no subnet)
+         Reason: EUR-E + storage keyword
+
+====================================================================================================
+>>> BD-FWEB-PROXY - Forward Web Proxy/DMZ (9 IPv4 BDs)
+    HIGH: 0, MED: 9, LOW: 0
+====================================================================================================
+  [MED ] BD-V0952        | Private_DMZ_Application                  | EUR-E           | (no subnet)
+         Reason: EUR-E + DMZ pattern
+  [MED ] BD-V1594        | USAREUR_DATA_TIER_DMZ                    | EUR-E           | (no subnet)
+         Reason: EUR-E + DMZ pattern
+  [MED ] BD-V0950        | PVT_DMZ_IN                               | EUR-AIP         | 139.139.1.129/26
+         Reason: EUR-AIP VRF (perimeter DMZ)
+  [MED ] BD-V0954        | Private_DMZ_Backend                      | EUR-E           | (no subnet)
+         Reason: EUR-E + DMZ pattern
+  [MED ] BD-V0235        | CAIR_DMZ_2_APP                           | EUR-E           | (no subnet)
+         Reason: EUR-E + DMZ pattern
+  [MED ] BD-V0236        | CAIR_DMZ_3_DATA                          | EUR-E           | (no subnet)
+         Reason: EUR-E + DMZ pattern
+  [MED ] BD-V1593        | USAREUR_APP_TIER_DMZ                     | EUR-E           | (no subnet)
+         Reason: EUR-E + DMZ pattern
+  [MED ] BD-V1581        | PUB_REST_DMZ_OUT                         | EUR-AIP         | (no subnet)
+         Reason: EUR-AIP VRF (perimeter DMZ)
+  [MED ] BD-V1583        | USAREUR_WEB-BE2APP-FW                    | EUR-AIP         | (no subnet)
+         Reason: EUR-AIP VRF (perimeter DMZ)
+
+====================================================================================================
+>>> BD-GEF-MGMT - GEF Management (10 IPv4 BDs)
+    HIGH: 10, MED: 0, LOW: 0
+====================================================================================================
+  [HIGH] BD-V2172        | v2172.01.army-gef-ms-hgs-emf-mgt         | EUR-E           | (no subnet)
+         Reason: EUR-E + GEF pattern
+  [HIGH] BD-V2205        | v2205.02.gef-ent-eaf                     | EUR-E           | (no subnet)
+         Reason: EUR-E + GEF pattern
+  [HIGH] BD-V2174        | v2174.01.army-gef-vm-uplink1-mgt         | EUR-E           | (no subnet)
+         Reason: EUR-E + GEF pattern
+  [HIGH] BD-V2175        | v2175.01.army-gef-vm-uplink2-mgt         | EUR-E           | (no subnet)
+         Reason: EUR-E + GEF pattern
+  [HIGH] BD-V2171        | v2171.01.army-gef-vm-replica-mgt         | EUR-E           | (no subnet)
+         Reason: EUR-E + GEF pattern
+  [HIGH] BD-V2173        | v2173.01.army-gef-vm-vxlan-mgt           | EUR-E           | (no subnet)
+         Reason: EUR-E + GEF pattern
+  [HIGH] BD-V2170        | v2170.01.army-gef-vm-nfs-mgt             | EUR-E           | (no subnet)
+         Reason: EUR-E + GEF pattern
+  [HIGH] BD-V0972        | v972.01.army-gef-ms-lvmn-mgt             | EUR-E           | (no subnet)
+         Reason: EUR-E + GEF pattern
+  [HIGH] BD-V0971        | v972.01.army-gef-ib-mgt                  | EUR-E           | (no subnet)
+         Reason: EUR-E + GEF pattern
+  [HIGH] BD-V0454        | v454.01.gef-ent-eaf                      | EUR-E           | (no subnet)
+         Reason: EUR-E + GEF pattern
+
+====================================================================================================
+>>> BD-LB - Load Balancers (4 IPv4 BDs)
+    HIGH: 4, MED: 0, LOW: 0
+====================================================================================================
+  [HIGH] BD-V0591        | APCE_LOAD_BALANCER_V591                  | EUR-AIS         | 155.155.240.1/26
+         Reason: EUR-AIS + load balancer
+  [HIGH] BD-V0191        | APCG_LOAD_BALANCER                       | EUR-AIS         | 136.215.224.129/26
+         Reason: EUR-AIS + load balancer
+  [HIGH] BD-V0491        | APCK_LOAD_BALANCER_v491                  | EUR-AIS         | 136.215.96.129/26
+         Reason: EUR-AIS + load balancer
+  [HIGH] BD-V0091        | APCE_LB_HEARTBEAT                        | EUR-E           | (no subnet)
+         Reason: EUR-E + load balancer
+
+====================================================================================================
+>>> BD-MECM - MECM/SCCM (5 IPv4 BDs)
+    HIGH: 5, MED: 0, LOW: 0
+====================================================================================================
+  [HIGH] BD-V0171        | APCG_SCCMHost_v171                       | EUR-AIS         | 136.215.192.129/27
+         Reason: EUR-AIS + SCCM keyword
+  [HIGH] BD-V0176        | APCG_SCCM2012_V176                       | EUR-AIS         | 136.215.196.1/27
+         Reason: EUR-AIS + SCCM keyword
+  [HIGH] BD-V0476        | APCK_SCCM2012_V476                       | EUR-AIS         | 136.215.66.193/27
+         Reason: EUR-AIS + SCCM keyword
+  [HIGH] BD-V0473        | APCK_SCCM                                | EUR-AIS         | 136.215.65.129/28
+         Reason: EUR-AIS + SCCM keyword
+  [HIGH] BD-V0173        | APCG_SCCM                                | EUR-AIS         | 136.215.193.129/28
+         Reason: EUR-AIS + SCCM keyword
+
+====================================================================================================
+>>> BD-NMS - Network Management (3 IPv4 BDs)
+    HIGH: 3, MED: 0, LOW: 0
+====================================================================================================
+  [HIGH] BD-V0016        | NETSEC_InbandMGT_APCG                    | EUR-AIM         | 155.155.20.1/25
+         Reason: EUR-AIM + network security
+  [HIGH] BD-V0017        | NETSEC_InbandMGT_APCK                    | EUR-AIM         | 155.155.20.129/25
+         Reason: EUR-AIM + network security
+  [HIGH] BD-V0014        | ACI_OOBM                                 | EUR-AIM         | (no subnet)
+         Reason: EUR-AIM + network security
+
+====================================================================================================
+>>> BD-PATCH - Patch Management (1 IPv4 BDs)
+    HIGH: 1, MED: 0, LOW: 0
+====================================================================================================
+  [HIGH] BD-V0471        | APCK_PATCH_V471                          | EUR-AIS         | 136.215.64.129/27
+         Reason: EUR-AIS + patch keyword
+
+====================================================================================================
+>>> BD-SYSLOG - Syslog Servers (1 IPv4 BDs)
+    HIGH: 1, MED: 0, LOW: 0
+====================================================================================================
+  [HIGH] BD-V0540        | APCE_POLL_LOG_V540                       | EUR-AIS         | 155.155.234.1/26
+         Reason: EUR-AIS + syslog keyword
+
+====================================================================================================
+>>> BD-VHOST-MGMT - Virtual Host Management (3 IPv4 BDs)
+    HIGH: 3, MED: 0, LOW: 0
+====================================================================================================
+  [HIGH] BD-V0820        | APCW_SRVR_MGMT                           | EUR-AIM         | 136.207.132.1/24
+         Reason: EUR-AIM + server management
+  [HIGH] BD-V0216        | APCK_ALOM_DRAC                           | EUR-AIS         | 155.155.68.1/24
+         Reason: EUR-AIS + server BMC
+  [HIGH] BD-V0316        | APCG_ALOM_DRAC                           | EUR-AIS         | 155.155.130.1/24
+         Reason: EUR-AIS + server BMC
+
+====================================================================================================
+>>> BD-VVOIP-MGMT - Voice/UC Management (15 IPv4 BDs)
+    HIGH: 15, MED: 0, LOW: 0
+====================================================================================================
+  [HIGH] BD-V0860        | UC_PUBLIC_W                              | EUR-AIV         | 136.207.176.1/26
+         Reason: EUR-AIV + UC pattern
+  [HIGH] BD-V0311        | Call_Manager_VLAN                        | EUR-E           | (no subnet)
+         Reason: EUR-E + voice/UC
+  [HIGH] BD-V0160        | UC_PUBLIC                                | EUR-AIV         | 136.215.176.1/26
+         Reason: EUR-AIV + UC pattern
+  [HIGH] BD-V0313        | MEETING_PLACE_SERVERS                    | EUR-E           | (no subnet)
+         Reason: EUR-E + voice/UC
+  [HIGH] BD-V0163        | UC_GW                                    | EUR-AIV         | 136.215.177.129/27
+         Reason: EUR-AIV + UC pattern
+  [HIGH] BD-V0162        | UC_MCU                                   | EUR-E           | (no subnet)
+         Reason: EUR-E + voice/UC
+  [HIGH] BD-V0251        | v251.01.army-eurswa-vvoip-dmz            | EUR-E           | (no subnet)
+         Reason: EUR-E + voice/UC
+  [HIGH] BD-V0179        | AEDC-G_UC_DMZ_179                        | EUR-AOV-UC-DMZ  | 6.64.1.1/27
+         Reason: EUR-AOV-UC-DMZ VRF
+  [HIGH] BD-V0863        | UC_GW_W                                  | EUR-AIV         | 136.207.177.129/27
+         Reason: EUR-AIV + UC pattern
+  [HIGH] BD-V0164        | UC_MESSAGING                             | EUR-E           | (no subnet)
+         Reason: EUR-E + voice/UC
+  [HIGH] BD-V0161        | UC_RESTRICTED                            | EUR-AIV         | 10.215.176.129/26
+         Reason: EUR-AIV + UC pattern
+  [HIGH] BD-V0861        | UC_RESTRICTED_W                          | EUR-AIV         | 10.207.176.129/26
+         Reason: EUR-AIV + UC pattern
+  [HIGH] BD-V0178        | IPNG_UC_PUBLIC_178                       | EUR-AIV         | 136.215.178.1/24
+         Reason: EUR-AIV + UC pattern
+  [HIGH] BD-V0478        | IPNK_UC_PUBLIC_478                       | EUR-AIV         | 136.215.78.1/24
+         Reason: EUR-AIV + UC pattern
+  [HIGH] BD-V0220        | ENTERPRISE_CALL_CENTER                   | EUR-AIS         | 155.155.82.1/27
+         Reason: EUR-AIS + voice/UC keyword
+
+====================================================================================================
+>>> BD-WEB-SVR - Web Servers (17 IPv4 BDs)
+    HIGH: 17, MED: 0, LOW: 0
+====================================================================================================
+  [HIGH] BD-V0266        | APCG_ITSM_WEB-2-STG                      | EUR-AIZ         | 206.39.28.193/27
+         Reason: EUR-AIZ + ITSM web
+  [HIGH] BD-V0264        | APCG_ITSM_WEB                            | EUR-AIZ         | 206.39.28.129/27
+         Reason: EUR-AIZ + ITSM web
+  [HIGH] BD-V0956        | PVT_DMZ_WEB                              | EUR-E           | (no subnet)
+         Reason: EUR-E + web keyword
+  [HIGH] BD-V0254        | ITSM_Web                                 | EUR-E           | (no subnet)
+         Reason: EUR-E + web keyword
+  [HIGH] BD-V0193        | APCG_WEB_MIL                             | EUR-AIS         | 136.215.226.1/25
+         Reason: EUR-AIS + web keyword
+  [HIGH] BD-V0951        | PUB-UNREST-DMZ-WEB                       | EUR-E           | (no subnet)
+         Reason: EUR-E + web keyword
+  [HIGH] BD-V0234        | CAIR_DMZ_1_WEB                           | EUR-E           | (no subnet)
+         Reason: EUR-E + web keyword
+  [HIGH] BD-V0218        | EEP_WEB                                  | EUR-AIS         | 155.155.71.1/25
+         Reason: EUR-AIS + web keyword
+  [HIGH] BD-V0232        | CAIR_NIPRnet_EXT_WEB                     | EUR-E           | (no subnet)
+         Reason: EUR-E + web keyword
+  [HIGH] BD-V0953        | PUB-REST-DMZ-WEB                         | EUR-E           | (no subnet)
+         Reason: EUR-E + web keyword
+  [HIGH] BD-V0276        | APCK_FRONTEND                            | EUR-AIS         | 155.155.96.1/27
+         Reason: EUR-AIS + web keyword
+  [HIGH] BD-V0546        | VMI_FRONTEND_V546                        | EUR-AIS         | 155.155.235.1/25
+         Reason: EUR-AIS + web keyword
+  [HIGH] BD-V0192        | APCG_WEB_EUR                             | EUR-AIS         | 136.215.225.1/25
+         Reason: EUR-AIS + web keyword
+  [HIGH] BD-V0194        | APCG_WEB_WORLD                           | EUR-E           | (no subnet)
+         Reason: EUR-E + web keyword
+  [HIGH] BD-V0376        | APCG_FRONTEND                            | EUR-AIS         | 155.155.160.1/27
+         Reason: EUR-AIS + web keyword
+  [HIGH] BD-V0574        | APCE_EUR_WEB_574                         | EUR-AIS         | 155.155.236.129/26
+         Reason: EUR-AIS + web keyword
+  [HIGH] BD-V0294        | APCK_HQU_WEB_V294                        | EUR-AIS         | 136.215.98.129/25
+         Reason: EUR-AIS + web keyword
+
+====================================================================================================
+>>> UNMAPPED (2 BDs) - Need manual review
+====================================================================================================
+  BD-GSN-Test     | (no alias)                               | EUR-GSN-Test    | 172.31.255.254/30
+  BD-V0056        | (no alias)                               | EUR-ARMY-ENT-SVR-DMZ | (no subnet)

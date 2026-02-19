@@ -1,0 +1,54 @@
+# Terraform
+*.tfstate
+*.tfstate.*
+*.tfvars
+.terraform/
+.terraform.lock.hcl
+*.tfplan
+crash.log
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# Generated files
+ipv6_rcc_port_bindings.json
+aedce_schema_full.json
+*_backup.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Logs
+*.log
+*.out
+
+# Credentials (extra safety)
+*password*
+*secret*
+*token*
+*credential*
+
+# Ansible Vault
+vault_pass.txt
+vault_plaintext.yml
+
+# Backup files
+*.bak
+*.backup

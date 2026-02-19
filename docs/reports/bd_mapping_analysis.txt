@@ -1,0 +1,365 @@
+====================================================================================================
+IPv4 to IPv6 BD MAPPING ANALYSIS - EXECUTIVE SUMMARY
+====================================================================================================
+
+OVERVIEW:
+  Total IPv4 BDs analyzed: 215
+  Successfully mapped: 157 (73%)
+  Unmatched (need review): 58 (26%)
+
+MAPPING CONFIDENCE LEVELS:
+  HIGH (>= 80): Direct functional match (e.g., AD, DNS, SCCM keywords)
+  MED  (50-79): Indirect/partial match (e.g., VDI -> APP-SVR)
+  LOW  (< 50):  Weak association (e.g., DMZ -> FWEB-PROXY)
+
+IPv6 BDs WITHOUT IPv4 MAPPINGS (may be new functional categories):
+
+  - BD-ACAS-MGMT
+  - BD-ADFS
+  - BD-C2C-SCANNERS
+  - BD-D64-PROXY
+  - BD-DHCP-SVR
+  - BD-E911-SVR
+  - BD-FMWR-SVR
+  - BD-LMR
+  - BD-NAC
+  - BD-OCSP
+  - BD-PRINT-SVR
+  - BD-RCC-DCO
+  - BD-RCC-DNS
+  - BD-RCC-SVR
+  - BD-RCC-UNIX
+  - BD-RWEB-PROXY
+  - BD-SMTP-SVR
+  - BD-SYSMAN
+
+IPv4 BD COUNT PER IPv6 FUNCTIONAL BD:
+
+  BD-ACAS-SCANNERS    :   3 BDs (HIGH:3, MED:0, LOW:0)
+  BD-AD               :   3 BDs (HIGH:3, MED:0, LOW:0)
+  BD-ADM-DCO          :   1 BDs (HIGH:1, MED:0, LOW:0)
+  BD-APP-SVR          :  38 BDs (HIGH:8, MED:19, LOW:11)
+  BD-BACKUP-SVR       :   5 BDs (HIGH:5, MED:0, LOW:0)
+  BD-CFG-MGMT         :  26 BDs (HIGH:0, MED:18, LOW:8)
+  BD-DB-SVR           :  11 BDs (HIGH:11, MED:0, LOW:0)
+  BD-DNS-MGMT         :   2 BDs (HIGH:2, MED:0, LOW:0)
+  BD-FILE-SVR         :   7 BDs (HIGH:7, MED:0, LOW:0)
+  BD-FWEB-PROXY       :   6 BDs (HIGH:0, MED:0, LOW:6)
+  BD-GEF-MGMT         :   9 BDs (HIGH:9, MED:0, LOW:0)
+  BD-LB               :   5 BDs (HIGH:5, MED:0, LOW:0)
+  BD-MECM             :   5 BDs (HIGH:5, MED:0, LOW:0)
+  BD-NMS              :   1 BDs (HIGH:1, MED:0, LOW:0)
+  BD-PATCH            :   1 BDs (HIGH:1, MED:0, LOW:0)
+  BD-PKI-SRV          :   1 BDs (HIGH:1, MED:0, LOW:0)
+  BD-SYSLOG           :   1 BDs (HIGH:1, MED:0, LOW:0)
+  BD-VHOST-MGMT       :   1 BDs (HIGH:1, MED:0, LOW:0)
+  BD-VVOIP-MGMT       :  12 BDs (HIGH:12, MED:0, LOW:0)
+  BD-VVOIP-PROXY      :   3 BDs (HIGH:1, MED:2, LOW:0)
+  BD-WEB-SVR          :  16 BDs (HIGH:14, MED:2, LOW:0)
+
+
+DETAILED MAPPINGS BY IPv6 BD:
+
+
+================================================================================
+>>> BD-ACAS-SCANNERS
+================================================================================
+  [HIGH] BD-V0174        | Alias: APCG_ACAS_V174                      | VRF: EUR-AIS      | 136.215.194.1/27
+  [HIGH] BD-V0474        | Alias: APCK_RETINA_REM_V474                | VRF: EUR-AIS      | 136.215.66.1/27
+  [HIGH] BD-V0099        | Alias: APCG_RETINA_SERVERS                 | VRF: EUR-E        | (no subnets)
+
+================================================================================
+>>> BD-AD
+================================================================================
+  [HIGH] BD-V0172        | Alias: APCG_AD_V172                        | VRF: EUR-AIS      | 136.215.193.1/26
+  [HIGH] BD-V0322        | Alias: APCG_AD                             | VRF: EUR-AIS      | 155.155.136.1/26
+  [HIGH] BD-V0222        | Alias: APCK_AD                             | VRF: EUR-AIS      | 155.155.72.1/26
+
+================================================================================
+>>> BD-ADM-DCO
+================================================================================
+  [HIGH] BD-V0481        | Alias: DCOD_IDS                            | VRF: EUR-AIS      | 155.155.230.97/28
+
+================================================================================
+>>> BD-APP-SVR
+================================================================================
+  [HIGH] BD-V1591        | Alias: USAREUR_EUR_UNREST_APP_SVRS         | VRF: EUR-E        | (no subnets)
+  [HIGH] BD-V0952        | Alias: Private_DMZ_Application             | VRF: EUR-E        | (no subnets)
+  [HIGH] BD-V0572        | Alias: APCE_EUR_APPS_V572                  | VRF: EUR-AIS      | 155.155.236.65/26
+  [HIGH] BD-V0372        | Alias: APCG_EUR_APPS                       | VRF: EUR-AIS      | 155.155.172.1/24
+  [HIGH] BD-V1593        | Alias: USAREUR_APP_TIER_DMZ                | VRF: EUR-E        | (no subnets)
+  [HIGH] BD-V0260        | Alias: APCG_ITSM_APPS                      | VRF: EUR-E        | (no subnets)
+  [HIGH] BD-V0272        | Alias: APCK_EUR_APPS                       | VRF: EUR-AIS      | 155.155.108.1/24
+  [HIGH] BD-V1592        | Alias: USAREUR_EUR_REST_APP_SVRS           | VRF: EUR-E        | (no subnets)
+  [MED ] BD-V0455        | Alias: APCK_RDS                            | VRF: EUR-AIS      | 136.215.37.129/26
+  [MED ] BD-V0528        | Alias: APCE_VDI_DESKTOPS_V528              | VRF: EUR-AIS      | 155.155.231.1/27
+  [MED ] BD-V0419        | Alias: VDI_Host_VLAN                       | VRF: EUR-AIS      | 136.215.3.1/24
+  [MED ] BD-V0266        | Alias: APCG_ITSM_WEB-2-STG                 | VRF: EUR-AIZ      | 206.39.28.193/27
+  [MED ] BD-V0520        | Alias: APCE_DNAB_V520                      | VRF: EUR-AIS      | 155.155.224.1/23
+  [MED ] BD-V0125        | Alias: JMTC_VM                             | VRF: EUR-AIS      | 136.215.137.1/25
+  [MED ] BD-V0265        | Alias: APCG_ITSM_IPSEC                     | VRF: EUR-AIZ      | 206.39.28.161/28
+  [MED ] BD-V0267        | Alias: APCG_ITSM-ADDM                      | VRF: EUR-AIZ      | 206.39.28.177/28
+  [MED ] BD-V0521        | Alias: APCE_MSB_V521                       | VRF: EUR-AIS      | 155.155.230.65/27
+  [MED ] BD-V0142        | Alias: APCG_SPEC_ELEM_MGR                  | VRF: EUR-AIS      | 136.215.161.1/27
+  [MED ] BD-V0255        | Alias: ITSM_IPSEC                          | VRF: EUR-E        | (no subnets)
+  [MED ] BD-V0033        | Alias: ITSM_v33                            | VRF: EUR-E        | (no subnets)
+  [MED ] BD-V0268        | Alias: APCG_ITSM-APPS-2                    | VRF: EUR-E        | (no subnets)
+  [MED ] BD-V0542        | Alias: APCE_SPEC_ELEM_MGR_V542             | VRF: EUR-AIS      | 155.155.234.65/27
+  [MED ] BD-V0472        | Alias: APCK_FINANCE_472                    | VRF: EUR-AIS      | 136.215.64.193/26
+  [MED ] BD-V0108        | Alias: APCG_SRVR_JCIS_HEARTBEAT_V108       | VRF: EUR-E        | (no subnets)
+  [MED ] BD-V0616        | Alias: APCKEXT_G2IMS_V616                  | VRF: EUR-AIS      | 155.155.120.129/27
+  [MED ] BD-V0219        | Alias: EEP_BACKEND                         | VRF: EUR-AIS      | 155.155.71.129/27
+  [MED ] BD-V0524        | Alias: APCE_DNAB_V524                      | VRF: EUR-AIS      | 155.155.230.1/27
+  [LOW ] BD-V0576        | Alias: APCE_EUR_SEC_V576                   | VRF: EUR-AIS      | 155.155.236.193/26
+  [LOW ] BD-V0210        | Alias: APCK_USER_INSIDE                    | VRF: EUR-AIS      | 155.155.64.1/23, 155.155.64.10/23
+  [LOW ] BD-V0310        | Alias: APCG_USER_INSIDE                    | VRF: EUR-AIS      | 155.155.128.1/23, 155.155.128.9/23
+  [LOW ] BD-V0531        | Alias: APCE_TEMPLATE_V531                  | VRF: EUR-AIS      | 155.155.226.1/27
+  [LOW ] BD-V0582        | Alias: APCE_EXERCISE_EXTERNAL_V582         | VRF: EUR-AIS      | 155.155.238.1/27
+  [LOW ] BD-V2003        | Alias: TMP_SATTest_VRF_EUR-AIV             | VRF: EUR-E        | (no subnets)
+  [LOW ] BD-V2005        | Alias: TMP_SATTest_VRF_EUR-AIG             | VRF: EUR-E        | (no subnets)
+  [LOW ] BD-V2004        | Alias: TMP_SATTest_VRF_EUR-AIZ             | VRF: EUR-E        | (no subnets)
+  [LOW ] BD-V0020        | Alias: TMP_SATTest_VRF_EUR-AIM_IBMgmt      | VRF: EUR-AIM      | (no subnets)
+  [LOW ] BD-V2002        | Alias: TMP_SATTest_VRF_EUR-AIS             | VRF: EUR-E        | (no subnets)
+  [LOW ] BD-V2001        | Alias: TMP_SATTest_VRF_EUR-AIM             | VRF: EUR-E        | (no subnets)
+
+================================================================================
+>>> BD-BACKUP-SVR
+================================================================================
+  [HIGH] BD-V0544        | Alias: APCE_DR_FE_V544                     | VRF: EUR-AIS      | 155.155.234.129/27
+  [HIGH] BD-V0514        | Alias: APCE_DR_MGMT_V514                   | VRF: EUR-E        | (no subnets)
+  [HIGH] BD-V0144        | Alias: APCG_DR_MS_V144                     | VRF: EUR-AIS      | 136.215.162.1/23
+  [HIGH] BD-V0444        | Alias: APCK_DR_MS_V444                     | VRF: EUR-AIS      | 136.215.34.1/27
+  [HIGH] BD-V0809        | Alias: EMC_RECOVERPOINT_HEARTBEAT          | VRF: EUR-AIV      | 136.215.128.193/26
+
+================================================================================
+>>> BD-CFG-MGMT
+================================================================================
+  [MED ] BD-V0016        | Alias: NETSEC_InbandMGT_APCG               | VRF: EUR-AIM      | 155.155.20.1/25
+  [MED ] BD-V0015        | Alias: InbandMGT                           | VRF: EUR-AIM      | 155.155.30.1/26, 155.155.60.1/26
+  [MED ] BD-V0017        | Alias: NETSEC_InbandMGT_APCK               | VRF: EUR-AIM      | 155.155.20.129/25
+  [MED ] BD-V0410        | Alias: APCK_OOB_V410                       | VRF: EUR-E        | (no subnets)
+  [MED ] BD-V0120        | Alias: APCG_MGMT_V120                      | VRF: EUR-AIS      | 136.215.132.1/24
+  [MED ] BD-V0253        | Alias: ITSM_OOBM                           | VRF: EUR-E        | (no subnets)
+  [MED ] BD-V0530        | Alias: APCE_ETNOSC_MGMT_INBAND_V530        | VRF: EUR-E        | (no subnets)
+  [MED ] BD-V0022        | Alias: ATM_MGMT_VLAN                       | VRF: EUR-E        | (no subnets)
+  [MED ] BD-V0122        | Alias: APCG_MGMT_JCIS                      | VRF: EUR-AIS      | 136.215.135.1/24
+  [MED ] BD-V0420        | Alias: APCK_MGMT_V420                      | VRF: EUR-AIS      | 136.215.4.1/24
+  [MED ] BD-V0422        | Alias: APCK_MGMT_JCIS                      | VRF: EUR-AIS      | 136.215.6.129/25
+  [MED ] BD-V0510        | Alias: APCE_OOB_V510                       | VRF: EUR-E        | (no subnets)
+  [MED ] BD-V0501        | Alias: DRAC_CIMC_OOB_V501                  | VRF: EUR-E        | (no subnets)
+  [MED ] BD-V0611        | Alias: IACS_SVR_MGMT_V611                  | VRF: EUR-E        | (no subnets)
+  [MED ] BD-V0292        | Alias: APCK_HQU_MGMT_V292                  | VRF: EUR-E        | (no subnets)
+  [MED ] BD-V0263        | Alias: APCG_ITSM_OOB                       | VRF: EUR-AIZ      | 206.39.28.1/25
+  [MED ] BD-V0503        | Alias: VMI_MGMT_V503                       | VRF: EUR-E        | (no subnets)
+  [MED ] BD-V0110        | Alias: APCG_OOB_V110                       | VRF: EUR-E        | (no subnets)
+  [LOW ] BD-V0610        | Alias: IACS_SVR_V610                       | VRF: EUR-E        | (no subnets)
+  [LOW ] BD-V0791        | Alias: EEDRS_Siemens                       | VRF: EUR-AIS      | 10.254.8.65/26
+  [LOW ] BD-V0793        | Alias: EEDRS_JCI                           | VRF: EUR-AIS      | 10.254.8.193/26
+  [LOW ] BD-V0612        | Alias: APCK_IACS_LAN_V612                  | VRF: EUR-E        | (no subnets)
+  [LOW ] BD-V0794        | Alias: EEDRS_Honeywell                     | VRF: EUR-AIS      | 10.254.9.4/26
+  [LOW ] BD-V0613        | Alias: APCG_IACS_LAN_V613                  | VRF: EUR-E        | (no subnets)
+  [LOW ] BD-V0792        | Alias: EEDRS_WEC                           | VRF: EUR-AIS      | 10.254.8.129/26
+  [LOW ] BD-V0106        | Alias: APCG_SRVR_HEARTBEAT_V106            | VRF: EUR-E        | (no subnets)
+
+================================================================================
+>>> BD-DB-SVR
+================================================================================
+  [HIGH] BD-V0250        | Alias: APCK_BACKEND_DATABASE               | VRF: EUR-AIS      | 155.155.80.1/25
+  [HIGH] BD-V0350        | Alias: APCG_BACKEND_DATABASE               | VRF: EUR-AIS      | 155.155.144.1/25
+  [HIGH] BD-V0445        | Alias: APCK_AWRDS_DB_V445                  | VRF: EUR-AIS      | 136.215.35.1/27
+  [HIGH] BD-V0516        | Alias: APCE_DB_BACKEND_V516                | VRF: EUR-E        | (no subnets)
+  [HIGH] BD-V0141        | Alias: APCG_DB_SQL_SERVERS                 | VRF: EUR-AIS      | 136.215.160.129/26
+  [HIGH] BD-V0532        | Alias: APCE_DB_FRONTEND_V532               | VRF: EUR-AIS      | 155.155.228.1/27
+  [HIGH] BD-V0140        | Alias: APCG_DB_SQL_V140                    | VRF: EUR-AIS      | 136.215.160.1/25
+  [HIGH] BD-V0262        | Alias: APCG_ITSM_DB_HEARTBEAT              | VRF: EUR-E        | (no subnets)
+  [HIGH] BD-V0293        | Alias: APCK_HQU_SQL_V293                   | VRF: EUR-AIS      | 136.215.98.1/25
+  [HIGH] BD-V0441        | Alias: APCK_DB_SQL_SERVERS                 | VRF: EUR-AIS      | 136.215.32.129/26
+  [HIGH] BD-V0261        | Alias: APCG_ITSM_DB_INT                    | VRF: EUR-E        | (no subnets)
+
+================================================================================
+>>> BD-DNS-MGMT
+================================================================================
+  [HIGH] BD-V0976        | Alias: v976.army-eur-ems-dmz.EPDNS-mgt     | VRF: EUR-E        | (no subnets)
+  [HIGH] BD-V2176        | Alias: v2176.army-eur-dns-dmz.EPDNS-pro    | VRF: EUR-E        | (no subnets)
+
+================================================================================
+>>> BD-FILE-SVR
+================================================================================
+  [HIGH] BD-V0150        | Alias: APCG_STORAGE_NFS_CIFS_V550          | VRF: EUR-AIS      | 136.215.165.1/25
+  [HIGH] BD-V0450        | Alias: APCK_STORAGE_PUB                    | VRF: EUR-AIM      | 136.215.37.1/25
+  [HIGH] BD-V0505        | Alias: VMI_STORAGE_V505                    | VRF: EUR-E        | (no subnets)
+  [HIGH] BD-V0550        | Alias: APCE_STORAGE_NFS_CIFS_V550          | VRF: EUR-AIS      | 155.155.235.129/26
+  [HIGH] BD-V2170        | Alias: v2170.01.army-gef-vm-nfs-mgt        | VRF: EUR-E        | (no subnets)
+  [HIGH] BD-V0513        | Alias: APCE_SAN_NETAPP_V513                | VRF: EUR-E        | (no subnets)
+  [HIGH] BD-V0512        | Alias: APCE_SAN_MGMT_V512                  | VRF: EUR-E        | (no subnets)
+
+================================================================================
+>>> BD-FWEB-PROXY
+================================================================================
+  [LOW ] BD-V1594        | Alias: USAREUR_DATA_TIER_DMZ               | VRF: EUR-E        | (no subnets)
+  [LOW ] BD-V0950        | Alias: PVT_DMZ_IN                          | VRF: EUR-AIP      | 139.139.1.129/26, 139.139.1.65/26
+  [LOW ] BD-V0954        | Alias: Private_DMZ_Backend                 | VRF: EUR-E        | (no subnets)
+  [LOW ] BD-V0235        | Alias: CAIR_DMZ_2_APP                      | VRF: EUR-E        | (no subnets)
+  [LOW ] BD-V0236        | Alias: CAIR_DMZ_3_DATA                     | VRF: EUR-E        | (no subnets)
+  [LOW ] BD-V1581        | Alias: PUB_REST_DMZ_OUT                    | VRF: EUR-AIP      | (no subnets)
+
+================================================================================
+>>> BD-GEF-MGMT
+================================================================================
+  [HIGH] BD-V2172        | Alias: v2172.01.army-gef-ms-hgs-emf-mgt    | VRF: EUR-E        | (no subnets)
+  [HIGH] BD-V2205        | Alias: v2205.02.gef-ent-eaf                | VRF: EUR-E        | (no subnets)
+  [HIGH] BD-V2174        | Alias: v2174.01.army-gef-vm-uplink1-mgt    | VRF: EUR-E        | (no subnets)
+  [HIGH] BD-V2175        | Alias: v2175.01.army-gef-vm-uplink2-mgt    | VRF: EUR-E        | (no subnets)
+  [HIGH] BD-V2171        | Alias: v2171.01.army-gef-vm-replica-mgt    | VRF: EUR-E        | (no subnets)
+  [HIGH] BD-V2173        | Alias: v2173.01.army-gef-vm-vxlan-mgt      | VRF: EUR-E        | (no subnets)
+  [HIGH] BD-V0972        | Alias: v972.01.army-gef-ms-lvmn-mgt        | VRF: EUR-E        | (no subnets)
+  [HIGH] BD-V0971        | Alias: v972.01.army-gef-ib-mgt             | VRF: EUR-E        | (no subnets)
+  [HIGH] BD-V0454        | Alias: v454.01.gef-ent-eaf                 | VRF: EUR-E        | (no subnets)
+
+================================================================================
+>>> BD-LB
+================================================================================
+  [HIGH] BD-V0591        | Alias: APCE_LOAD_BALANCER_V591             | VRF: EUR-AIS      | 155.155.240.1/26
+  [HIGH] BD-V0191        | Alias: APCG_LOAD_BALANCER                  | VRF: EUR-AIS      | 136.215.224.129/26
+  [HIGH] BD-V0491        | Alias: APCK_LOAD_BALANCER_v491             | VRF: EUR-AIS      | 136.215.96.129/26
+  [HIGH] BD-V0091        | Alias: APCE_LB_HEARTBEAT                   | VRF: EUR-E        | (no subnets)
+  [HIGH] BD-V0092        | Alias: F5_HA_VLAN                          | VRF: EUR-E        | (no subnets)
+
+================================================================================
+>>> BD-MECM
+================================================================================
+  [HIGH] BD-V0171        | Alias: APCG_SCCMHost_v171                  | VRF: EUR-AIS      | 136.215.192.129/27
+  [HIGH] BD-V0176        | Alias: APCG_SCCM2012_V176                  | VRF: EUR-AIS      | 136.215.196.1/27
+  [HIGH] BD-V0476        | Alias: APCK_SCCM2012_V476                  | VRF: EUR-AIS      | 136.215.66.193/27
+  [HIGH] BD-V0473        | Alias: APCK_SCCM                           | VRF: EUR-AIS      | 136.215.65.129/28
+  [HIGH] BD-V0173        | Alias: APCG_SCCM                           | VRF: EUR-AIS      | 136.215.193.129/28
+
+================================================================================
+>>> BD-NMS
+================================================================================
+  [HIGH] BD-V0014        | Alias: ACI_OOBM                            | VRF: EUR-AIM      | (no subnets)
+
+================================================================================
+>>> BD-PATCH
+================================================================================
+  [HIGH] BD-V0471        | Alias: APCK_PATCH_V471                     | VRF: EUR-AIS      | 136.215.64.129/27
+
+================================================================================
+>>> BD-PKI-SRV
+================================================================================
+  [HIGH] BD-V0522        | Alias: APCE_RCERT_V522                     | VRF: EUR-AIS      | 155.155.230.129/26
+
+================================================================================
+>>> BD-SYSLOG
+================================================================================
+  [HIGH] BD-V0540        | Alias: APCE_POLL_LOG_V540                  | VRF: EUR-AIS      | 155.155.234.1/26
+
+================================================================================
+>>> BD-VHOST-MGMT
+================================================================================
+  [HIGH] BD-V0820        | Alias: APCW_SRVR_MGMT                      | VRF: EUR-AIM      | 136.207.132.1/24
+
+================================================================================
+>>> BD-VVOIP-MGMT
+================================================================================
+  [HIGH] BD-V0860        | Alias: UC_PUBLIC_W                         | VRF: EUR-AIV      | 136.207.176.1/26
+  [HIGH] BD-V0160        | Alias: UC_PUBLIC                           | VRF: EUR-AIV      | 136.215.176.1/26
+  [HIGH] BD-V0163        | Alias: UC_GW                               | VRF: EUR-AIV      | 136.215.177.129/27
+  [HIGH] BD-V0863        | Alias: UC_GW_W                             | VRF: EUR-AIV      | 136.207.177.129/27
+  [HIGH] BD-V0161        | Alias: UC_RESTRICTED                       | VRF: EUR-AIV      | 10.215.176.129/26
+  [HIGH] BD-V0861        | Alias: UC_RESTRICTED_W                     | VRF: EUR-AIV      | 10.207.176.129/26
+  [HIGH] BD-V0178        | Alias: IPNG_UC_PUBLIC_178                  | VRF: EUR-AIV      | 136.215.178.1/24
+  [HIGH] BD-V0478        | Alias: IPNK_UC_PUBLIC_478                  | VRF: EUR-AIV      | 136.215.78.1/24
+  [HIGH] BD-V0162        | Alias: UC_MCU                              | VRF: EUR-E        | (no subnets)
+  [HIGH] BD-V0251        | Alias: v251.01.army-eurswa-vvoip-dmz       | VRF: EUR-E        | (no subnets)
+  [HIGH] BD-V0179        | Alias: AEDC-G_UC_DMZ_179                   | VRF: EUR-AOV-UC-DMZ | 6.64.1.1/27
+  [HIGH] BD-V0164        | Alias: UC_MESSAGING                        | VRF: EUR-E        | (no subnets)
+
+================================================================================
+>>> BD-VVOIP-PROXY
+================================================================================
+  [HIGH] BD-V0220        | Alias: ENTERPRISE_CALL_CENTER              | VRF: EUR-AIS      | 155.155.82.1/27
+  [MED ] BD-V0313        | Alias: MEETING_PLACE_SERVERS               | VRF: EUR-E        | (no subnets)
+  [MED ] BD-V0312        | Alias: IP_MCU_VLAN                         | VRF: EUR-E        | (no subnets)
+
+================================================================================
+>>> BD-WEB-SVR
+================================================================================
+  [HIGH] BD-V0264        | Alias: APCG_ITSM_WEB                       | VRF: EUR-AIZ      | 206.39.28.129/27
+  [HIGH] BD-V0956        | Alias: PVT_DMZ_WEB                         | VRF: EUR-E        | (no subnets)
+  [HIGH] BD-V0254        | Alias: ITSM_Web                            | VRF: EUR-E        | (no subnets)
+  [HIGH] BD-V0193        | Alias: APCG_WEB_MIL                        | VRF: EUR-AIS      | 136.215.226.1/25
+  [HIGH] BD-V0234        | Alias: CAIR_DMZ_1_WEB                      | VRF: EUR-E        | (no subnets)
+  [HIGH] BD-V0218        | Alias: EEP_WEB                             | VRF: EUR-AIS      | 155.155.71.1/25
+  [HIGH] BD-V0232        | Alias: CAIR_NIPRnet_EXT_WEB                | VRF: EUR-E        | (no subnets)
+  [HIGH] BD-V0276        | Alias: APCK_FRONTEND                       | VRF: EUR-AIS      | 155.155.96.1/27
+  [HIGH] BD-V0546        | Alias: VMI_FRONTEND_V546                   | VRF: EUR-AIS      | 155.155.235.1/25
+  [HIGH] BD-V0192        | Alias: APCG_WEB_EUR                        | VRF: EUR-AIS      | 136.215.225.1/25
+  [HIGH] BD-V0194        | Alias: APCG_WEB_WORLD                      | VRF: EUR-E        | (no subnets)
+  [HIGH] BD-V0376        | Alias: APCG_FRONTEND                       | VRF: EUR-AIS      | 155.155.160.1/27
+  [HIGH] BD-V0574        | Alias: APCE_EUR_WEB_574                    | VRF: EUR-AIS      | 155.155.236.129/26
+  [HIGH] BD-V0294        | Alias: APCK_HQU_WEB_V294                   | VRF: EUR-AIS      | 136.215.98.129/25
+  [MED ] BD-V0951        | Alias: PUB-UNREST-DMZ-WEB                  | VRF: EUR-E        | (no subnets)
+  [MED ] BD-V0953        | Alias: PUB-REST-DMZ-WEB                    | VRF: EUR-E        | (no subnets)
+
+
+UNMATCHED BDs (59 total) - REQUIRE MANUAL REVIEW:
+
+  BD-2250         | (no alias)                                    | VRF: EUR-E        | (no subnets)
+  BD-GSN-Test     | (no alias)                                    | VRF: EUR-GSN-Test | 172.31.255.254/30
+  BD-V0005        | (no alias)                                    | VRF: EUR-E        | (no subnets)
+  BD-V0006        | (no alias)                                    | VRF: EUR-E        | (no subnets)
+  BD-V0009        | Def_Native_vlan                               | VRF: EUR-E        | (no subnets)
+  BD-V0010        | OOB_MPLS                                      | VRF: EUR-E        | (no subnets)
+  BD-V0021        | ATM_VLAN_may_need_to_remove                   | VRF: EUR-E        | (no subnets)
+  BD-V0056        | (no alias)                                    | VRF: EUR-ARMY-ENT-SVR-DMZ | (no subnets)
+  BD-V0058        | (no alias)                                    | VRF: EUR-AIM      | (no subnets)
+  BD-V0066        | (no alias)                                    | VRF: EUR-AIZ      | 155.155.62.249/29
+  BD-V0067        | (no alias)                                    | VRF: EUR-AIZ      | 155.155.62.241/29
+  BD-V0170        | (no alias)                                    | VRF: EUR-AIS      | 136.215.192.1/25
+  BD-V0216        | APCK_ALOM_DRAC                                | VRF: EUR-AIS      | 155.155.68.1/24
+  BD-V0229        | CAIR_DMVPN                                    | VRF: EUR-E        | (no subnets)
+  BD-V0230        | CAIR_NIPRnet_INT                              | VRF: EUR-E        | (no subnets)
+  BD-V0231        | CAIR_NIPRnet_EXT                              | VRF: EUR-E        | (no subnets)
+  BD-V0233        | CAIR_NIPRnet_DISA                             | VRF: EUR-E        | (no subnets)
+  BD-V0237        | CAIR_ASA_MANAGEMENT                           | VRF: EUR-E        | (no subnets)
+  BD-V0238        | CAIR_ASA_FAILOVER                             | VRF: EUR-E        | (no subnets)
+  BD-V0239        | CAIR_VLAN_MANAGEMENT                          | VRF: EUR-E        | (no subnets)
+  BD-V0240        | CAIR_DMVPN_FW                                 | VRF: EUR-E        | (no subnets)
+  BD-V0256        | Army_Metering_Public                          | VRF: EUR-AIZ      | 206.39.28.249/29
+  BD-V0299        | (no alias)                                    | VRF: EUR-AIS      | 136.215.97.1/28
+  BD-V0311        | Call_Manager_VLAN                             | VRF: EUR-E        | (no subnets)
+  BD-V0314        | Audio_Server_RTP                              | VRF: EUR-E        | (no subnets)
+  BD-V0316        | APCG_ALOM_DRAC                                | VRF: EUR-AIS      | 155.155.130.1/24
+  BD-V0373        | (no alias)                                    | VRF: EUR-AIS      | 155.155.84.1/23
+  BD-V0470        | (no alias)                                    | VRF: EUR-AIS      | 136.215.64.1/25
+  BD-V0475        | APCK_SVCS_V475                                | VRF: EUR-AIS      | 136.215.66.129/26
+  BD-V0504        | VMI_MOTION_V504                               | VRF: EUR-E        | (no subnets)
+  BD-V0529        | APCE_etnosc_bridge_Remove                     | VRF: EUR-AIS      | 155.155.231.65/27
+  BD-V0570        | APCE_EUR_SVCS_V570                            | VRF: EUR-AIS      | 155.155.236.1/27
+  BD-V0575        | ARCSIGHT                                      | VRF: EUR-AIS      | 155.155.237.129/25, 155.155.237.1/25
+  BD-V0580        | APCE_MIL_V580                                 | VRF: EUR-AIS      | 155.155.239.129/27
+  BD-V0581        | APCE_EUROPE_V581                              | VRF: EUR-AIS      | 155.155.239.65/27
+  BD-V0595        | (no alias)                                    | VRF: EUR-AIM      | 155.155.250.1/23
+  BD-V0790        | Calibre_MDMS_Private                          | VRF: EUR-AIS      | 10.254.8.1/26
+  BD-V0958        | (no alias)                                    | VRF: EUR-E        | (no subnets)
+  BD-V0970        | (no alias)                                    | VRF: EUR-E        | (no subnets)
+  BD-V1116        | (no alias)                                    | VRF: EUR-E        | (no subnets)
+  BD-V1117        | (no alias)                                    | VRF: EUR-E        | (no subnets)
+  BD-V1119        | (no alias)                                    | VRF: EUR-AIZ      | 139.139.251.1/28
+  BD-V1120        | (no alias)                                    | VRF: EUR-E        | (no subnets)
+  BD-V1140        | (no alias)                                    | VRF: EUR-E        | (no subnets)
+  BD-V1141        | (no alias)                                    | VRF: EUR-E        | (no subnets)
+  BD-V1142        | (no alias)                                    | VRF: EUR-E        | (no subnets)
+  BD-V1143        | (no alias)                                    | VRF: EUR-E        | (no subnets)
+  BD-V1144        | (no alias)                                    | VRF: EUR-E        | (no subnets)
+  BD-V1145        | (no alias)                                    | VRF: EUR-E        | (no subnets)
+  BD-V1146        | (no alias)                                    | VRF: EUR-E        | (no subnets)
+  BD-V1147        | (no alias)                                    | VRF: EUR-E        | (no subnets)
+  BD-V1148        | (no alias)                                    | VRF: EUR-E        | (no subnets)
+  BD-V1149        | (no alias)                                    | VRF: EUR-E        | (no subnets)
+  BD-V1571        | (no alias)                                    | VRF: EUR-E        | (no subnets)
+  BD-V1583        | USAREUR_WEB-BE2APP-FW                         | VRF: EUR-AIP      | (no subnets)
+  BD-V1595        | (no alias)                                    | VRF: EUR-AIS      | 155.155.94.129/26
+  BD-V1596        | (no alias)                                    | VRF: EUR-AIS      | 155.155.94.193/26
+  BD-V2150        | (no alias)                                    | VRF: EUR-E        | (no subnets)
