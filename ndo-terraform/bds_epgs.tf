@@ -3172,25 +3172,6 @@ resource "mso_schema_site_anp_epg_domain" "epg_nac_domain_g" {
   depends_on           = [mso_schema_site_anp_epg.site_epg_nac_g]
 }
 
-resource "mso_schema_site_anp_epg_domain" "epg_nac_vmm_domain_g" {
-  schema_id            = data.mso_schema.existing.id
-  template_name        = "L2_Stretched"
-  site_id              = data.mso_site.aedcg.id
-  anp_name             = mso_schema_template_anp.appprof_rcc_stretched.name
-  epg_name             = mso_schema_template_anp_epg.epg_nac.name
-  domain_type          = "vmmDomain"
-  vmm_domain_type      = "VMware"
-  domain_name          = var.vmm_domain_name
-  deploy_immediacy     = "immediate"
-  resolution_immediacy = "immediate"
-  vlan_encap_mode      = "dynamic"
-  binding_type         = "dynamic"
-  netflow              = "disabled"
-  allow_promiscuous    = "reject"
-  mac_changes          = "reject"
-  forged_transmits     = "reject"
-  depends_on           = [mso_schema_site_anp_epg.site_epg_nac_g]
-}
 
 resource "mso_schema_site_anp_epg_domain" "epg_cfg_mgmt_domain_g" {
   schema_id            = data.mso_schema.existing.id
@@ -3661,25 +3642,6 @@ resource "mso_schema_site_anp_epg_domain" "epg_nac_domain_k" {
   depends_on           = [mso_schema_site_anp_epg.site_epg_nac_k]
 }
 
-resource "mso_schema_site_anp_epg_domain" "epg_nac_vmm_domain_k" {
-  schema_id            = data.mso_schema.existing.id
-  template_name        = "L2_Stretched"
-  site_id              = data.mso_site.aedck.id
-  anp_name             = mso_schema_template_anp.appprof_rcc_stretched.name
-  epg_name             = mso_schema_template_anp_epg.epg_nac.name
-  domain_type          = "vmmDomain"
-  vmm_domain_type      = "VMware"
-  domain_name          = var.vmm_domain_name
-  deploy_immediacy     = "immediate"
-  resolution_immediacy = "immediate"
-  vlan_encap_mode      = "dynamic"
-  binding_type         = "dynamic"
-  netflow              = "disabled"
-  allow_promiscuous    = "reject"
-  mac_changes          = "reject"
-  forged_transmits     = "reject"
-  depends_on           = [mso_schema_site_anp_epg.site_epg_nac_k]
-}
 
 resource "mso_schema_site_anp_epg_domain" "epg_cfg_mgmt_domain_k" {
   schema_id            = data.mso_schema.existing.id

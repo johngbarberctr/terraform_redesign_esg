@@ -14,11 +14,6 @@ variable "ndo_url" {
   type        = string
 }
 
-variable "vmm_domain_name" {
-  description = "VMware VMM domain name in ACI/NDO for VMware integration"
-  type        = string
-  default     = ""
-}
 
 variable "vrf_template_name" {
   description = "Template name for VRF resources (VRF_Template for lab, UpgradeTemplate1 for production)"
