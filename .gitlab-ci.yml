@@ -14,10 +14,6 @@ variables:
     description: "Cisco NDO Password"
   NDO_URL:
     description: "Cisco NDO URL"
-  VMM_DOMAIN_NAME:
-    description: "VMware VMM domain name in ACI/NDO"
-  VRF_TEMPLATE_NAME:
-    description: "NDO template name for VRF resources"
   APIC_USERNAME:
     description: "Cisco APIC Username"
   APIC_PASSWORD:
@@ -65,8 +61,6 @@ plan-ndo:
     TF_VAR_ndo_username: "${NDO_USERNAME}"
     TF_VAR_ndo_password: "${NDO_PASSWORD}"
     TF_VAR_ndo_url: "${NDO_URL}"
-    TF_VAR_vmm_domain_name: "${VMM_DOMAIN_NAME}"
-    TF_VAR_vrf_template_name: "${VRF_TEMPLATE_NAME}"
   script:
     - cd ndo-terraform
     - terraform init -input=false
@@ -104,8 +98,6 @@ deploy-ndo:
     TF_VAR_ndo_username: "${NDO_USERNAME}"
     TF_VAR_ndo_password: "${NDO_PASSWORD}"
     TF_VAR_ndo_url: "${NDO_URL}"
-    TF_VAR_vmm_domain_name: "${VMM_DOMAIN_NAME}"
-    TF_VAR_vrf_template_name: "${VRF_TEMPLATE_NAME}"
   script:
     - cd ndo-terraform
     - terraform init -input=false
@@ -131,8 +123,6 @@ destroy-ndo:
     TF_VAR_ndo_username: "${NDO_USERNAME}"
     TF_VAR_ndo_password: "${NDO_PASSWORD}"
     TF_VAR_ndo_url: "${NDO_URL}"
-    TF_VAR_vmm_domain_name: "${VMM_DOMAIN_NAME}"
-    TF_VAR_vrf_template_name: "${VRF_TEMPLATE_NAME}"
   script:
     - cd ndo-terraform
     - terraform init -input=false
