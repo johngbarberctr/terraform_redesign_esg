@@ -552,3 +552,4 @@ Lab and production must use **separate Terraform state files**. They manage diff
 | `retry: max: 2` on plan/deploy | NDO auth errors are intermittent; auto-retry usually succeeds on second attempt |
 | `.tfvars` for lab/prod | Single codebase with environment-specific values in `lab.tfvars` and `prod.tfvars`; avoids maintaining two copies of `bds_epgs.tf` |
 | `var.vrf_template_name` | Replaces hardcoded template name so lab (`VRF_Template`) and production (`UpgradeTemplate1`) share the same `.tf` files |
+
