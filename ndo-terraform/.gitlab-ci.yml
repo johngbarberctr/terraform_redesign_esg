@@ -1,0 +1,53 @@
+variables:
+  TF_VAR_vrf_template_name: "UpgradeTemplate1"
+
+stages:
+  - validate
+  - plan
+  - deploy
+
+validate:
+  stage: validate
+  script:
+    - terraform fmt -check
+  allow_failure: true
+
+plan:
+  stage: plan
+  timeout: 2h
+  retry:
+    max: 2
+    when: script_failure
+  script:
+    - terraform init -input=false -backend-config="address=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/ndo-terraform" -backend-config="lock_address=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/ndo-terraform/lock" -backend-config="unlock_address=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/ndo-terraform/lock" -backend-config="username=john.g.barber.ctr" -backend-config="password=${TF_STATE_TOKEN}" -backend-config="lock_method=POST" -backend-config="unlock_method=DELETE" -backend-config="retry_wait_min=5"
+    - terraform plan -out=plan.tfplan -input=false -parallelism=3 -refresh=false
+    - terraform show -no-color plan.tfplan > plan.txt
+  artifacts:
+    paths:
+      - plan.txt
+      - plan.tfplan
+  only:
+    - merge_requests
+    - main
+
+deploy:
+  stage: deploy
+  retry:
+    max: 2
+    when: script_failure
+  script:
+    - terraform init -input=false -backend-config="address=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/ndo-terraform" -backend-config="lock_address=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/ndo-terraform/lock" -backend-config="unlock_address=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/ndo-terraform/lock" -backend-config="username=john.g.barber.ctr" -backend-config="password=${TF_STATE_TOKEN}" -backend-config="lock_method=POST" -backend-config="unlock_method=DELETE" -backend-config="retry_wait_min=5"
+    - terraform plan -out=plan.tfplan -input=false -parallelism=3
+    - terraform apply -input=false -auto-approve -parallelism=3 plan.tfplan
+  only:
+    - main
+
+destroy:
+  stage: deploy
+  script:
+    - terraform init -input=false -backend-config="address=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/ndo-terraform" -backend-config="lock_address=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/ndo-terraform/lock" -backend-config="unlock_address=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/ndo-terraform/lock" -backend-config="username=john.g.barber.ctr" -backend-config="password=${TF_STATE_TOKEN}" -backend-config="lock_method=POST" -backend-config="unlock_method=DELETE" -backend-config="retry_wait_min=5"
+    - terraform plan -destroy -out=destroy.tfplan -input=false -parallelism=3
+    - terraform apply -input=false -auto-approve -parallelism=3 destroy.tfplan
+  when: manual
+  only:
+    - main

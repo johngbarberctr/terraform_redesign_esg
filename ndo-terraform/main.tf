@@ -1,4 +1,6 @@
 terraform {
+  backend "http" {}
+
   required_providers {
     mso = {
       source  = "CiscoDevNet/mso"
@@ -15,7 +17,7 @@ provider "mso" {
   username = var.ndo_username
   password = var.ndo_password
   url      = var.ndo_url
-  domain   = "local"
-  platform = "nd"
+  domain   = var.mso_domain
+  platform = var.mso_platform
   insecure = true
 }
