@@ -246,7 +246,7 @@ def agenda_slide():
         ("6  Phased security model", "vzAny → single ESG → zone ESGs → tight contracts"),
         ("7  Lab migration (greenfield)", "4 phases - build from scratch"),
         ("8  Production migration (brownfield)", "7 phases - live coexistence"),
-        ("9  VMM / VLAN strategy", "Dynamic VLAN pool 3501-3967, vmm-vcenter-rcc"),
+        ("9  VMM / VLAN strategy", "VMM pool 3501-3967 + per-fabric VMMs (APCG-VDS1, APCK-VDS1)"),
         ("10  Risks & mitigations", "Where traffic loss can happen and how we contain it"),
         ("11  What gets deployed", "Concrete object list from Terraform apply"),
         ("12  Decommission plan", "30 legacy BDs to remove"),
@@ -523,7 +523,7 @@ def architecture_diagram_slide():
     panel(s, bdx, appy, appw, Inches(1.25),
           "AppProf-NetCentric", [
               "36 EPGs (EPG-AD, EPG-APP-SVR, ...)",
-              "Bound to VMM domain vmm-vcenter-rcc",
+              "Bound to per-fabric VMMs (APCG-VDS1, APCK-VDS1)",
               "Dynamic VLAN 3501-3967",
           ], accent=CISCO_BLUE)
     panel(s, bdx + appw + Inches(0.1), appy, appw, Inches(1.25),
@@ -557,7 +557,7 @@ def architecture_diagram_slide():
     panel(s, dx + Inches(0.15), dy + Inches(2.0),
           dw - Inches(0.3), Inches(1.25),
           "AppProf-DMZ",
-          ["3 EPGs on vmm-vcenter-rcc", "Dynamic VLAN 3501-3967"],
+          ["3 EPGs on per-fabric VMMs", "Dynamic VLAN 3501-3967"],
           accent=CISCO_BLUE)
     panel(s, dx + Inches(0.15), dy + Inches(3.35),
           dw - Inches(0.3), Inches(1.25),
@@ -993,12 +993,12 @@ def vmm_vlan_slide():
 
     # Detail tables
     rows = [
-        ["VMM domain", "vmm-vcenter-rcc (lab) / VMM1 (production)"],
-        ["vCenter controller", "vcenter01 with credential policy"],
+        ["VMM domain", "Per-fabric: APCG-VDS1 (AEDCG), APCK-VDS1 (AEDCK)"],
+        ["vCenter controller", "vcenter01 with credential policy (shared vCenter)"],
         ["Virtual Distributed Switch",
-         "Created by ACI via dvs_version (6.5 / 6.6 / 7.0 / 8.0)"],
-        ["AAEP", "vmm-aaep - linked to VMM domain"],
-        ["Port channel policy", "mac-pinning"],
+         "Adopted from existing per-fabric VDS (dvs_version='unmanaged')"],
+        ["AAEP", "vmm-aaep (lab) / fi-aaep (prod, with phys-fi-domain)"],
+        ["Port channel policy", "mac-pin"],
         ["Uplinks", "uplink1, uplink2"],
         ["Leaf interface profile",
          "leaf-152-153-intprof (ports 1-48, AEDCG nodes 152-153)"],
@@ -1009,12 +1009,12 @@ def vmm_vlan_slide():
 
     panel(
         s, Inches(8.6), Inches(3.3), Inches(4.3), Inches(3.6),
-        "Production config touch-points",
+        "Production config touch-points (Design A: UCS-FI direct attach)",
         [
-            "data/sites/primary/access_policies.nac.yaml - VLAN pool VMM1 = 3501-3967, AAEP infra_vlan, VPC-VMM-HOSTS.",
-            "data/sites/primary/fabric_policies.nac.yaml - VMM1 read-write, tag collection, mac-pinning, uplinks, dvs_version.",
-            "data/ndo/schema_AEDCE.nac.yaml - all 405 EPG site entries bound to VMM1 (dynamic VLAN, immediate deployment).",
-            "Replace CHANGE_ME placeholders with real vCenter IP / DC / creds before apply.",
+            "data/nac-aci-{aedcg,aedck}-prod/access-policies.nac.yaml - fi-static-vlan-pool (213 VLANs), fi-aaep, PC_FI_A/PC_FI_B policy groups, leaf 152/153 (AEDCG) and 119/191 (AEDCK) split between VMM ports (8-48) and FI uplinks (eth1/6, eth1/7).",
+            "data/nac-aci-shared/modules.nac.yaml - aci_mcp sub-module disabled so MCP InstP is managed inline in apic-vmware-prod/main.tf.",
+            "data/nac-ndo/schema-aedce-ipv4.nac.yaml - 39 EPG site entries bound to APCG-VDS1 (AEDCG) and APCK-VDS1 (AEDCK).",
+            "vCenter creds flow in via TF_VAR_vcenter_* env vars (no CHANGE_ME placeholders in tracked YAML).",
         ],
         accent=ACCENT,
     )
@@ -1030,12 +1030,14 @@ def deployed_objects_slide():
     add_text(s, Inches(0.5), Inches(1.15), Inches(6.1), Inches(0.4),
              "Access & Fabric Policies", size=16, bold=True, color=NAVY)
     rows_af = [
-        ["VLAN pool", "vmm-vlan-pool (dynamic, 3501-3967)"],
-        ["CDP / LLDP / LACP", "cdp-enabled, lldp-enabled, lacp-active"],
-        ["Port channel", "mac-pinning"],
+        ["VLAN pools",
+         "vmm-vlan-pool (dynamic, 3501-3967) + fi-static-vlan-pool (static, 213 VLANs, prod)"],
+        ["CDP / LLDP", "cdp-enabled, lldp-enabled (admin_rx_state, admin_tx_state)"],
+        ["Port channel", "mac-pin (created from port_channel_policies)"],
         ["Link level", "10G"],
-        ["VMware VMM domain", "vmm-vcenter-rcc (read-write, manages VDS)"],
-        ["vCenter controller", "vcenter01 with credential policy"],
+        ["VMware VMM domain",
+         "Per-fabric: APCG-VDS1 (AEDCG), APCK-VDS1 (AEDCK) - adopt existing VDS"],
+        ["vCenter controller", "vcenter01 with credential policy (shared vCenter)"],
         ["VDS uplinks", "uplink1, uplink2"],
         ["AAEP", "vmm-aaep - linked to VMM domain"],
         ["VPC interface policy group", "vpc-vmm-hosts"],
@@ -1062,9 +1064,9 @@ def deployed_objects_slide():
         ["Bridge Domains (DMZ)",
          "3 BDs - BD-D64-PROXY, BD-FWEB-PROXY, BD-RWEB-PROXY"],
         ["App Profile - NetCentric",
-         "36 internal EPGs on vmm-vcenter-rcc (dynamic VLAN)"],
+         "36 internal EPGs on per-fabric VMMs (dynamic VLAN)"],
         ["App Profile - DMZ",
-         "3 DMZ EPGs on vmm-vcenter-rcc (dynamic VLAN)"],
+         "3 DMZ EPGs on per-fabric VMMs (dynamic VLAN)"],
         ["App Profile - SecurityGroups",
          "ESG-All-Internal-EPGs, ESG-All-DMZ-EPGs"],
     ]
@@ -1137,8 +1139,8 @@ def what_changes_slide():
          "Numeric → descriptive", "—"],
         ["Contracts",
          "Per-EPG → vzAny + ESG", "Contract model (still ACI contracts)"],
-        ["VMM domain", "VMM1 → vmm-vcenter-rcc (lab)",
-         "Dynamic VLAN assignment"],
+        ["VMM domain", "VMM1 → APCG-VDS1 / APCK-VDS1",
+         "Dynamic VLAN assignment (per-fabric VDS adoption)"],
         ["L3Outs", "13 → ~4 (production)", "External routing concept"],
         ["Firewall", "—",
          "Still enforces DMZ boundaries"],
@@ -1190,7 +1192,7 @@ def deployment_architecture_slide():
         [
             "~200+ objects: VRFs, BDs, EPGs, ESGs, contracts, filters",
             "AppProf-NetCentric / AppProf-DMZ / AppProf-SecurityGroups",
-            "VMM domain vmm-vcenter-rcc + dynamic VLAN pool 3501-3967",
+            "Per-fabric VMM domains (APCG-VDS1, APCK-VDS1) + dynamic VLAN pool 3501-3967",
             "MCP Instance Policy (mcpInstP-default) with compliant key",
             "Access policies: AAEP, domain profile, interface selectors",
         ],
@@ -1371,7 +1373,7 @@ def local_workflow_slide():
          "export TF_VAR_vcenter_datacenter='Datacenter'\n"
          "export TF_VAR_vcenter_username='administrator@vsphere.local'\n"
          "export TF_VAR_vcenter_password='<single-quoted>'\n"
-         "export TF_VAR_vcenter_dvs_version='6.6'"),
+         "export TF_VAR_vcenter_dvs_version='unmanaged'"),
         ("5", "Prove credentials before touching state",
          "make auth-check     # must print HTTP 200"),
         ("6", "Plan and apply",
@@ -1631,7 +1633,7 @@ def ndo_split_architecture_slide():
                     "Single mso provider (platform=nd, login_domain=local).",
                     "Owns schema AEDCE-IPv4 + template Tenant_EUR_IPv4.",
                     "Owns 2 VRFs (vzAny), 2 contracts, 39 BDs, 2 ANPs, 39 EPGs.",
-                    "EPGs bind to vmm-vcenter-rcc on AEDCG + AEDCK.",
+                    "EPGs bind to APCG-VDS1 (AEDCG) and APCK-VDS1 (AEDCK).",
                     "manage_tenants = false  -  EUR pre-exists in NDO.",
                     "deploy_templates = false  -  operator clicks Deploy.",
                     ("Why NDO: only NDO does cross-site policy stitching "
