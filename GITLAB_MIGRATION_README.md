@@ -87,8 +87,10 @@ git push local-gitlab main
 │   │   ├── variables.tf
 │   │   └── terraform.tfvars.example
 │   └── data/
-│       ├── blueprints/     # Blueprint NAC YAML definitions
-│       └── nac-aci-vmm/    # VMM domain and access policy configs
+│       ├── blueprints/         # Blueprint NAC YAML definitions
+│       ├── nac-aci-shared/     # Cross-fabric YAML (tenant, BDs, EPGs, ESGs)
+│       ├── nac-aci-aedcg/      # AEDCG-only access/fabric policies
+│       └── nac-aci-aedcg-rendered/  # gitignored; vmm-domain.nac.yaml output
 ├── ndo-terraform/
 │   ├── bds_epgs.tf         # NDO BD/EPG definitions (~4200 lines)
 │   ├── main.tf             # MSO/ACI providers

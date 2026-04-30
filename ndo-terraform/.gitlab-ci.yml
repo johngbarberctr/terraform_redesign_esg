@@ -1,6 +1,9 @@
 variables:
   TF_VAR_vrf_template_name: "UpgradeTemplate1"
 
+before_script:
+  - export PATH="/usr/bin:$PATH"
+
 stages:
   - validate
   - plan
@@ -37,7 +40,7 @@ deploy:
     when: script_failure
   script:
     - terraform init -input=false -backend-config="address=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/ndo-terraform" -backend-config="lock_address=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/ndo-terraform/lock" -backend-config="unlock_address=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/ndo-terraform/lock" -backend-config="username=john.g.barber.ctr" -backend-config="password=${TF_STATE_TOKEN}" -backend-config="lock_method=POST" -backend-config="unlock_method=DELETE" -backend-config="retry_wait_min=5"
-    - terraform plan -out=plan.tfplan -input=false -parallelism=3
+    - terraform plan -out=plan.tfplan -input=false -parallelism=3 -refresh=false
     - terraform apply -input=false -auto-approve -parallelism=3 plan.tfplan
   only:
     - main

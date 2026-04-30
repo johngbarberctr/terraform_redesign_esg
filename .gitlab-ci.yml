@@ -14,12 +14,38 @@ variables:
     description: "Cisco NDO Password"
   NDO_URL:
     description: "Cisco NDO URL"
-  APIC_USERNAME:
-    description: "Cisco APIC Username"
-  APIC_PASSWORD:
-    description: "Cisco APIC Password"
-  APIC_URL:
-    description: "Cisco APIC URL"
+
+  # Per-fabric APIC creds. Both fabrics live in the same Terraform root via
+  # provider aliases (aci default = AEDCG, aci.aedck = AEDCK). See
+  # aci-redesign/apic-vmware/providers.tf and main.tf.
+  AEDCG_APIC_URL:
+    description: "AEDCG APIC URL (e.g. https://198.18.134.253 in lab)"
+  AEDCG_APIC_USERNAME:
+    description: "AEDCG APIC username"
+  AEDCG_APIC_PASSWORD:
+    description: "AEDCG APIC password (set Masked + Protected)"
+  AEDCG_MCP_KEY:
+    description: "AEDCG MCP Instance Policy key -- >=8 chars, mixed classes; Masked + Protected"
+  AEDCK_APIC_URL:
+    description: "AEDCK APIC URL (e.g. https://198.18.134.254 in lab)"
+  AEDCK_APIC_USERNAME:
+    description: "AEDCK APIC username"
+  AEDCK_APIC_PASSWORD:
+    description: "AEDCK APIC password (set Masked + Protected)"
+  AEDCK_MCP_KEY:
+    description: "AEDCK MCP Instance Policy key -- >=8 chars, mixed classes; Masked + Protected"
+
+  VCENTER_HOSTNAME_IP:
+    description: "vCenter IP or FQDN for the VMware VMM domain (shared by both fabrics)"
+  VCENTER_DATACENTER:
+    description: "vCenter datacenter name"
+  VCENTER_DVS_VERSION:
+    description: "vSphere VDS version (6.5, 6.6, 7.0, 8.0)"
+    value: "6.6"
+  VCENTER_USERNAME:
+    description: "vCenter service-account username (set Masked + Protected)"
+  VCENTER_PASSWORD:
+    description: "vCenter service-account password (set Masked + Protected)"
   GITLAB_TOKEN:
     description: "User Access Token for MR comments"
   TF_HTTP_USERNAME:
@@ -137,14 +163,35 @@ destroy-ndo:
 # ============================================
 validate-aci:
   stage: validate
+  variables:
+    # Needed so render-vmm-yaml.sh can produce the rendered VMM YAML before
+    # terraform validate reads it. If any of these are missing, the render
+    # script exits with a clear error and this job fails fast.
+    TF_VAR_vcenter_hostname_ip: "${VCENTER_HOSTNAME_IP}"
+    TF_VAR_vcenter_datacenter: "${VCENTER_DATACENTER}"
+    TF_VAR_vcenter_dvs_version: "${VCENTER_DVS_VERSION}"
+    TF_VAR_vcenter_username: "${VCENTER_USERNAME}"
+    TF_VAR_vcenter_password: "${VCENTER_PASSWORD}"
   script:
+    # 1. Secret-leak scan runs from repo root; fails the pipeline if a
+    #    plaintext password or known-bad literal lands in tracked NAC YAML.
+    - bash .gitlab/ci-secret-scan.sh
+    # 2. Render VMM-domain YAML for BOTH fabrics so terraform validate can
+    #    read each. Both fabrics consume the same shared vCenter env vars.
     - cd aci-redesign/apic-vmware
-    - terraform fmt -check
+    - ./scripts/render-vmm-yaml.sh aedcg
+    - ./scripts/render-vmm-yaml.sh aedck
+    # 3. Terraform format + schema validation (no backend, no APIC creds).
+    - terraform fmt -check -recursive
+    - terraform init -backend=false -input=false
+    - terraform validate
   cache: []
   rules:
     - if: $CI_COMMIT_TAG == null
       changes:
         - aci-redesign/**/*
+        - .gitlab/ci-secret-scan.sh
+        - .gitlab-ci.yml
 
 plan-aci:
   stage: plan
@@ -155,12 +202,25 @@ plan-aci:
     TF_HTTP_LOCK_METHOD: POST
     TF_HTTP_UNLOCK_ADDRESS: "${TF_HTTP_ADDRESS_ACI}/lock"
     TF_HTTP_UNLOCK_METHOD: DELETE
-    TF_VAR_apic_url: "${APIC_URL}"
-    TF_VAR_apic_username: "${APIC_USERNAME}"
-    TF_VAR_apic_password: "${APIC_PASSWORD}"
-    TF_VAR_apic_insecure: "true"
+    TF_VAR_aedcg_apic_url: "${AEDCG_APIC_URL}"
+    TF_VAR_aedcg_apic_username: "${AEDCG_APIC_USERNAME}"
+    TF_VAR_aedcg_apic_password: "${AEDCG_APIC_PASSWORD}"
+    TF_VAR_aedcg_apic_insecure: "true"
+    TF_VAR_aedcg_mcp_key: "${AEDCG_MCP_KEY}"
+    TF_VAR_aedck_apic_url: "${AEDCK_APIC_URL}"
+    TF_VAR_aedck_apic_username: "${AEDCK_APIC_USERNAME}"
+    TF_VAR_aedck_apic_password: "${AEDCK_APIC_PASSWORD}"
+    TF_VAR_aedck_apic_insecure: "true"
+    TF_VAR_aedck_mcp_key: "${AEDCK_MCP_KEY}"
+    TF_VAR_vcenter_hostname_ip: "${VCENTER_HOSTNAME_IP}"
+    TF_VAR_vcenter_datacenter: "${VCENTER_DATACENTER}"
+    TF_VAR_vcenter_dvs_version: "${VCENTER_DVS_VERSION}"
+    TF_VAR_vcenter_username: "${VCENTER_USERNAME}"
+    TF_VAR_vcenter_password: "${VCENTER_PASSWORD}"
   script:
     - cd aci-redesign/apic-vmware
+    - ./scripts/render-vmm-yaml.sh aedcg
+    - ./scripts/render-vmm-yaml.sh aedck
     - terraform init -input=false
     - terraform plan -out=plan.tfplan -input=false
     - terraform show -no-color plan.tfplan > plan.txt
@@ -193,12 +253,25 @@ deploy-aci:
     TF_HTTP_LOCK_METHOD: POST
     TF_HTTP_UNLOCK_ADDRESS: "${TF_HTTP_ADDRESS_ACI}/lock"
     TF_HTTP_UNLOCK_METHOD: DELETE
-    TF_VAR_apic_url: "${APIC_URL}"
-    TF_VAR_apic_username: "${APIC_USERNAME}"
-    TF_VAR_apic_password: "${APIC_PASSWORD}"
-    TF_VAR_apic_insecure: "true"
+    TF_VAR_aedcg_apic_url: "${AEDCG_APIC_URL}"
+    TF_VAR_aedcg_apic_username: "${AEDCG_APIC_USERNAME}"
+    TF_VAR_aedcg_apic_password: "${AEDCG_APIC_PASSWORD}"
+    TF_VAR_aedcg_apic_insecure: "true"
+    TF_VAR_aedcg_mcp_key: "${AEDCG_MCP_KEY}"
+    TF_VAR_aedck_apic_url: "${AEDCK_APIC_URL}"
+    TF_VAR_aedck_apic_username: "${AEDCK_APIC_USERNAME}"
+    TF_VAR_aedck_apic_password: "${AEDCK_APIC_PASSWORD}"
+    TF_VAR_aedck_apic_insecure: "true"
+    TF_VAR_aedck_mcp_key: "${AEDCK_MCP_KEY}"
+    TF_VAR_vcenter_hostname_ip: "${VCENTER_HOSTNAME_IP}"
+    TF_VAR_vcenter_datacenter: "${VCENTER_DATACENTER}"
+    TF_VAR_vcenter_dvs_version: "${VCENTER_DVS_VERSION}"
+    TF_VAR_vcenter_username: "${VCENTER_USERNAME}"
+    TF_VAR_vcenter_password: "${VCENTER_PASSWORD}"
   script:
     - cd aci-redesign/apic-vmware
+    - ./scripts/render-vmm-yaml.sh aedcg
+    - ./scripts/render-vmm-yaml.sh aedck
     - terraform init -input=false
     - terraform apply -input=false -auto-approve plan.tfplan
   dependencies:
@@ -219,12 +292,25 @@ destroy-aci:
     TF_HTTP_LOCK_METHOD: POST
     TF_HTTP_UNLOCK_ADDRESS: "${TF_HTTP_ADDRESS_ACI}/lock"
     TF_HTTP_UNLOCK_METHOD: DELETE
-    TF_VAR_apic_url: "${APIC_URL}"
-    TF_VAR_apic_username: "${APIC_USERNAME}"
-    TF_VAR_apic_password: "${APIC_PASSWORD}"
-    TF_VAR_apic_insecure: "true"
+    TF_VAR_aedcg_apic_url: "${AEDCG_APIC_URL}"
+    TF_VAR_aedcg_apic_username: "${AEDCG_APIC_USERNAME}"
+    TF_VAR_aedcg_apic_password: "${AEDCG_APIC_PASSWORD}"
+    TF_VAR_aedcg_apic_insecure: "true"
+    TF_VAR_aedcg_mcp_key: "${AEDCG_MCP_KEY}"
+    TF_VAR_aedck_apic_url: "${AEDCK_APIC_URL}"
+    TF_VAR_aedck_apic_username: "${AEDCK_APIC_USERNAME}"
+    TF_VAR_aedck_apic_password: "${AEDCK_APIC_PASSWORD}"
+    TF_VAR_aedck_apic_insecure: "true"
+    TF_VAR_aedck_mcp_key: "${AEDCK_MCP_KEY}"
+    TF_VAR_vcenter_hostname_ip: "${VCENTER_HOSTNAME_IP}"
+    TF_VAR_vcenter_datacenter: "${VCENTER_DATACENTER}"
+    TF_VAR_vcenter_dvs_version: "${VCENTER_DVS_VERSION}"
+    TF_VAR_vcenter_username: "${VCENTER_USERNAME}"
+    TF_VAR_vcenter_password: "${VCENTER_PASSWORD}"
   script:
     - cd aci-redesign/apic-vmware
+    - ./scripts/render-vmm-yaml.sh aedcg
+    - ./scripts/render-vmm-yaml.sh aedck
     - terraform init -input=false
     - terraform plan -destroy -out=destroy.tfplan -input=false
     - terraform apply -input=false -auto-approve destroy.tfplan

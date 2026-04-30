@@ -1,0 +1,22 @@
+# Tenant EUR -- IPv4 redesign.
+#
+# Tenant EUR already exists in NDO (created out of band) and the ndo/ root
+# runs with manage_tenants=false. The templates in schema-aedce-ipv4.nac.yaml
+# reference the tenant by name (`tenant: EUR`); that lookup does NOT require
+# this root to own the mso_tenant resource, so this file is intentionally a
+# stub.
+#
+# If you ever want this root to own the tenant, restore the block below
+# (un-comment), set manage_tenants=true in main.tf, and import the existing
+# object:
+#   terraform import 'module.ndo.module.tenants[0].mso_tenant.tenant["EUR"]' EUR
+#
+# ndo:
+#   tenants:
+#     - name: EUR
+#       description: "IPv4 redesign tenant -- 2 VRFs (VRF-EUR / VRF-DMZ), 39 stretched BDs"
+#       sites:
+#         - name: AEDCG
+#         - name: AEDCK
+---
+ndo: {}

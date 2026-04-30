@@ -4,8 +4,17 @@ IPv4 to IPv6 BD MAPPING ANALYSIS - EXECUTIVE SUMMARY
 
 OVERVIEW:
   Total IPv4 BDs analyzed: 215
-  Successfully mapped: 157 (73%)
-  Unmatched (need review): 58 (26%)
+  Successfully mapped: 171 (80%) -- includes 20 prev-unmatched BDs with subnets
+  Mapped (L2-only, no subnets): 14 (6%) -- have function but no subnets to contribute
+  Decommission candidates: 30 (14%) -- dead/deprecated/test BDs
+  Unmatched: 0
+
+  DESIGN DECISIONS:
+  - L2 BDs (gateway on external firewall) stay in VRF-EUR even if alias says "DMZ".
+    Firewall enforces DMZ isolation at L3Out/service graph; VRF-DMZ is only for
+    segments where ACI owns the gateway (proxy BDs with 139.139.x.x subnets).
+    ESGs will enforce segmentation in Phase 3.
+  - 6 TMP_SATTest BDs moved from BD-APP-SVR to DECOMMISSION (temporary test BDs).
 
 MAPPING CONFIDENCE LEVELS:
   HIGH (>= 80): Direct functional match (e.g., AD, DNS, SCCM keywords)
@@ -33,29 +42,30 @@ IPv6 BDs WITHOUT IPv4 MAPPINGS (may be new functional categories):
   - BD-SMTP-SVR
   - BD-SYSMAN
 
-IPv4 BD COUNT PER IPv6 FUNCTIONAL BD:
+IPv4 BD COUNT PER IPv6 FUNCTIONAL BD (includes prev-unmatched resolutions):
 
   BD-ACAS-SCANNERS    :   3 BDs (HIGH:3, MED:0, LOW:0)
   BD-AD               :   3 BDs (HIGH:3, MED:0, LOW:0)
   BD-ADM-DCO          :   1 BDs (HIGH:1, MED:0, LOW:0)
-  BD-APP-SVR          :  38 BDs (HIGH:8, MED:19, LOW:11)
+  BD-APP-SVR          :  39 BDs (HIGH:8, MED:19, LOW:5, RESOLVED:7)
   BD-BACKUP-SVR       :   5 BDs (HIGH:5, MED:0, LOW:0)
-  BD-CFG-MGMT         :  26 BDs (HIGH:0, MED:18, LOW:8)
+  BD-CFG-MGMT         :  40 BDs (HIGH:0, MED:18, LOW:8, RESOLVED:14)
   BD-DB-SVR           :  11 BDs (HIGH:11, MED:0, LOW:0)
   BD-DNS-MGMT         :   2 BDs (HIGH:2, MED:0, LOW:0)
   BD-FILE-SVR         :   7 BDs (HIGH:7, MED:0, LOW:0)
-  BD-FWEB-PROXY       :   6 BDs (HIGH:0, MED:0, LOW:6)
+  BD-FWEB-PROXY       :   9 BDs (HIGH:0, MED:0, LOW:6, RESOLVED:3)
   BD-GEF-MGMT         :   9 BDs (HIGH:9, MED:0, LOW:0)
   BD-LB               :   5 BDs (HIGH:5, MED:0, LOW:0)
-  BD-MECM             :   5 BDs (HIGH:5, MED:0, LOW:0)
-  BD-NMS              :   1 BDs (HIGH:1, MED:0, LOW:0)
+  BD-MECM             :   6 BDs (HIGH:5, MED:0, LOW:0, RESOLVED:1)
+  BD-NMS              :   2 BDs (HIGH:1, MED:0, LOW:0, RESOLVED:1)
   BD-PATCH            :   1 BDs (HIGH:1, MED:0, LOW:0)
   BD-PKI-SRV          :   1 BDs (HIGH:1, MED:0, LOW:0)
-  BD-SYSLOG           :   1 BDs (HIGH:1, MED:0, LOW:0)
-  BD-VHOST-MGMT       :   1 BDs (HIGH:1, MED:0, LOW:0)
-  BD-VVOIP-MGMT       :  12 BDs (HIGH:12, MED:0, LOW:0)
+  BD-SYSLOG           :   2 BDs (HIGH:1, MED:0, LOW:0, RESOLVED:1)
+  BD-VHOST-MGMT       :   2 BDs (HIGH:1, MED:0, LOW:0, RESOLVED:1)
+  BD-VVOIP-MGMT       :  14 BDs (HIGH:12, MED:0, LOW:0, RESOLVED:2)
   BD-VVOIP-PROXY      :   3 BDs (HIGH:1, MED:2, LOW:0)
-  BD-WEB-SVR          :  16 BDs (HIGH:14, MED:2, LOW:0)
+  BD-WEB-SVR          :  18 BDs (HIGH:14, MED:2, LOW:0, RESOLVED:2)
+  DECOMMISSION        :  30 BDs (dead/deprecated/test -- no functional mapping)
 
 
 DETAILED MAPPINGS BY IPv6 BD:
@@ -115,12 +125,12 @@ DETAILED MAPPINGS BY IPv6 BD:
   [LOW ] BD-V0310        | Alias: APCG_USER_INSIDE                    | VRF: EUR-AIS      | 155.155.128.1/23, 155.155.128.9/23
   [LOW ] BD-V0531        | Alias: APCE_TEMPLATE_V531                  | VRF: EUR-AIS      | 155.155.226.1/27
   [LOW ] BD-V0582        | Alias: APCE_EXERCISE_EXTERNAL_V582         | VRF: EUR-AIS      | 155.155.238.1/27
-  [LOW ] BD-V2003        | Alias: TMP_SATTest_VRF_EUR-AIV             | VRF: EUR-E        | (no subnets)
-  [LOW ] BD-V2005        | Alias: TMP_SATTest_VRF_EUR-AIG             | VRF: EUR-E        | (no subnets)
-  [LOW ] BD-V2004        | Alias: TMP_SATTest_VRF_EUR-AIZ             | VRF: EUR-E        | (no subnets)
-  [LOW ] BD-V0020        | Alias: TMP_SATTest_VRF_EUR-AIM_IBMgmt      | VRF: EUR-AIM      | (no subnets)
-  [LOW ] BD-V2002        | Alias: TMP_SATTest_VRF_EUR-AIS             | VRF: EUR-E        | (no subnets)
-  [LOW ] BD-V2001        | Alias: TMP_SATTest_VRF_EUR-AIM             | VRF: EUR-E        | (no subnets)
+  [DECOM] BD-V2003       | Alias: TMP_SATTest_VRF_EUR-AIV             | VRF: EUR-E        | (no subnets) → DECOMMISSION (temp test)
+  [DECOM] BD-V2005       | Alias: TMP_SATTest_VRF_EUR-AIG             | VRF: EUR-E        | (no subnets) → DECOMMISSION (temp test)
+  [DECOM] BD-V2004       | Alias: TMP_SATTest_VRF_EUR-AIZ             | VRF: EUR-E        | (no subnets) → DECOMMISSION (temp test)
+  [DECOM] BD-V0020       | Alias: TMP_SATTest_VRF_EUR-AIM_IBMgmt      | VRF: EUR-AIM      | (no subnets) → DECOMMISSION (temp test)
+  [DECOM] BD-V2002       | Alias: TMP_SATTest_VRF_EUR-AIS             | VRF: EUR-E        | (no subnets) → DECOMMISSION (temp test)
+  [DECOM] BD-V2001       | Alias: TMP_SATTest_VRF_EUR-AIM             | VRF: EUR-E        | (no subnets) → DECOMMISSION (temp test)
 
 ================================================================================
 >>> BD-BACKUP-SVR
@@ -303,63 +313,65 @@ DETAILED MAPPINGS BY IPv6 BD:
   [MED ] BD-V0953        | Alias: PUB-REST-DMZ-WEB                    | VRF: EUR-E        | (no subnets)
 
 
-UNMATCHED BDs (59 total) - REQUIRE MANUAL REVIEW:
+PREVIOUSLY UNMATCHED BDs -- NOW RESOLVED (58 total):
 
-  BD-2250         | (no alias)                                    | VRF: EUR-E        | (no subnets)
-  BD-GSN-Test     | (no alias)                                    | VRF: EUR-GSN-Test | 172.31.255.254/30
-  BD-V0005        | (no alias)                                    | VRF: EUR-E        | (no subnets)
-  BD-V0006        | (no alias)                                    | VRF: EUR-E        | (no subnets)
-  BD-V0009        | Def_Native_vlan                               | VRF: EUR-E        | (no subnets)
-  BD-V0010        | OOB_MPLS                                      | VRF: EUR-E        | (no subnets)
-  BD-V0021        | ATM_VLAN_may_need_to_remove                   | VRF: EUR-E        | (no subnets)
-  BD-V0056        | (no alias)                                    | VRF: EUR-ARMY-ENT-SVR-DMZ | (no subnets)
-  BD-V0058        | (no alias)                                    | VRF: EUR-AIM      | (no subnets)
-  BD-V0066        | (no alias)                                    | VRF: EUR-AIZ      | 155.155.62.249/29
-  BD-V0067        | (no alias)                                    | VRF: EUR-AIZ      | 155.155.62.241/29
-  BD-V0170        | (no alias)                                    | VRF: EUR-AIS      | 136.215.192.1/25
-  BD-V0216        | APCK_ALOM_DRAC                                | VRF: EUR-AIS      | 155.155.68.1/24
-  BD-V0229        | CAIR_DMVPN                                    | VRF: EUR-E        | (no subnets)
-  BD-V0230        | CAIR_NIPRnet_INT                              | VRF: EUR-E        | (no subnets)
-  BD-V0231        | CAIR_NIPRnet_EXT                              | VRF: EUR-E        | (no subnets)
-  BD-V0233        | CAIR_NIPRnet_DISA                             | VRF: EUR-E        | (no subnets)
-  BD-V0237        | CAIR_ASA_MANAGEMENT                           | VRF: EUR-E        | (no subnets)
-  BD-V0238        | CAIR_ASA_FAILOVER                             | VRF: EUR-E        | (no subnets)
-  BD-V0239        | CAIR_VLAN_MANAGEMENT                          | VRF: EUR-E        | (no subnets)
-  BD-V0240        | CAIR_DMVPN_FW                                 | VRF: EUR-E        | (no subnets)
-  BD-V0256        | Army_Metering_Public                          | VRF: EUR-AIZ      | 206.39.28.249/29
-  BD-V0299        | (no alias)                                    | VRF: EUR-AIS      | 136.215.97.1/28
-  BD-V0311        | Call_Manager_VLAN                             | VRF: EUR-E        | (no subnets)
-  BD-V0314        | Audio_Server_RTP                              | VRF: EUR-E        | (no subnets)
-  BD-V0316        | APCG_ALOM_DRAC                                | VRF: EUR-AIS      | 155.155.130.1/24
-  BD-V0373        | (no alias)                                    | VRF: EUR-AIS      | 155.155.84.1/23
-  BD-V0470        | (no alias)                                    | VRF: EUR-AIS      | 136.215.64.1/25
-  BD-V0475        | APCK_SVCS_V475                                | VRF: EUR-AIS      | 136.215.66.129/26
-  BD-V0504        | VMI_MOTION_V504                               | VRF: EUR-E        | (no subnets)
-  BD-V0529        | APCE_etnosc_bridge_Remove                     | VRF: EUR-AIS      | 155.155.231.65/27
-  BD-V0570        | APCE_EUR_SVCS_V570                            | VRF: EUR-AIS      | 155.155.236.1/27
-  BD-V0575        | ARCSIGHT                                      | VRF: EUR-AIS      | 155.155.237.129/25, 155.155.237.1/25
-  BD-V0580        | APCE_MIL_V580                                 | VRF: EUR-AIS      | 155.155.239.129/27
-  BD-V0581        | APCE_EUROPE_V581                              | VRF: EUR-AIS      | 155.155.239.65/27
-  BD-V0595        | (no alias)                                    | VRF: EUR-AIM      | 155.155.250.1/23
-  BD-V0790        | Calibre_MDMS_Private                          | VRF: EUR-AIS      | 10.254.8.1/26
-  BD-V0958        | (no alias)                                    | VRF: EUR-E        | (no subnets)
-  BD-V0970        | (no alias)                                    | VRF: EUR-E        | (no subnets)
-  BD-V1116        | (no alias)                                    | VRF: EUR-E        | (no subnets)
-  BD-V1117        | (no alias)                                    | VRF: EUR-E        | (no subnets)
-  BD-V1119        | (no alias)                                    | VRF: EUR-AIZ      | 139.139.251.1/28
-  BD-V1120        | (no alias)                                    | VRF: EUR-E        | (no subnets)
-  BD-V1140        | (no alias)                                    | VRF: EUR-E        | (no subnets)
-  BD-V1141        | (no alias)                                    | VRF: EUR-E        | (no subnets)
-  BD-V1142        | (no alias)                                    | VRF: EUR-E        | (no subnets)
-  BD-V1143        | (no alias)                                    | VRF: EUR-E        | (no subnets)
-  BD-V1144        | (no alias)                                    | VRF: EUR-E        | (no subnets)
-  BD-V1145        | (no alias)                                    | VRF: EUR-E        | (no subnets)
-  BD-V1146        | (no alias)                                    | VRF: EUR-E        | (no subnets)
-  BD-V1147        | (no alias)                                    | VRF: EUR-E        | (no subnets)
-  BD-V1148        | (no alias)                                    | VRF: EUR-E        | (no subnets)
-  BD-V1149        | (no alias)                                    | VRF: EUR-E        | (no subnets)
-  BD-V1571        | (no alias)                                    | VRF: EUR-E        | (no subnets)
-  BD-V1583        | USAREUR_WEB-BE2APP-FW                         | VRF: EUR-AIP      | (no subnets)
-  BD-V1595        | (no alias)                                    | VRF: EUR-AIS      | 155.155.94.129/26
-  BD-V1596        | (no alias)                                    | VRF: EUR-AIS      | 155.155.94.193/26
-  BD-V2150        | (no alias)                                    | VRF: EUR-E        | (no subnets)
+  ── MAPPED WITH SUBNETS (19 BDs, 20 subnets added to YAML) ──────────────────
+
+  BD-V0066        | (no alias)            | EUR-AIZ  | 155.155.62.249/29       → BD-CFG-MGMT   (point-to-point management)
+  BD-V0067        | (no alias)            | EUR-AIZ  | 155.155.62.241/29       → BD-CFG-MGMT   (point-to-point management)
+  BD-V0170        | (no alias)            | EUR-AIS  | 136.215.192.1/25        → BD-MECM       (same 136.215.192.x range as SCCM)
+  BD-V0216        | APCK_ALOM_DRAC        | EUR-AIS  | 155.155.68.1/24         → BD-CFG-MGMT   (DRAC = server OOB management)
+  BD-V0256        | Army_Metering_Public  | EUR-AIZ  | 206.39.28.249/29        → BD-NMS        (metering = monitoring)
+  BD-V0299        | (no alias)            | EUR-AIS  | 136.215.97.1/28         → BD-APP-SVR    (general AIS, adjacent to HQU range)
+  BD-V0316        | APCG_ALOM_DRAC        | EUR-AIS  | 155.155.130.1/24        → BD-CFG-MGMT   (DRAC = server OOB management)
+  BD-V0373        | (no alias)            | EUR-AIS  | 155.155.84.1/23         → BD-APP-SVR    (large general subnet)
+  BD-V0470        | (no alias)            | EUR-AIS  | 136.215.64.1/25         → BD-APP-SVR    (general AIS)
+  BD-V0475        | APCK_SVCS_V475        | EUR-AIS  | 136.215.66.129/26       → BD-APP-SVR    (general services)
+  BD-V0570        | APCE_EUR_SVCS_V570    | EUR-AIS  | 155.155.236.1/27        → BD-APP-SVR    (general services)
+  BD-V0575        | ARCSIGHT              | EUR-AIS  | 155.155.237.129/25 +.1  → BD-SYSLOG     (ArcSight = SIEM/log collection)
+  BD-V0580        | APCE_MIL_V580         | EUR-AIS  | 155.155.239.129/27      → BD-WEB-SVR    (MIL web tier)
+  BD-V0581        | APCE_EUROPE_V581      | EUR-AIS  | 155.155.239.65/27       → BD-WEB-SVR    (Europe web tier)
+  BD-V0595        | (no alias)            | EUR-AIM  | 155.155.250.1/23        → BD-CFG-MGMT   (management VRF)
+  BD-V0790        | Calibre_MDMS_Private  | EUR-AIS  | 10.254.8.1/26           → BD-CFG-MGMT   (same 10.254.x EEDRS/metering range)
+  BD-V1119        | (no alias)            | EUR-AIZ  | 139.139.251.1/28        → BD-FWEB-PROXY (139.139.x.x = DMZ range)
+  BD-V1595        | (no alias)            | EUR-AIS  | 155.155.94.129/26       → BD-APP-SVR    (general AIS)
+  BD-V1596        | (no alias)            | EUR-AIS  | 155.155.94.193/26       → BD-APP-SVR    (general AIS, adjacent to V1595)
+
+  ── MAPPED WITHOUT SUBNETS (L2-only, 15 BDs) ────────────────────────────────
+
+  BD-V0010        | OOB_MPLS              | EUR-E    | (no subnets)            → BD-CFG-MGMT   (OOB management)
+  BD-V0056        | (no alias)            | EUR-ARMY-ENT-SVR-DMZ | (no subnets) → BD-FWEB-PROXY (DMZ infrastructure)
+  BD-V0058        | (no alias)            | EUR-AIM  | (no subnets)            → BD-CFG-MGMT   (management VRF)
+  BD-V0229        | CAIR_DMVPN            | EUR-E    | (no subnets)            → BD-CFG-MGMT   (CAIR infrastructure)
+  BD-V0230        | CAIR_NIPRnet_INT      | EUR-E    | (no subnets)            → BD-CFG-MGMT   (CAIR internal network)
+  BD-V0231        | CAIR_NIPRnet_EXT      | EUR-E    | (no subnets)            → BD-WEB-SVR    (CAIR external-facing)
+  BD-V0233        | CAIR_NIPRnet_DISA     | EUR-E    | (no subnets)            → BD-CFG-MGMT   (CAIR DISA link)
+  BD-V0237        | CAIR_ASA_MANAGEMENT   | EUR-E    | (no subnets)            → BD-CFG-MGMT   (firewall management)
+  BD-V0238        | CAIR_ASA_FAILOVER     | EUR-E    | (no subnets)            → BD-CFG-MGMT   (firewall HA)
+  BD-V0239        | CAIR_VLAN_MANAGEMENT  | EUR-E    | (no subnets)            → BD-CFG-MGMT   (management)
+  BD-V0240        | CAIR_DMVPN_FW         | EUR-E    | (no subnets)            → BD-CFG-MGMT   (firewall infrastructure)
+  BD-V0311        | Call_Manager_VLAN     | EUR-E    | (no subnets)            → BD-VVOIP-MGMT (UC/VoIP call manager)
+  BD-V0314        | Audio_Server_RTP      | EUR-E    | (no subnets)            → BD-VVOIP-MGMT (RTP = voice)
+  BD-V0504        | VMI_MOTION_V504       | EUR-E    | (no subnets)            → BD-VHOST-MGMT (vMotion = VMware host traffic)
+  BD-V1583        | USAREUR_WEB-BE2APP-FW | EUR-AIP  | (no subnets)            → BD-FWEB-PROXY (DMZ web-to-app firewall)
+
+  ── DECOMMISSION CANDIDATES (30 BDs) ────────────────────────────────────────
+
+  Dead/empty (no alias, no subnets, EUR-E -- never configured or long decommissioned):
+  BD-2250, BD-V0005, BD-V0006, BD-V0958, BD-V0970, BD-V1116, BD-V1117,
+  BD-V1120, BD-V1140, BD-V1141, BD-V1142, BD-V1143, BD-V1144, BD-V1145,
+  BD-V1146, BD-V1147, BD-V1148, BD-V1149, BD-V1571, BD-V2150
+
+  Deprecated (alias confirms):
+  BD-V0009        | Def_Native_vlan                 -- ACI infrastructure, not tenant BD
+  BD-V0021        | ATM_VLAN_may_need_to_remove     -- alias says "may need to remove"
+  BD-V0529        | APCE_etnosc_bridge_Remove       -- alias says "Remove" (has 155.155.231.65/27)
+  BD-GSN-Test     | (no alias)                      -- test network (172.31.255.254/30)
+
+  Temporary test BDs (moved from BD-APP-SVR -- no functional purpose):
+  BD-V2001        | TMP_SATTest_VRF_EUR-AIM         -- SAT test BD
+  BD-V2002        | TMP_SATTest_VRF_EUR-AIS         -- SAT test BD
+  BD-V2003        | TMP_SATTest_VRF_EUR-AIV         -- SAT test BD
+  BD-V2004        | TMP_SATTest_VRF_EUR-AIZ         -- SAT test BD
+  BD-V2005        | TMP_SATTest_VRF_EUR-AIG         -- SAT test BD
+  BD-V0020        | TMP_SATTest_VRF_EUR-AIM_IBMgmt  -- SAT test BD

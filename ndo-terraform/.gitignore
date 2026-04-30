@@ -41,6 +41,7 @@ env/
 *credential*
 vault.yml
 vault_pass.txt
+backend.hcl
 
 # IDE / OS
 .DS_Store

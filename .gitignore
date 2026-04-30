@@ -22,18 +22,29 @@ env/
 *.swp
 *.code-workspace
 
+# Office lock/temp files (e.g. ~$ACI_Redesign_Strategy.pptx -- created by Word/
+# PowerPoint/Excel when a file is open; never want these in git)
+~$*
+*.tmp
+Thumbs.db
+
 # Logs
 *.log
 
 # Credentials
 *password*
 *secret*
+# Allow CI tooling whose name intentionally contains "secret".
+!.gitlab/ci-secret-scan.sh
 vault.yml
 vault_pass.txt
 .env
 
 # Generated/binary files
 *.json
+# Allow checked-in example/template JSON (sanitized -- no real credentials),
+# mirrors the *.tfvars / !*.tfvars.example pattern above.
+!*.example.json
 *.tar.gz
 *.zip
 *.xlsx
@@ -44,3 +55,8 @@ backups/
 # Ansible vault
 vault_pass.txt
 vault_plaintext.yml
+
+# Rendered NAC YAML (contains sensitive vCenter credentials substituted into
+# templates/vmm-domain.nac.yaml.tftpl by scripts/render-vmm-yaml.sh -- one dir
+# per fabric, all gitignored).
+aci-redesign/data/nac-aci-*-rendered/

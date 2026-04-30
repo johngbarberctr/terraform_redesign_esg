@@ -1,0 +1,96 @@
+# Access policies for VMM host connectivity on AEDCK.
+#
+# Mirrors data/nac-aci-aedcg/access-policies.nac.yaml so the lab AEDCK fabric
+# gets the same VLAN pool / domain / interface policy / AAEP / VPC policy
+# group structure as AEDCG. The names are scoped per-APIC, so reusing them
+# across fabrics is safe and intentional.
+#
+# AEDCK leaf nodes are 119 and 191 (non-contiguous, so two single-node
+# node_blocks rather than a from/to range). These IDs may change if the lab
+# gets recabled or production AEDCK assigns different leaf IDs -- update both
+# the profile name suffix and the two node_blocks together. The names are not
+# referenced anywhere else in this repo, so renaming is a single-file change.
+---
+apic:
+  access_policies:
+    vlan_pools:
+      - name: vmm-vlan-pool
+        allocation: dynamic
+        ranges:
+          - from: 3501
+            to: 3967
+
+    physical_domains:
+      - name: phys-vmm-domain
+        vlan_pool: vmm-vlan-pool
+
+    # netascode/nac-aci 0.7.0 reads CDP/LLDP/Port-Channel/Link-Level policies
+    # from access_policies.interface_policies.* (see
+    # .terraform/modules/aci_aedck/aci_access_policies.tf:224/233/243/254).
+    # The module has no lacp_policies key -- lacpLagPol is created from
+    # port_channel_policies, and PGs reference it via port_channel_policy:.
+    interface_policies:
+      cdp_policies:
+        - name: cdp-enabled
+          admin_state: true
+
+      lldp_policies:
+        - name: lldp-enabled
+          admin_rx_state: true
+          admin_tx_state: true
+
+      port_channel_policies:
+        - name: mac-pinning
+          mode: mac-pin
+
+      link_level_policies:
+        - name: 10G
+          speed: "10G"
+          auto: true
+
+    aaeps:
+      - name: vmm-aaep
+        infra_vlan: true
+        vmware_vmm_domains:
+          # APCK-VDS1 is the existing VDS in the shared lab vCenter; the
+          # VMM domain on this APIC is named identically so APIC adopts it
+          # in read-write mode rather than creating a new VDS.
+          - APCK-VDS1
+        physical_domains:
+          - phys-vmm-domain
+
+    leaf_interface_policy_groups:
+      - name: vpc-vmm-hosts
+        type: vpc
+        aaep: vmm-aaep
+        link_level_policy: 10G
+        cdp_policy: cdp-enabled
+        lldp_policy: lldp-enabled
+        port_channel_policy: mac-pinning
+
+    leaf_interface_profiles:
+      - name: leaf-119-191-intprof
+        interface_selectors:
+          - name: vmm-host-ports
+            policy_group: vpc-vmm-hosts
+            port_blocks:
+              - name: block1
+                from_port: 1
+                to_port: 48
+
+    # Two node_blocks because 119 and 191 are NOT contiguous. ACI's nodeBlk
+    # objects accept from == to for a single node, which is the canonical way
+    # to enumerate non-adjacent leaf IDs in one selector.
+    leaf_switch_profiles:
+      - name: leaf-119-191-prof
+        selectors:
+          - name: leaf-119-191-sel
+            node_blocks:
+              - name: block1
+                from: 119
+                to: 119
+              - name: block2
+                from: 191
+                to: 191
+        interface_profiles:
+          - leaf-119-191-intprof
