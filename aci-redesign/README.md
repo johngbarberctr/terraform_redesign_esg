@@ -388,6 +388,177 @@ A natural reflex is "one fabric = one Terraform root", but here that buys nothin
 
 ---
 
+## Production cutover runbook
+
+This section is the operational checklist for cutting AEDCG + AEDCK over from the legacy IPv6/N5K-fronted design to the IPv4 redesign on Design A (UCS-FI direct attach). It assumes the lab cutover has already succeeded and that all the YAML changes have merged to `main`.
+
+> **NOTE.** Production cutover is a coordinated change that spans the network team (this repo), the UCS team (FI uplink moves), and the virtualisation team (VDS uplink portgroups in vCenter). Schedule a maintenance window and have a rollback decision-maker on the bridge.
+
+### Scope summary
+
+| Layer | What changes | Source of truth |
+| --- | --- | --- |
+| APIC access/fabric policies | New `fi-static-vlan-pool`, `fi-aaep`, `phys-fi-domain`, `PC_FI_A` / `PC_FI_B` policy groups, leaf 152/153 (AEDCG) and 119/191 (AEDCK) split between VMM ports (8-48) and FI uplinks (eth1/6, eth1/7), per-fabric VMM domain (`APCG-VDS1`, `APCK-VDS1`). | `aci-redesign/apic-vmware-prod/` (Terraform) reading `data/nac-aci-{aedcg,aedck}-prod/`. |
+| APIC tenant tree (VRFs/BDs/EPGs/contracts) | Tenant `EUR`: 2 VRFs, 39 BDs, 39 EPGs, vzAny + 2 cross-VRF contracts, EPGs bound to per-fabric VMM domains. | `aci-redesign/ndo/` (Terraform) reading `data/nac-ndo/schema-aedce-ipv4.nac.yaml`. NDO pushes to both APICs. |
+| Static port bindings (non-VMM EPGs) | `EPG-LB`, `EPG-LMR`, `EPG-VHOST-MGMT` plus any prod bare-metal endpoints. | `aci-redesign/scripts/deploy_bindings.py` reading a curated JSON file (NOT in this repo yet -- see Pre-flight Step 4). |
+| L3Outs / external EPGs | **No change in this cutover.** They remain in the legacy `ndo-terraform/` IPv6 schema and continue to attach to VRFs by name; both schemas share the same VRF objects on the APICs. | `ndo-terraform/` (legacy). |
+| UCS / vCenter | FI uplinks physically re-cabled from N5K to ACI leaves; ESXi host VDS uplinks moved to the new APIC-managed `APCG-VDS1` / `APCK-VDS1`. | UCS team + virtualisation team. Out of scope for this repo. |
+
+### Pre-flight (T-7 days)
+
+1. **APIC backup snapshot, both fabrics.** From each APIC's GUI:  
+   `Admin → Import/Export → Configuration → Export Policies → Create Configuration Export Policy → Configure JSON, full snapshot, Now.`  
+   Confirm the snapshot landed and store the artefact ID. This is the rollback target.
+2. **NDO snapshot.** `Operations → Backup` in NDO. Note the timestamp.
+3. **vCenter snapshot.** Export VDS configuration for `APCG-VDS1` and `APCK-VDS1`.
+4. **Generate the production bindings JSON.**
+   ```bash
+   cd aci-redesign/scripts
+   export NDO_HOST=<prod-ndo-ip>
+   export NDO_USER=admin
+   ./dump_bindings.py \
+       --source-schema AEDCE \
+       --source-anp    AppProf-NetCentric \
+       --target-schema AEDCE-IPv4 \
+       --leaves        152,153,119,191 \
+       --keep-vlan \
+       --output prod_bindings.json
+   ```
+   Read-only against prod NDO. Review the summary it prints (binding totals, EPG-parity warnings, target EPGs with zero bindings). Resolve VLAN collisions (multiple legacy EPGs landing on the same `(path, target-EPG)`) before proceeding -- pick a winner per tuple.
+5. **Run `terraform plan` against production end-to-end.**
+   ```bash
+   # Production APIC root
+   cd aci-redesign/apic-vmware-prod
+   make auth-check                 # confirm both APIC creds work
+   make plan                       # renders VMM YAML for both fabrics, then plans
+   #   - review plan.txt -- expect CREATE for fi-static-vlan-pool, fi-aaep,
+   #     PC_FI_A/B policy groups, leaf-{152,153,119,191}-fi-intprof, the new
+   #     leaf-*-prof switch profiles, and APCG/APCK-VDS1 VMM domains.
+   #   - any DESTROY here is a red flag; stop and investigate.
+
+   # NDO redesign root
+   cd ../ndo
+   make auth-check
+   make plan
+   #   - expect CREATE for schema AEDCE-IPv4, template Tenant_EUR_IPv4,
+   #     2 VRFs, 39 BDs, 2 ANPs, 39 EPGs, 2 contracts.
+   #   - DELETE on any pre-existing IPv6 schema is a bug; this root only
+   #     manages AEDCE-IPv4.
+   ```
+6. **Verify cabling and UCS plan.** The UCS team must confirm:
+   - FI-A is currently single-homed to **leaf 152 (AEDCG)** / **leaf 119 (AEDCK)** through what will become `eth1/6`.
+   - FI-B is single-homed to **leaf 153 (AEDCG)** / **leaf 191 (AEDCK)** through `eth1/7`.
+   - LACP is configured **mac-pin** on the FI vNIC templates (matches `port_channel_policies: mac-pinning` in the data dirs).
+   - If port assignments differ in production, edit `data/nac-aci-aedcg-prod/access-policies.nac.yaml` (`leaf_interface_profiles` sections) and `data/nac-aci-aedck-prod/access-policies.nac.yaml` BEFORE running `make plan`. **Never commit a plan you didn't review against the cabling worksheet.**
+7. **Check `fi-static-vlan-pool` against today's NDO state.** The pool was sourced 2026-04-29. If the cutover slips by more than ~1 week, re-pull live VLANs from NDO and diff:
+   ```bash
+   # Quick sanity diff (replace creds appropriately)
+   curl -k -sS -u "$NDO_USER:$NDO_PASS" \
+        "https://$NDO_HOST/mso/api/v1/schemas?name=AEDCE" \
+       | jq '... | .staticPorts[] | .vlan' | sort -un > /tmp/vlans_live.txt
+   # Compare against fi-static-vlan-pool ranges in
+   # data/nac-aci-{aedcg,aedck}-prod/access-policies.nac.yaml
+   ```
+   Add any new VLANs to both prod data files, rerun `make plan`, get an MR review.
+8. **Confirm cleanup target.** If production APICs still have a legacy VMM domain (e.g. `vmm-vcenter-rcc`) with dangling `fvRsDomAtt`, decide: remove it during the window via `make cleanup-old-vmm OLD_DOMAIN=<legacy-name>`, or leave it and let it become orphan. The cleanup script is idempotent and skips if the domain is already absent.
+
+### Cutover sequence (T-0)
+
+> **Communication order.** Start with the network change, then the UCS re-cable, then vCenter VDS uplink moves. Each stage is reversible until the previous stage's "Verify" step has passed.
+
+#### Stage 1 — APIC access/fabric policies (no traffic impact yet)
+
+```bash
+cd aci-redesign/apic-vmware-prod
+
+# Optional pre-step: clear any stale legacy VMM domain.
+OLD_DOMAIN=vmm-vcenter-rcc make cleanup-old-vmm        # both fabrics, idempotent
+
+# Apply both fabrics in one go.
+make plan                                              # final review
+make apply                                             # applies plan.tfplan
+```
+
+**Verify:**
+- APIC GUI on each fabric: `Fabric → Access Policies → Pools → VLAN → fi-static-vlan-pool` exists with the expected ranges.
+- `fi-aaep` exists and references both `phys-fi-domain` and `APCG-VDS1` / `APCK-VDS1`.
+- `Fabric → Access Policies → Switches → Leaf Switches → Profiles → leaf-152-prof` (and `153`, `119`, `191`) each contain the new FI interface profile.
+- No new APIC faults of `severity ≥ minor` other than the expected "interface down" on the FI uplink ports (which haven't been wired yet).
+
+This stage adds new policies. It does **not** modify existing VMM connectivity to ESXi hosts.
+
+#### Stage 2 — Tenant tree push via NDO
+
+```bash
+cd aci-redesign/ndo
+make plan
+make apply
+```
+
+Then in NDO UI:  
+`Application Management → Schemas → AEDCE-IPv4 → Tenant_EUR_IPv4 → Deploy to sites`. Confirm AEDCG and AEDCK both show "Deployed".
+
+**Verify:**
+- APIC GUI on each fabric: `Tenants → EUR → Application Profiles → AppProf-NetCentric / AppProf-DMZ → 39 EPGs` present.
+- Each EPG shows the per-fabric VMM domain bound to it (`APCG-VDS1` on AEDCG, `APCK-VDS1` on AEDCK), with `Resolution Immediacy = Immediate`.
+- vCenter: 39 port-groups under each VDS, named `EUR|...`. Should match the lab pattern.
+- 3 EPGs (`EPG-LB`, `EPG-LMR`, `EPG-VHOST-MGMT`) intentionally have **no** VMM bindings; they will land via Stage 3.
+
+#### Stage 3 — Static port bindings
+
+```bash
+cd aci-redesign/scripts
+./deploy_bindings.py prod_bindings.json --no-vault --dry-run    # final review
+./deploy_bindings.py prod_bindings.json --no-vault              # PATCH NDO
+```
+
+Then in NDO UI: re-deploy the `Tenant_EUR_IPv4` template (same path as Stage 2) so the new `staticPorts[]` push to the APICs.
+
+**Verify:**
+- APIC GUI: pick three sample bindings from `prod_bindings.json`; in each EPG's "Static Ports" tab, confirm the leaf/port/VLAN matches.
+- Sample one bare-metal endpoint (e.g. an F5 BIG-IP behind `EPG-LB`); confirm L2 connectivity.
+
+#### Stage 4 — UCS / vCenter physical move
+
+This is run by the UCS team and the vSphere admin, **not** Terraform. The required changes:
+
+1. UCS: re-cable FI-A uplink from current N5K port to ACI leaf-152 (AEDCG) / leaf-119 (AEDCK) on `eth1/6`. Same for FI-B → leaf-153 / leaf-191 on `eth1/7`. Confirm `port-channel summary` on both FIs shows the bundle up with the new uplink.
+2. vCenter: for each ESXi host behind a moved FI, migrate the VDS uplinks from the legacy VDS (whatever was there pre-redesign) to `APCG-VDS1` / `APCK-VDS1`. Use **Migrate VMs to another network** in the VDS UI to drop VMs onto the new port-groups (named per the redesign EPGs).
+
+**Verify:**
+- APIC GUI: `Fabric → Inventory → <leaf> → Interfaces → Physical → eth1/6` shows `oper-state = up` on AEDCG-152 and AEDCK-119 (and `eth1/7` up on -153/-191).
+- vCenter: VMs are now on port-groups whose names match redesign EPGs.
+- `fvCEp` count on the new EPGs grows as VMs are migrated.
+
+#### Stage 5 — Decommission
+
+Once Stages 1–4 are stable for **at least 24 hours** with no traffic anomalies:
+
+- Remove the legacy IPv6 EPG-to-VMM bindings from the legacy schema (in `ndo-terraform/` if any are still around) -- coordinate with the legacy schema owner.
+- Decommission the N5K-fronted policy on the legacy schema only after the UCS team confirms no FI is still uplinked to N5K.
+
+### Rollback
+
+If any verify step fails irrecoverably, abort and restore.
+
+| If you stopped after... | Rollback action |
+| --- | --- |
+| Stage 1 (APIC policy push) | `cd aci-redesign/apic-vmware-prod && make destroy` (or use `apply-aedcg`/`-aedck` `-destroy` for one fabric only). All adds were additive; no existing object on the APIC was overwritten. Faults clear in <60s. |
+| Stage 2 (NDO tenant push) | NDO UI: `Tenant_EUR_IPv4 → Undeploy from sites` for both AEDCG and AEDCK. Then `cd aci-redesign/ndo && make destroy` to remove the schema from NDO. Legacy IPv6 schema is unaffected (separate state, separate schema name). |
+| Stage 3 (static bindings) | NDO UI: hand-remove bindings on the 3 affected EPGs, then re-deploy. `deploy_bindings.py` is additive only and does not auto-undo. |
+| Stage 4 (UCS / vCenter physical) | UCS team re-cables FIs back to the N5K. vCenter admin migrates VMs back to the legacy VDS / port-groups. ACI-side policies stay in place; they're harmless if no port is up. |
+| Catastrophic | Restore APIC config from the snapshot taken in Pre-flight Step 1. Restore NDO from Step 2. This is the last resort; it nukes any other concurrent change made during the window. |
+
+### Post-cutover (T+1 day)
+
+1. New APIC config-export snapshot on both fabrics.
+2. New NDO snapshot.
+3. Fault sweep on both APICs: anything `severity ≥ critical` that wasn't there pre-cutover gets a ticket.
+4. Diff `prod_bindings.json` against fresh `dump_bindings.py` output to confirm no drift was introduced by hand.
+5. Schedule a follow-up to revisit the deferred items: ESGs (when `nac-ndo` adds support), GEF/Transport handling, and any IPv4 redesign-specific L3Outs.
+
+---
+
 ## Current State -- 2-VRF Redesign (VRF-EUR + VRF-DMZ)
 
 The active deployment implements a **2-VRF architecture** replacing the legacy 11-VRF layout. All internal IPv4 EPGs consolidate into `VRF-EUR`, DMZ EPGs go into `VRF-DMZ`, and IPv6 stays in `VRF-RCC` (managed separately). ESGs group EPGs for future contract tightening; vzAny permits all traffic within each VRF initially.

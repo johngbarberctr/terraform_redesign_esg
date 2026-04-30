@@ -58,5 +58,6 @@ vault_plaintext.yml
 
 # Rendered NAC YAML (contains sensitive vCenter credentials substituted into
 # templates/vmm-domain.nac.yaml.tftpl by scripts/render-vmm-yaml.sh -- one dir
-# per fabric, all gitignored).
+# per fabric per environment, all gitignored). The wildcard covers both lab
+# (-rendered) and production (-prod-rendered) outputs.
 aci-redesign/data/nac-aci-*-rendered/

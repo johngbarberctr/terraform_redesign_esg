@@ -36,10 +36,26 @@
 #     filter Any in schema AEDCE / template UpgradeTemplate1 from the IPv6
 #     redesign. NDO enforces unique object names per tenant, so the two
 #     contracts below cross-reference that existing filter.
+#   * L3Outs and External EPGs are NOT declared in this schema. North-south
+#     routing for VRF-EUR and VRF-DMZ is provided by the L3Outs that already
+#     exist in the legacy IPv6 schema (managed by ../../ndo-terraform/). Both
+#     redesigns share the same VRF objects on the APICs (same names, same
+#     tenant), so the existing L3Outs already attach to the redesign VRFs
+#     once NDO deploys them. If/when the IPv4 redesign needs its own L3Outs
+#     (different EPG-to-L3Out scoping, separate routing policy, etc.) add
+#     `l3outs:` and `external_epgs:` blocks here -- but for the first
+#     cutover the legacy L3Outs are explicitly kept as the SoT.
 #   * ESGs are NOT declared. The netascode/nac-ndo/mso v1.2.x module schema
 #     does not yet model endpoint_security_groups. The legacy ESGs were
 #     vacuous (single ESG containing every EPG in a VRF) so vzAny+permit-all
 #     covers the same intent.
+#   * Static port bindings (staticPorts[] on EPGs) are NOT in this YAML.
+#     nac-ndo doesn't model that field yet. They are PATCHed into NDO via
+#     ../../scripts/deploy_bindings.py from a curated JSON file AFTER this
+#     schema is deployed. Three EPGs (EPG-LB, EPG-LMR, EPG-VHOST-MGMT) are
+#     deliberately NOT bound to a VMM domain because their endpoints are
+#     physical (F5 BIG-IP, LMR gateways, ESXi vmkernel); they require
+#     static bindings to function.
 #   * sites: at the template level associates the template to AEDCG/AEDCK.
 #     sites: under each VRF is for site-local VRF properties; with no
 #     site-local overrides, listing the sites is harmless and matches the

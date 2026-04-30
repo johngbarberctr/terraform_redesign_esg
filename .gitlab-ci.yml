@@ -35,13 +35,43 @@ variables:
   AEDCK_MCP_KEY:
     description: "AEDCK MCP Instance Policy key -- >=8 chars, mixed classes; Masked + Protected"
 
+  # Production APIC creds. Consumed by the *-aci-prod jobs that run against
+  # aci-redesign/apic-vmware-prod/, which uses the same Terraform variable
+  # names (var.aedcg_apic_*, var.aedck_apic_*) as the lab root but is wired
+  # to the production fabrics. Distinct CI-side names prevent any chance of
+  # cross-environment leakage; the prod jobs fan them out to TF_VAR_*
+  # variables before invoking Terraform.
+  AEDCG_APIC_URL_PROD:
+    description: "AEDCG production APIC URL"
+  AEDCG_APIC_USERNAME_PROD:
+    description: "AEDCG production APIC username"
+  AEDCG_APIC_PASSWORD_PROD:
+    description: "AEDCG production APIC password (Masked + Protected)"
+  AEDCG_MCP_KEY_PROD:
+    description: "AEDCG production MCP Instance Policy key (Masked + Protected)"
+  AEDCK_APIC_URL_PROD:
+    description: "AEDCK production APIC URL"
+  AEDCK_APIC_USERNAME_PROD:
+    description: "AEDCK production APIC username"
+  AEDCK_APIC_PASSWORD_PROD:
+    description: "AEDCK production APIC password (Masked + Protected)"
+  AEDCK_MCP_KEY_PROD:
+    description: "AEDCK production MCP Instance Policy key (Masked + Protected)"
+
   VCENTER_HOSTNAME_IP:
     description: "vCenter IP or FQDN for the VMware VMM domain (shared by both fabrics)"
   VCENTER_DATACENTER:
     description: "vCenter datacenter name"
   VCENTER_DVS_VERSION:
-    description: "vSphere VDS version (6.5, 6.6, 7.0, 8.0)"
-    value: "6.6"
+    # The pinned netascode/nac-aci module's validator only accepts:
+    #   unmanaged | 5.1 | 5.5 | 6.0 | 6.5 | 6.6
+    # Real lab/prod vCenters are on 7.x or 8.x. Use "unmanaged" so APIC adopts
+    # each existing per-fabric VDS (APCG-VDS1, APCK-VDS1) at whatever version
+    # vCenter has, rather than trying to upgrade/downgrade it. Override on a
+    # per-pipeline basis from CI/CD > Variables only if you have a specific
+    # reason; the default applies to both apic-vmware (lab) and apic-vmware-prod.
+    description: "vSphere VDS version (use 'unmanaged' for vCenter 7.x/8.x; module-allowed concrete values: 5.1, 5.5, 6.0, 6.5, 6.6)"
+    value: "unmanaged"
   VCENTER_USERNAME:
     description: "vCenter service-account username (set Masked + Protected)"
   VCENTER_PASSWORD:
@@ -60,6 +90,10 @@ variables:
     value: "${GITLAB_API_URL}/projects/${CI_PROJECT_ID}/terraform/state/ndo-terraform"
   TF_HTTP_ADDRESS_ACI:
     value: "${GITLAB_API_URL}/projects/${CI_PROJECT_ID}/terraform/state/aci-redesign"
+  TF_HTTP_ADDRESS_NDO_REDESIGN:
+    value: "${GITLAB_API_URL}/projects/${CI_PROJECT_ID}/terraform/state/aci-redesign-ndo"
+  TF_HTTP_ADDRESS_ACI_PROD:
+    value: "${GITLAB_API_URL}/projects/${CI_PROJECT_ID}/terraform/state/aci-redesign-prod"
 
 # ============================================
 # NDO-TERRAFORM JOBS
@@ -317,3 +351,227 @@ destroy-aci:
   when: manual
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
+
+# ============================================
+# ACI-REDESIGN-NDO JOBS (aci-redesign/ndo/)
+#
+# IPv4 NDO-managed tenant tree (schema AEDCE-IPv4: VRFs, BDs, EPGs, contracts,
+# VMM bindings). Distinct from the legacy ndo-terraform/ root, which still
+# manages the IPv6 schema. Both write to NDO but to different schema names,
+# so they share the same NDO_* credentials and a separate state path.
+# ============================================
+validate-ndo-redesign:
+  stage: validate
+  script:
+    - cd aci-redesign/ndo
+    - terraform fmt -check
+  cache: []
+  rules:
+    - if: $CI_COMMIT_TAG == null
+      changes:
+        - aci-redesign/ndo/**/*
+        - aci-redesign/data/nac-ndo/**/*
+
+plan-ndo-redesign:
+  stage: plan
+  resource_group: ndo
+  variables:
+    TF_HTTP_ADDRESS: "${TF_HTTP_ADDRESS_NDO_REDESIGN}"
+    TF_HTTP_LOCK_ADDRESS: "${TF_HTTP_ADDRESS_NDO_REDESIGN}/lock"
+    TF_HTTP_LOCK_METHOD: POST
+    TF_HTTP_UNLOCK_ADDRESS: "${TF_HTTP_ADDRESS_NDO_REDESIGN}/lock"
+    TF_HTTP_UNLOCK_METHOD: DELETE
+    TF_VAR_ndo_username: "${NDO_USERNAME}"
+    TF_VAR_ndo_password: "${NDO_PASSWORD}"
+    TF_VAR_ndo_url: "${NDO_URL}"
+  script:
+    - cd aci-redesign/ndo
+    - terraform init -input=false
+    - terraform plan -out=plan.tfplan -input=false
+    - terraform show -no-color plan.tfplan > plan.txt
+    - terraform show -json plan.tfplan | jq > plan.json
+    - terraform show -json plan.tfplan | jq '([.resource_changes[]?.change.actions?]|flatten)|{"create":(map(select(.=="create"))|length),"update":(map(select(.=="update"))|length),"delete":(map(select(.=="delete"))|length)}' > plan_gitlab.json
+  artifacts:
+    paths:
+      - aci-redesign/ndo/plan.json
+      - aci-redesign/ndo/plan.txt
+      - aci-redesign/ndo/plan.tfplan
+      - aci-redesign/ndo/plan_gitlab.json
+    reports:
+      terraform: aci-redesign/ndo/plan_gitlab.json
+  needs:
+    - validate-ndo-redesign
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - aci-redesign/ndo/**/*
+        - aci-redesign/data/nac-ndo/**/*
+    - if: $CI_COMMIT_BRANCH == "main"
+      changes:
+        - aci-redesign/ndo/**/*
+        - aci-redesign/data/nac-ndo/**/*
+
+deploy-ndo-redesign:
+  stage: deploy
+  resource_group: ndo
+  variables:
+    TF_HTTP_ADDRESS: "${TF_HTTP_ADDRESS_NDO_REDESIGN}"
+    TF_HTTP_LOCK_ADDRESS: "${TF_HTTP_ADDRESS_NDO_REDESIGN}/lock"
+    TF_HTTP_LOCK_METHOD: POST
+    TF_HTTP_UNLOCK_ADDRESS: "${TF_HTTP_ADDRESS_NDO_REDESIGN}/lock"
+    TF_HTTP_UNLOCK_METHOD: DELETE
+    TF_VAR_ndo_username: "${NDO_USERNAME}"
+    TF_VAR_ndo_password: "${NDO_PASSWORD}"
+    TF_VAR_ndo_url: "${NDO_URL}"
+  script:
+    - cd aci-redesign/ndo
+    - terraform init -input=false
+    - terraform apply -input=false -auto-approve plan.tfplan
+  dependencies:
+    - plan-ndo-redesign
+  needs:
+    - plan-ndo-redesign
+  # NDO-managed schemas push tenant config simultaneously to AEDCG and AEDCK,
+  # so deploy is gated to manual on main: prevents an accidental push during
+  # the production cutover window.
+  when: manual
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      changes:
+        - aci-redesign/ndo/**/*
+        - aci-redesign/data/nac-ndo/**/*
+
+# ============================================
+# ACI-REDESIGN-PROD JOBS (aci-redesign/apic-vmware-prod/)
+#
+# Production APIC-direct root targeting the same fabric names (AEDCG, AEDCK)
+# but production endpoints / credentials. Mirrors the lab apic-vmware/ jobs
+# verbatim, only the variable sources change. Deploy is gated to manual.
+# ============================================
+validate-aci-prod:
+  stage: validate
+  variables:
+    TF_VAR_vcenter_hostname_ip: "${VCENTER_HOSTNAME_IP}"
+    TF_VAR_vcenter_datacenter: "${VCENTER_DATACENTER}"
+    TF_VAR_vcenter_dvs_version: "${VCENTER_DVS_VERSION}"
+    TF_VAR_vcenter_username: "${VCENTER_USERNAME}"
+    TF_VAR_vcenter_password: "${VCENTER_PASSWORD}"
+  script:
+    - bash .gitlab/ci-secret-scan.sh
+    - cd aci-redesign/apic-vmware-prod
+    - ./scripts/render-vmm-yaml.sh aedcg
+    - ./scripts/render-vmm-yaml.sh aedck
+    - terraform fmt -check -recursive
+    - terraform init -backend=false -input=false
+    - terraform validate
+  cache: []
+  rules:
+    - if: $CI_COMMIT_TAG == null
+      changes:
+        - aci-redesign/apic-vmware-prod/**/*
+        - aci-redesign/data/nac-aci-aedcg-prod/**/*
+        - aci-redesign/data/nac-aci-aedck-prod/**/*
+        - aci-redesign/data/nac-aci-shared/**/*
+        - .gitlab/ci-secret-scan.sh
+        - .gitlab-ci.yml
+
+plan-aci-prod:
+  stage: plan
+  resource_group: aci-prod
+  variables:
+    TF_HTTP_ADDRESS: "${TF_HTTP_ADDRESS_ACI_PROD}"
+    TF_HTTP_LOCK_ADDRESS: "${TF_HTTP_ADDRESS_ACI_PROD}/lock"
+    TF_HTTP_LOCK_METHOD: POST
+    TF_HTTP_UNLOCK_ADDRESS: "${TF_HTTP_ADDRESS_ACI_PROD}/lock"
+    TF_HTTP_UNLOCK_METHOD: DELETE
+    TF_VAR_aedcg_apic_url: "${AEDCG_APIC_URL_PROD}"
+    TF_VAR_aedcg_apic_username: "${AEDCG_APIC_USERNAME_PROD}"
+    TF_VAR_aedcg_apic_password: "${AEDCG_APIC_PASSWORD_PROD}"
+    TF_VAR_aedcg_apic_insecure: "true"
+    TF_VAR_aedcg_mcp_key: "${AEDCG_MCP_KEY_PROD}"
+    TF_VAR_aedck_apic_url: "${AEDCK_APIC_URL_PROD}"
+    TF_VAR_aedck_apic_username: "${AEDCK_APIC_USERNAME_PROD}"
+    TF_VAR_aedck_apic_password: "${AEDCK_APIC_PASSWORD_PROD}"
+    TF_VAR_aedck_apic_insecure: "true"
+    TF_VAR_aedck_mcp_key: "${AEDCK_MCP_KEY_PROD}"
+    TF_VAR_vcenter_hostname_ip: "${VCENTER_HOSTNAME_IP}"
+    TF_VAR_vcenter_datacenter: "${VCENTER_DATACENTER}"
+    TF_VAR_vcenter_dvs_version: "${VCENTER_DVS_VERSION}"
+    TF_VAR_vcenter_username: "${VCENTER_USERNAME}"
+    TF_VAR_vcenter_password: "${VCENTER_PASSWORD}"
+  script:
+    - cd aci-redesign/apic-vmware-prod
+    - ./scripts/render-vmm-yaml.sh aedcg
+    - ./scripts/render-vmm-yaml.sh aedck
+    - terraform init -input=false
+    - terraform plan -out=plan.tfplan -input=false
+    - terraform show -no-color plan.tfplan > plan.txt
+    - terraform show -json plan.tfplan | jq > plan.json
+    - terraform show -json plan.tfplan | jq '([.resource_changes[]?.change.actions?]|flatten)|{"create":(map(select(.=="create"))|length),"update":(map(select(.=="update"))|length),"delete":(map(select(.=="delete"))|length)}' > plan_gitlab.json
+  artifacts:
+    paths:
+      - aci-redesign/apic-vmware-prod/plan.json
+      - aci-redesign/apic-vmware-prod/plan.txt
+      - aci-redesign/apic-vmware-prod/plan.tfplan
+      - aci-redesign/apic-vmware-prod/plan_gitlab.json
+    reports:
+      terraform: aci-redesign/apic-vmware-prod/plan_gitlab.json
+  needs:
+    - validate-aci-prod
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - aci-redesign/apic-vmware-prod/**/*
+        - aci-redesign/data/nac-aci-aedcg-prod/**/*
+        - aci-redesign/data/nac-aci-aedck-prod/**/*
+        - aci-redesign/data/nac-aci-shared/**/*
+    - if: $CI_COMMIT_BRANCH == "main"
+      changes:
+        - aci-redesign/apic-vmware-prod/**/*
+        - aci-redesign/data/nac-aci-aedcg-prod/**/*
+        - aci-redesign/data/nac-aci-aedck-prod/**/*
+        - aci-redesign/data/nac-aci-shared/**/*
+
+deploy-aci-prod:
+  stage: deploy
+  resource_group: aci-prod
+  variables:
+    TF_HTTP_ADDRESS: "${TF_HTTP_ADDRESS_ACI_PROD}"
+    TF_HTTP_LOCK_ADDRESS: "${TF_HTTP_ADDRESS_ACI_PROD}/lock"
+    TF_HTTP_LOCK_METHOD: POST
+    TF_HTTP_UNLOCK_ADDRESS: "${TF_HTTP_ADDRESS_ACI_PROD}/lock"
+    TF_HTTP_UNLOCK_METHOD: DELETE
+    TF_VAR_aedcg_apic_url: "${AEDCG_APIC_URL_PROD}"
+    TF_VAR_aedcg_apic_username: "${AEDCG_APIC_USERNAME_PROD}"
+    TF_VAR_aedcg_apic_password: "${AEDCG_APIC_PASSWORD_PROD}"
+    TF_VAR_aedcg_apic_insecure: "true"
+    TF_VAR_aedcg_mcp_key: "${AEDCG_MCP_KEY_PROD}"
+    TF_VAR_aedck_apic_url: "${AEDCK_APIC_URL_PROD}"
+    TF_VAR_aedck_apic_username: "${AEDCK_APIC_USERNAME_PROD}"
+    TF_VAR_aedck_apic_password: "${AEDCK_APIC_PASSWORD_PROD}"
+    TF_VAR_aedck_apic_insecure: "true"
+    TF_VAR_aedck_mcp_key: "${AEDCK_MCP_KEY_PROD}"
+    TF_VAR_vcenter_hostname_ip: "${VCENTER_HOSTNAME_IP}"
+    TF_VAR_vcenter_datacenter: "${VCENTER_DATACENTER}"
+    TF_VAR_vcenter_dvs_version: "${VCENTER_DVS_VERSION}"
+    TF_VAR_vcenter_username: "${VCENTER_USERNAME}"
+    TF_VAR_vcenter_password: "${VCENTER_PASSWORD}"
+  script:
+    - cd aci-redesign/apic-vmware-prod
+    - ./scripts/render-vmm-yaml.sh aedcg
+    - ./scripts/render-vmm-yaml.sh aedck
+    - terraform init -input=false
+    - terraform apply -input=false -auto-approve plan.tfplan
+  dependencies:
+    - plan-aci-prod
+  needs:
+    - plan-aci-prod
+  # Production deploy is manual on main: change-window gating.
+  when: manual
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      changes:
+        - aci-redesign/apic-vmware-prod/**/*
+        - aci-redesign/data/nac-aci-aedcg-prod/**/*
+        - aci-redesign/data/nac-aci-aedck-prod/**/*
+        - aci-redesign/data/nac-aci-shared/**/*
