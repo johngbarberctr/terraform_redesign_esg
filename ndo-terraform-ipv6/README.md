@@ -107,33 +107,31 @@ Replace `x.x.x.x` with the actual production NDO management IP address, and use 
 
 For lab use, copy `lab.tfvars` to `terraform.tfvars` and fill in the values. For production, copy `prod.tfvars`.
 
-### 5. Initialize Terraform with Remote State
+### 5. Pick a Terraform State Backend
 
-The project uses a GitLab HTTP backend for shared Terraform state. Initialize it once:
+The project's `main.tf` declares `backend "http" {}` so CI can use the GitLab HTTP backend (authenticated with `${CI_JOB_TOKEN}` — see [CI/CD Pipeline](#cicd-pipeline)). For laptop runs, drop a gitignored `local_override.tf` to switch to a local backend:
 
 ```bash
-terraform init -reconfigure \
-  -backend-config="address=https://sync.git.mil/api/v4/projects/38767/terraform/state/ndo-terraform" \
-  -backend-config="lock_address=https://sync.git.mil/api/v4/projects/38767/terraform/state/ndo-terraform/lock" \
-  -backend-config="unlock_address=https://sync.git.mil/api/v4/projects/38767/terraform/state/ndo-terraform/lock" \
-  -backend-config="username=your_gitlab_username" \
-  -backend-config="password=YOUR_PERSONAL_ACCESS_TOKEN" \
-  -backend-config="lock_method=POST" \
-  -backend-config="unlock_method=DELETE" \
-  -backend-config="retry_wait_min=5"
+ls local_override.tf >/dev/null 2>&1 || cat > local_override.tf <<'EOF'
+terraform {
+  backend "local" {}
+}
+EOF
+
+terraform init    # configures local backend; creates terraform.tfstate
 ```
 
-To get the token: go to GitLab (`https://sync.git.mil`) > your project > **Settings > CI/CD > Variables** > reveal the `TF_STATE_TOKEN` value. Or create your own Personal Access Token with `api` scope under **User Settings > Access Tokens**.
+The `*_override.tf` glob is in `.gitignore` at the repo root, so this file never reaches CI. CI runners do a fresh clone and continue using the HTTP backend with `${CI_JOB_TOKEN}` (no PAT, no expiry to manage).
 
-After this one-time init, the backend config is cached in `.terraform/` and you can run `terraform plan`/`apply` normally.
+> **You almost never need to do laptop-driven HTTP backend init.** The historical PAT-based recipe is preserved in [Initial State Migration (Already Done)](#initial-state-migration-already-done) below for reference and for one-off operations like state migrations. For day-to-day work, use the local backend (above) or push to CI.
 
 ### 6. Verify Setup
 
 ```bash
-terraform plan -refresh=false -parallelism=3
+terraform plan -var-file=lab.tfvars -refresh=false -parallelism=3
 ```
 
-This should show the current planned changes without errors.
+This should show the current planned changes without errors. See [Running Terraform → From the Command Line (Lab / Local Mac)](#from-the-command-line-lab--local-mac) for why these flags matter.
 
 ---
 
@@ -176,23 +174,36 @@ Files with `.disabled` or `.offline` extensions are inactive Terraform configs k
 
 ### Why Remote State
 
-Without shared state, the pipeline starts with a blank `terraform.tfstate` and tries to create all resources from scratch. NDO rejects these with "already exists" errors. The GitLab HTTP backend stores state centrally so both command-line and pipeline operations share the same view.
+Without shared state, the pipeline starts with a blank `terraform.tfstate` and tries to create all resources from scratch. NDO rejects these with `Duplicate Resource: …` / `already exists` errors. The GitLab HTTP backend stores state centrally so all CI runs (and any humans choosing the HTTP backend) share the same view.
+
+The HTTP backend is authenticated with the per-job `${CI_JOB_TOKEN}` for CI runs (no PAT to provision), and you avoid it on a laptop by using `local_override.tf` (see [Step 5](#5-pick-a-terraform-state-backend)). State lives at `${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/ndo-terraform-ipv6` — the slot name is project-unique so it never collides with the lab/prod nac-prod slot or with the `aci-redesign-ndo` slot.
 
 ### Initial State Migration (Already Done)
 
-This was run once to push existing local state to GitLab:
+This was run once to push existing local state to GitLab. The state slot is now `ndo-terraform-ipv6` (renamed from the legacy `ndo-terraform`). You'd only re-run this if the GitLab state slot has been wiped and you have a known-good local `terraform.tfstate` to push:
 
 ```bash
-terraform init -migrate-state \
-  -backend-config="address=https://sync.git.mil/api/v4/projects/38767/terraform/state/ndo-terraform" \
-  -backend-config="lock_address=https://sync.git.mil/api/v4/projects/38767/terraform/state/ndo-terraform/lock" \
-  -backend-config="unlock_address=https://sync.git.mil/api/v4/projects/38767/terraform/state/ndo-terraform/lock" \
-  -backend-config="username=john.g.barber.ctr" \
-  -backend-config="password=<PERSONAL_ACCESS_TOKEN>" \
+# Mint a short-lived PAT (User Settings → Access Tokens, scope=api,
+# expiry=1 day). Revoke it immediately after the migration completes.
+terraform init -migrate-state -force-copy \
+  -backend-config="address=${GITLAB_URL}/api/v4/projects/${PROJECT_ID}/terraform/state/ndo-terraform-ipv6" \
+  -backend-config="lock_address=${GITLAB_URL}/api/v4/projects/${PROJECT_ID}/terraform/state/ndo-terraform-ipv6/lock" \
+  -backend-config="unlock_address=${GITLAB_URL}/api/v4/projects/${PROJECT_ID}/terraform/state/ndo-terraform-ipv6/lock" \
+  -backend-config="username=YOUR_GITLAB_USERNAME" \
+  -backend-config="password=YOUR_SHORT_LIVED_PAT" \
   -backend-config="lock_method=POST" \
   -backend-config="unlock_method=DELETE" \
   -backend-config="retry_wait_min=5"
 ```
+
+`-force-copy` lets the migration proceed without an interactive prompt (`Can't ask approval for state migration when interactive input is disabled.`); `-migrate-state` does the actual upload from the local backend to the HTTP slot.
+
+After the migration succeeds:
+1. **Revoke the PAT immediately** (User Settings → Access Tokens → Revoke).
+2. Delete `local_override.tf` (or leave it and keep working locally — both are fine).
+3. Wipe `.terraform/` so subsequent inits don't keep the cached backend config: `rm -rf .terraform .terraform.lock.hcl`.
+
+Day-to-day, no PAT is needed: CI authenticates the HTTP backend with `${CI_JOB_TOKEN}`, and laptop work uses `local_override.tf`. PATs only enter the picture for one-off operations like state migrations or break-glass debugging.
 
 ### State Refresh and NDO API Limits
 
@@ -234,29 +245,15 @@ Lab and production use **separate Terraform state files** against different NDO 
 
 ### From the Command Line (Production Server via SSH)
 
-Step-by-step, in order:
+The recommended path on the production server is to **let CI run the apply** — push to a branch, open MR for plan review, merge to `main` for an apply (manual button). See [CI/CD Pipeline](#cicd-pipeline). The steps below are for the rare case where you need to drive Terraform by hand on the production server (e.g. emergency state surgery).
 
 **Step 1: Go to the project directory**
 
 ```bash
-cd ~/my-new-ipv6-project/ndo-terraform
+cd ~/terraform-esg/ndo-terraform-ipv6
 ```
 
-**Step 2: Initialize Terraform (one-time, or after deleting .terraform/)**
-
-```bash
-terraform init -reconfigure \
-  -backend-config="address=https://sync.git.mil/api/v4/projects/38767/terraform/state/ndo-terraform" \
-  -backend-config="lock_address=https://sync.git.mil/api/v4/projects/38767/terraform/state/ndo-terraform/lock" \
-  -backend-config="unlock_address=https://sync.git.mil/api/v4/projects/38767/terraform/state/ndo-terraform/lock" \
-  -backend-config="username=john.g.barber.ctr" \
-  -backend-config="password=YOUR_TF_STATE_TOKEN" \
-  -backend-config="lock_method=POST" \
-  -backend-config="unlock_method=DELETE" \
-  -backend-config="retry_wait_min=5"
-```
-
-You only need to do this once. After that, the backend config is cached in `.terraform/` and you skip this step.
+**Step 2: Decide your backend** — same choice as on a laptop, see [Step 5 above](#5-pick-a-terraform-state-backend). For most server work, prefer a local override; for shared state, run the migration recipe in [Initial State Migration](#initial-state-migration-already-done) (mint a short-lived PAT, do the operation, revoke).
 
 **Step 3: Plan (always do this before apply)**
 
@@ -335,52 +332,71 @@ The NDO API throttles concurrent requests. At higher values (5+), session tokens
 ### Pipeline Flow
 
 ```
-git push to main or merge request
+git push to a branch or merge request
     |
     v
 [validate] --> terraform fmt -check (allowed to fail)
+           --> terraform init -backend=false
+           --> terraform validate
     |
     v
-[plan] --> terraform init (with backend config)
+[plan] --> terraform init (HTTP backend, ${CI_JOB_TOKEN})
        --> terraform plan -out=plan.tfplan -parallelism=3 -refresh=false
-       --> saves plan.tfplan and plan.txt as artifacts
+       --> saves plan.tfplan, plan.txt, plan.json, plan_gitlab.json as artifacts
     |
-    v
-[deploy] --> terraform init (with backend config)
-         --> terraform apply plan.tfplan -parallelism=3
-         --> runs automatically on main branch
+    v   (only if branch is `main` or PROJECT=ndo-terraform-ipv6)
+[deploy / apply] --> terraform init
+                 --> terraform apply -parallelism=3 plan.tfplan
+                 --> tail-prints the manual NDO-UI deploy step
+                 --> when: manual  (button in the GitLab UI; never auto)
 
-[destroy] --> manual trigger only
+[destroy] --> manual trigger only (separate job; not currently exposed by
+              ndo-terraform-ipv6/.gitlab-ci.yml — destroys go through CLI
+              only, on purpose)
 ```
+
+After clicking apply: NDO has the new ANP `AppProf-RCC` and 39 IPv6 EPGs inside `AEDCE / L2_Stretched`, but they are **not yet deployed to AEDCG/AEDCK**. The apply job's tail log prints the exact NDO UI path: `Application Management → Schemas → AEDCE → L2_Stretched → Deploy to sites → [AEDCG, AEDCK]`. This is **a re-deploy** of `L2_Stretched` (Phase 1 already deployed it once with the original IPv4 content; this re-deploy adds the IPv6 layer).
 
 ### GitLab CI/CD Variables
 
 All variables are configured in **Settings > CI/CD > Variables**. They must be **Protected** (the `main` branch is also protected).
 
-#### Terraform Provider Credentials
+#### Required project variables
 
-These use the `TF_VAR_` prefix so Terraform reads them directly as environment variables -- no `export` commands needed.
+The current `.gitlab-ci.yml` reads three NDO connection variables and maps them to `TF_VAR_*` inside the per-job `*-vars` anchor. APIC variables are only needed once you re-enable the deferred `*_apic.tf.disabled` files (see [`README_LAB.md` → "Deferred — re-enable after bindings"](README_LAB.md#deferred--re-enable-after-bindings)).
 
-| Variable Name | Purpose | Masked |
+| Variable Name | Purpose | Masked + Protected |
 |---|---|---|
-| `TF_VAR_ndo_username` | NDO/MSO username | No |
-| `TF_VAR_ndo_password` | NDO/MSO password | Yes |
-| `TF_VAR_ndo_url` | NDO URL (e.g., `https://x.x.x.x`) | No |
-| `TF_VAR_apic_username` | APIC username | No |
-| `TF_VAR_apic_password` | APIC password | Yes |
-| `TF_VAR_apic_g_url` | APIC Site G URL | No |
-| `TF_VAR_apic_k_url` | APIC Site K URL | No |
-| `TF_VAR_vrf_template_name` | Set to `UpgradeTemplate1` | No |
+| `NDO_URL` | NDO URL (e.g. `https://198.18.133.100`) | No |
+| `NDO_USERNAME` | NDO/MSO username (e.g. `admin`) | No |
+| `NDO_PASSWORD` | NDO/MSO password | **Yes** |
 
-**Important**: Variables use the `TF_VAR_` prefix intentionally. Earlier attempts using plain names with shell `export` caused authentication failures because double-quote expansion mangled passwords with special characters.
+`TF_VAR_vrf_template_name` is pinned in the CI file to `UpgradeTemplate1` (production) and isn't a project variable. Override it locally via `lab.tfvars` (`vrf_template_name = "VRF_Template"`) when running against the lab schema, since lab uses the Phase-1 schema's template name.
 
 #### State Backend Token
 
-| Variable Name | Purpose | Masked |
-|---|---|---|
-| `TF_STATE_TOKEN` | GitLab Personal Access Token (API scope) for state locking | Yes |
+The HTTP state backend is authenticated with the per-job `${CI_JOB_TOKEN}`. The `.ndo-ipv6-vars` anchor in `.gitlab-ci.yml` pins:
 
-This token is used instead of `CI_JOB_TOKEN` because the job token did not have sufficient permissions for state locking on this GitLab instance.
+```yaml
+TF_HTTP_USERNAME: "gitlab-ci-token"
+TF_HTTP_PASSWORD: "${CI_JOB_TOKEN}"
+```
+
+**No PAT to provision and no expiry to manage.** The token is auto-revoked at job end and only has read/write to this project's Terraform state.
+
+If you previously set a `TF_STATE_TOKEN` project variable, you can delete it — it is no longer used. (The historical `TF_STATE_TOKEN` was needed when `CI_JOB_TOKEN` lacked state-locking permissions; that limitation has since been resolved on the GitLab instances we run.)
+
+#### How `TF_VAR_*` mapping works
+
+The per-job `.ndo-ipv6-vars` anchor maps the project variables into `TF_VAR_*` so Terraform reads them without any shell `export`:
+
+```yaml
+TF_VAR_ndo_username: "${NDO_USERNAME}"
+TF_VAR_ndo_password: "${NDO_PASSWORD}"
+TF_VAR_ndo_url:      "${NDO_URL}"
+```
+
+This avoids the historical failure mode where shell `export` of project variables mangled passwords with special characters under double-quote expansion.
 
 ### GitLab Runner
 
@@ -829,8 +845,8 @@ git add -A && git commit -m "Backup before changes" && git push
 
 | Decision | Rationale |
 |---|---|
-| `TF_VAR_` prefix on CI/CD variables | Terraform reads them directly; avoids shell `export` that mangled special characters |
-| Personal Access Token for state | `CI_JOB_TOKEN` lacked state locking permissions |
+| `TF_VAR_` prefix in per-job CI vars anchor | Terraform reads them directly; avoids shell `export` that mangled special characters |
+| `CI_JOB_TOKEN` for state backend | Auto-minted per job, auto-revoked at job end, no expiry to manage. Replaces the historical `TF_STATE_TOKEN` PAT (which was needed when `CI_JOB_TOKEN` lacked state-locking permissions; that limitation is gone). |
 | ACI provider pinned to `= 2.18.0` | Newer versions broke APIC authentication; do not use `>= 2.0.0` |
 | MSO provider pinned to `~> 1.5.0` | Ensures consistent behavior across environments |
 | `-parallelism=3` | Highest safe value; higher causes NDO API timeouts |

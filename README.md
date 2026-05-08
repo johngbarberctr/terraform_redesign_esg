@@ -1,59 +1,118 @@
-# Cisco ACI Infrastructure as Code -- terraform_redesign_esg
+# Cisco ACI Infrastructure as Code — `terraform-esg`
 
-## Security Warning
+> **Looking for the deployment runbook?** → **[`README_LAB.md`](README_LAB.md)**
+>
+> That file is the canonical 7-phase end-to-end procedure for bringing the
+> lab up from scratch, including the dependency on the sibling repo
+> `~/DC/ACI/ndo-terraform-nac-prod/`. Production cutover walks the same
+> phase order; per-stack deltas are in each stack's own README.
 
-**DO NOT COMMIT CREDENTIALS TO THIS REPOSITORY.** All `.tfvars`, `.tfstate`, `vault.yml`, and credential files are excluded via `.gitignore`.
-
-> **IMPORTANT**: All IP addresses, URLs, hostnames, usernames, and passwords shown in this README and sub-project READMEs are placeholders or examples. You **must** replace them with the actual production values for your environment (NDO IP, APIC IPs, GitLab URL, vCenter details, your credentials). Each sub-project README has specific instructions on which files to update. Ask the current project owner if you don't have the production values.
-
----
-
-## Repository Overview
-
-This repository contains Terraform and automation for the ACI IPv6 RCC deployment and ACI network redesign. It is hosted on GitLab at `sync.git.mil` (production) and `localhost:8080` (lab).
-
-| Directory | Purpose | README |
-|---|---|---|
-| [`ndo-terraform/`](ndo-terraform/) | IPv6 RCC services via NDO Terraform (BDs, EPGs, L3Outs, port bindings) | [ndo-terraform/README.md](ndo-terraform/README.md) |
-| [`aci-redesign/`](aci-redesign/) | ACI 2-VRF redesign (VRF-EUR + VRF-DMZ) via NAC-ACI module on APIC | [aci-redesign/README.md](aci-redesign/README.md) |
-| [`docs/`](docs/) | Architecture docs, reports, deployment guides | [docs/README.md](docs/README.md) |
-| [`data/`](data/) | NAC YAML blueprints and archived migration phase configs | — |
+This file (the repo root README) covers what the repo *is*, GitLab CI/runner
+setup, and where to find everything else. It deliberately does **not**
+duplicate the deployment runbook.
 
 ---
 
-## Quick Start
+## Security warning
 
-### Prerequisites
+**DO NOT COMMIT CREDENTIALS TO THIS REPOSITORY.** All `.tfvars`, `.tfstate*`,
+`vault.yml`, `vault_pass.txt`, `.env`, and rendered VMM YAML files are
+excluded via `.gitignore`. Each Terraform root validates this and the
+`validate-aci` CI stage runs `.gitlab/ci-secret-scan.sh` to fail any
+pipeline that contains a plaintext credential in tracked YAML.
 
-- **Terraform** >= 1.0 (pinned providers: MSO ~> 1.5.0, ACI = 2.18.0)
-- **Python** >= 3.7 with `requests`, `urllib3`
+> All IP addresses, URLs, hostnames, usernames, and passwords shown in this
+> repo's READMEs are **placeholders or lab values**. Replace them with the
+> real values for your environment from the per-stack `terraform.tfvars`
+> files or GitLab masked CI variables. Lab IPs rotate when dCloud rebuilds.
+
+---
+
+## Repository contents
+
+This repo contains **four Terraform roots** plus shared scripts and docs.
+The fifth root in the deployment order — `ndo-terraform-nac-prod/` — lives
+in a **sibling repo** at `~/DC/ACI/ndo-terraform-nac-prod/`.
+
+| Path | Terraform root? | What it owns | Reference |
+|------|-----------------|--------------|-----------|
+| `aci-redesign/apic-vmware/` | yes (lab APIC) | Per-fabric APIC access policies, MCP, VMware VMM domains for AEDCG and AEDCK | [`aci-redesign/apic-vmware/README.md`](aci-redesign/apic-vmware/README.md) (+ [`README_LAB.md`](aci-redesign/apic-vmware/README_LAB.md)) |
+| `aci-redesign/apic-vmware-prod/` | yes (prod APIC) | Same shape as `apic-vmware/`, but Design A (UCS-FI) and prod credentials, separate state | [`aci-redesign/apic-vmware-prod/README.md`](aci-redesign/apic-vmware-prod/README.md) |
+| `aci-redesign/ndo/` | yes (lab NDO redesign) | Schema `AEDCE-IPv4`, single template `Tenant_EUR_IPv4` (2 VRFs, 39 BDs/EPGs, 2 contracts) | [`aci-redesign/ndo/README.md`](aci-redesign/ndo/README.md) (+ [`README_LAB.md`](aci-redesign/ndo/README_LAB.md)) |
+| `ndo-terraform-ipv6/` | yes (IPv6 RCC layer) | `AppProf-RCC` ANP + 39 IPv6 EPGs + L3Outs into existing `L2_Stretched` template | [`ndo-terraform-ipv6/README.md`](ndo-terraform-ipv6/README.md) (+ [`README_LAB.md`](ndo-terraform-ipv6/README_LAB.md)) |
+| `aci-redesign/scripts/` | no (Python tools) | Bindings push helpers (`dump_bindings.py`, `deploy_bindings.py`, `generate_fi_bindings.py`) | [`aci-redesign/scripts/README.md`](aci-redesign/scripts/README.md) |
+| `aci-redesign/data/` | no (NAC YAML inputs) | Per-fabric YAML consumed by the four Terraform roots above | [`aci-redesign/data/_archive/README.md`](aci-redesign/data/_archive/README.md), [`nac-aci-shared/README.md`](aci-redesign/data/nac-aci-shared/README.md) |
+| `aci-redesign/` | n/a | Design rationale (2-VRF model, BD/EPG consolidation) | [`aci-redesign/DESIGN.md`](aci-redesign/DESIGN.md) |
+| `docs/` | no | Architecture diagrams, reports, deployment guides | [`docs/README.md`](docs/README.md) |
+| `data/` | no | Legacy NAC YAML and archived migration phase configs | — |
+
+The sibling repo is the foundational layer:
+
+| Sibling repo | What it owns |
+|---|---|
+| `~/DC/ACI/ndo-terraform-nac-prod/` (separate git repo) | Tenant `EUR`, schema `AEDCE` with 5 templates (`VRF_Template`, `L2_Stretched`, `L2_Non-Stretched`, `G-Specific_Only`, `K-Specific_Only`), 11 prod VRFs, 266 BDs, 265 EPGs, 13 L3Outs, 812 VPC static-port bindings |
+
+That stack creates the `Any` filter under `AEDCE/VRF_Template` that
+`aci-redesign/ndo/`'s schema cross-references. **It must be deployed
+first** — the runbook in [`README_LAB.md`](README_LAB.md) makes this Phase 1.
+
+---
+
+## Cross-cutting reference docs
+
+| File | When to read it |
+|------|-----------------|
+| [`README_LAB.md`](README_LAB.md) | **Start here** — end-to-end deployment runbook (lab) |
+| [`PROJECT_MAP.md`](PROJECT_MAP.md) | Server / hostname / file-path / CI cross-reference |
+| [`PROJECTS_LISTING.md`](PROJECTS_LISTING.md) | Inventory of every Mac project + git remotes |
+| [`aci-redesign/DESIGN.md`](aci-redesign/DESIGN.md) | 2-VRF redesign rationale, BD/EPG consolidation, ESG plan |
+| [`docs/README.md`](docs/README.md) | Architecture diagrams + design reports |
+
+---
+
+## Prerequisites
+
+- **Terraform** ≥ 1.5 (pinned providers: `mso ~> 1.6`, `aci 2.18.0`)
+- **Python** ≥ 3.7 with `requests`, `urllib3`, `PyYAML`
 - **Git** access to the GitLab repo
 - Network connectivity to NDO and/or APIC
 
-### Production Server (RHEL 8)
+### One-time setup (lab — local Mac)
+
+```bash
+# Clone the repo
+git clone http://localhost:8080/root/terraform_redesign_esg.git
+cd terraform_redesign_esg
+
+# Python venv (one-time)
+python3 -m venv ~/my_venv
+source ~/my_venv/bin/activate
+pip install requests urllib3 PyYAML
+```
+
+Then follow [`README_LAB.md`](README_LAB.md) Phase 1 onwards.
+
+### One-time setup (production — RHEL 8 server via SSH)
 
 ```bash
 # Clone the repo
 git clone https://sync.git.mil/john.g.barber.ctr/my-new-ipv6-project.git
 cd my-new-ipv6-project
 
-# Set up Python venv (one-time)
+# Python venv (one-time)
 python3 -m venv ~/my_venv
 source ~/my_venv/bin/activate
-pip install requests urllib3
+pip install requests urllib3 PyYAML
 ```
 
-Then follow the README in whichever subdirectory you need:
-- **IPv6 RCC (NDO)**: `cd ndo-terraform` and follow [ndo-terraform/README.md](ndo-terraform/README.md)
-- **ACI Redesign (APIC)**: `cd aci-redesign/apic-vmware` and follow [aci-redesign/README.md](aci-redesign/README.md)
-
-### Lab (Local Mac)
-
-The lab uses the same code with different credentials (`lab.tfvars` vs `prod.tfvars`) and a local Terraform state backend instead of the GitLab HTTP backend. See each subdirectory's README for lab-specific instructions.
+Production cutover follows the same phase order as lab. Per-stack production
+deltas live in each stack's `README.md` (look for "Lab vs production"
+sections); the multi-team coordinated cutover is in
+[`aci-redesign/README.md`](aci-redesign/README.md).
 
 ---
 
-## GitLab Project
+## GitLab project & remotes
 
 | Detail | Value |
 |---|---|
@@ -64,136 +123,310 @@ The lab uses the same code with different credentials (`lab.tfvars` vs `prod.tfv
 | Git remote (prod) | `sync.git.mil/john.g.barber.ctr/my-new-ipv6-project` |
 | Git remote (lab) | `localhost:8080/root/terraform_redesign_esg` |
 
-### Pushing Changes
+### Pushing changes
 
 ```bash
-# Production
-git push gitlab main
-
-# Lab
-git push gitlab main    # remote name is 'gitlab' for both
+git push gitlab main    # remote name is 'gitlab' for both lab and prod
 ```
 
 ---
 
-## CI/CD Pipeline
+## CI/CD pipeline
 
-The root `.gitlab-ci.yml` handles both `ndo-terraform/` and `aci-redesign/` subdirectories. Each subdirectory also has its own `.gitlab-ci.yml` for project-specific jobs.
+Each Terraform root in this repo owns a per-project `.gitlab-ci.yml` with
+the same 3-stage shape: **`validate → plan → apply (manual)`**. The root
+`terraform-esg/.gitlab-ci.yml` is a thin orchestrator that defines shared
+CI/CD variables, the `.tf-job` template, and `include:`s each per-project
+file.
 
-### Pipeline Stages
+| Project | Per-project CI file | Apply targets | Manual NDO-UI step after apply? | Live in CI today? |
+|---------|---------------------|---------------|--------------------------------|------|
+| `aci-redesign/apic-vmware/` | [`aci-redesign/apic-vmware/.gitlab-ci.yml`](aci-redesign/apic-vmware/.gitlab-ci.yml) | Lab APIC fabrics (AEDCG + AEDCK) | No — APIC has it | Dormant — file untracked; activate per [Enabling and disabling per-project pipelines](#enabling-and-disabling-per-project-pipelines) |
+| `aci-redesign/apic-vmware-prod/` | [`aci-redesign/apic-vmware-prod/.gitlab-ci.yml`](aci-redesign/apic-vmware-prod/.gitlab-ci.yml) | Prod APIC fabrics | No — APIC has it | Dormant — file untracked |
+| `aci-redesign/ndo/` | [`aci-redesign/ndo/.gitlab-ci.yml`](aci-redesign/ndo/.gitlab-ci.yml) | NDO schema `AEDCE-IPv4` | **Yes** — Deploy `Tenant_EUR_IPv4` to AEDCG/AEDCK | **Yes** |
+| `ndo-terraform-ipv6/` | [`ndo-terraform-ipv6/.gitlab-ci.yml`](ndo-terraform-ipv6/.gitlab-ci.yml) | NDO schema `AEDCE / L2_Stretched` (extends) | **Yes** — Re-deploy `L2_Stretched` | **Yes** |
 
+The sibling foundational stack lives in its own repo with its own root CI:
+
+| Sibling repo | Per-project CI file | Apply targets | Manual NDO-UI step? |
+|--------------|---------------------|---------------|---------------------|
+| `~/DC/ACI/ndo-terraform-nac-prod/` | `~/DC/ACI/ndo-terraform-nac-prod/.gitlab-ci.yml` | NDO tenant `EUR` + schema `AEDCE` (5 templates) | **Yes** — Deploy 5 templates in strict order |
+
+### How to trigger a single-project pipeline
+
+- **Auto** — push or open an MR that changes that project's directory (or
+  the shared inputs it consumes, e.g. `aci-redesign/data/nac-ndo/` for
+  the redesign NDO project). The `rules: changes:` in each per-project
+  file scopes the pipeline to that project alone.
+- **Manual** — GitLab UI → **Run pipeline** → set the `PROJECT` variable
+  to one of: `apic-vmware`, `apic-vmware-prod`, `aci-redesign-ndo`,
+  `ndo-terraform-ipv6`. Only that project's jobs queue up.
+
+`apply` jobs are **always** `when: manual` regardless of how the
+pipeline was triggered. No project ever auto-applies. After clicking
+apply, you do the manual NDO-UI deploy step (where applicable, see
+table above) — the apply job's tail prints the exact UI path to click.
+
+### Enabling and disabling per-project pipelines
+
+The umbrella's `include:` block uses `rules: exists:` so each per-project
+pipeline only loads if its `.gitlab-ci.yml` is **present in the repo**:
+
+```yaml
+include:
+  - local: aci-redesign/apic-vmware/.gitlab-ci.yml
+    rules:
+      - exists: [aci-redesign/apic-vmware/.gitlab-ci.yml]
+  - local: aci-redesign/apic-vmware-prod/.gitlab-ci.yml
+    rules:
+      - exists: [aci-redesign/apic-vmware-prod/.gitlab-ci.yml]
+  - local: aci-redesign/ndo/.gitlab-ci.yml
+    rules:
+      - exists: [aci-redesign/ndo/.gitlab-ci.yml]
+  - local: ndo-terraform-ipv6/.gitlab-ci.yml
+    rules:
+      - exists: [ndo-terraform-ipv6/.gitlab-ci.yml]
 ```
-validate → plan → deploy → (destroy - manual)
-```
 
-### CI/CD Variables (Settings > CI/CD > Variables)
+To **enable** a project: keep its per-project `.gitlab-ci.yml` committed;
+populate the project's required CI/CD variables; set up the GitLab HTTP
+state slot (or migrate an existing local state into it — see each
+project's README).
 
-| Variable | Purpose | Masked |
-|---|---|---|
-| `TF_VAR_ndo_username` | NDO username | No |
-| `TF_VAR_ndo_password` | NDO password | Yes |
-| `TF_VAR_ndo_url` | NDO URL | No |
-| `TF_VAR_apic_username` | APIC username | No |
-| `TF_VAR_apic_password` | APIC password | Yes |
-| `TF_VAR_apic_g_url` | APIC Site G URL | No |
-| `TF_VAR_apic_k_url` | APIC Site K URL | No |
-| `TF_VAR_vrf_template_name` | `UpgradeTemplate1` (prod) | No |
-| `TF_STATE_TOKEN` | GitLab Personal Access Token (api scope) for state backend | Yes |
+To **disable** a project (e.g. for a project that has CI definitions
+written but is not yet operationally ready): `git rm` its
+`.gitlab-ci.yml` and commit. The umbrella pipeline silently drops it
+from the next pipeline run; everything else keeps working. Restore by
+re-committing the file.
 
-### GitLab Runner
+This is how `aci-redesign/apic-vmware/` and
+`aci-redesign/apic-vmware-prod/` (lab and prod APIC roots, deferred for
+now) sit dormant in the repo without breaking the umbrella pipeline.
 
-The runner is a user-local binary on the RHEL server (no sudo, no systemd). There are **two servers** with runners:
+### Required CI/CD variables (Settings → CI/CD → Variables)
 
-| Server | Hostname | Projects |
-|--------|----------|----------|
-| `apckw059aau0096` | aci-automation-runner | ndo-terraform, aci-redesign |
-| `APCKW059AAU0018` | — | n5k, aci-lf-rplc |
+These names are the **GitLab CI variable names** (set on the GitLab
+project's variables page). The per-project `.gitlab-ci.yml` files map
+them onto the `TF_VAR_*` variables Terraform expects.
 
-**Step 1: SSH into the correct server** and check which one you're on:
+| Variable | Purpose | Masked + Protected |
+|----------|---------|--------------------|
+| `NDO_USERNAME` / `NDO_URL` | NDO connection (used by `aci-redesign/ndo/` and `ndo-terraform-ipv6/`) | No |
+| `NDO_PASSWORD` | NDO password | Yes |
+| `AEDCG_APIC_URL` / `AEDCG_APIC_USERNAME` | Lab AEDCG APIC | No |
+| `AEDCG_APIC_PASSWORD` / `AEDCG_MCP_KEY` | Lab AEDCG secrets | Yes |
+| `AEDCK_APIC_URL` / `AEDCK_APIC_USERNAME` | Lab AEDCK APIC | No |
+| `AEDCK_APIC_PASSWORD` / `AEDCK_MCP_KEY` | Lab AEDCK secrets | Yes |
+| `AEDCG_APIC_URL_PROD` / `AEDCG_APIC_USERNAME_PROD` | Prod AEDCG APIC (only in prod GitLab) | No |
+| `AEDCG_APIC_PASSWORD_PROD` / `AEDCG_MCP_KEY_PROD` | Prod AEDCG secrets | Yes |
+| `AEDCK_APIC_URL_PROD` / `AEDCK_APIC_USERNAME_PROD` | Prod AEDCK APIC | No |
+| `AEDCK_APIC_PASSWORD_PROD` / `AEDCK_MCP_KEY_PROD` | Prod AEDCK secrets | Yes |
+| `VCENTER_HOSTNAME_IP` / `VCENTER_DATACENTER` / `VCENTER_DVS_VERSION` | vCenter (shared between lab/prod APIC roots; if prod has a different vCenter instance, add `_PROD` variants) | No |
+| `VCENTER_USERNAME` / `VCENTER_PASSWORD` | vCenter creds | Yes |
+| `GITLAB_TOKEN` | MR comments (optional) | Yes |
+| `PROJECT` | Optional — set when manually running a pipeline to scope it to one project | No (run-time only) |
+
+> **No `TF_HTTP_*` project variables required.** Each per-project file pins
+> the HTTP state backend's credentials inside its `*-vars` anchor to
+> `gitlab-ci-token` / `${CI_JOB_TOKEN}`. The CI job token is auto-minted
+> per job, has read/write to that project's Terraform state, and is
+> auto-revoked at job end. **No PAT to provision and no expiry to
+> manage.** If you've previously set `TF_HTTP_USERNAME` /
+> `TF_HTTP_PASSWORD` on the project, you can delete them — they are no
+> longer used. The same applies to the sibling repo
+> `~/DC/ACI/ndo-terraform-nac-prod/`.
+
+Sibling repo `ndo-terraform-nac-prod/` has its own variable set
+(`MSO_URL`, `MSO_USERNAME`, `MSO_PASSWORD`, `MSO_DOMAIN`) defined on that
+repo's GitLab project. See [`~/DC/ACI/ndo-terraform-nac-prod/README.md` →
+"GitLab CI/CD variables"](../ndo-terraform-nac-prod/README.md#gitlab-cicd-variables).
+
+#### Provisioning the lab variable set in one shot
+
+There are two scripts in `scripts/` for this — pick the one that fits
+your workflow:
+
+**Interactive (recommended for first-time setup):**
 
 ```bash
-hostname
+./scripts/setup_gitlab_ci_variables_interactive.sh
 ```
 
-**Step 2: Find the runner binary** (path may vary per server):
+Auto-discovers NDO/APIC URLs, usernames, and the lab NDO password from
+your existing `terraform.tfvars` and `~/DC/ACI/ndo-terraform-nac-prod/.env`
+files. Auto-generates two distinct MCP keys (16 chars, APIC- and
+GitLab-mask-compatible alphabet `[A-Za-z0-9+=]`, with at least one of
+each character class). Silently prompts for what it can't discover:
+the GitLab PAT, APIC admin password, and vCenter hostname / datacenter
+/ user / password. Shows a no-values-leaked summary, asks for
+confirmation, then provisions.
+
+**Non-interactive (re-runs / CI / scripted):**
 
 ```bash
+export GITLAB_TOKEN=glpat-...
+export NDO_USERNAME=...
+export NDO_PASSWORD=...
+# ... etc., one export per variable
+./scripts/setup_gitlab_ci_variables.sh
+```
+
+Each value comes from a same-named env var. Both scripts:
+
+- contain no secrets
+- never echo any value (only the variable name + flags)
+- are idempotent (POST to create, PUT to update)
+- target `root/terraform_redesign_esg` on `http://localhost:8080` by
+  default — override with `GITLAB_URL` and `GITLAB_PROJECT`
+- apply the masked/protected flags per the table above, **with one
+  automatic downgrade**: GitLab's masked-variable validator requires
+  values to be ≥ 8 chars and contain only `[A-Za-z0-9+/=@:.~-]`. If a
+  value would otherwise be rejected (most often `VCENTER_PASSWORD =
+  C1sco12345!` because of the `!`), the script logs a `warn` line and
+  sets the variable with `masked=false`, keeping `protected=true`.
+  Auto-generated MCP keys and real GitLab PATs always pass the check.
+
+Re-run any time — only variables whose env var is set are touched.
+
+For the `_PROD` half of the table, set `_PROD`-suffixed env vars and
+adapt accordingly. The production GitLab project is normally a
+separate instance from your lab GitLab so provisioning is intentionally
+a separate one-time task.
+
+---
+
+## GitLab runner
+
+The runner is a user-local binary on a RHEL server (no sudo, no systemd).
+There are **two runner servers**:
+
+| Server | Hostname | Projects served |
+|--------|----------|-----------------|
+| `apckw059aau0096` | aci-automation-runner | this repo + `ndo-terraform-nac-prod` |
+| `APCKW059AAU0018` | — | `n5k`, `aci-lf-rplc` |
+
+This repo's pipelines run on **`apckw059aau0096`**.
+
+### Operate the runner
+
+```bash
+ssh apckw059aau0096
+hostname                                         # confirm you're on the right server
+
 find /home/john.g.barber.ctr -name "gitlab-runner" -type f 2>/dev/null
-find /Viper -name "gitlab-runner" -type f 2>/dev/null
+find /Viper                  -name "gitlab-runner" -type f 2>/dev/null
+
+ps aux | grep gitlab-runner | grep -v grep       # is it running?
+
+nohup ~/gitlab-runner/gitlab-runner run &        # start
+pkill gitlab-runner && nohup ~/gitlab-runner/gitlab-runner run &   # restart
 ```
 
-**Step 3: Check if the runner is running:**
+The runner shows online in GitLab within 30 seconds. It's a background
+process — it dies on reboot. Auto-restart via crontab:
 
-```bash
-ps aux | grep gitlab-runner | grep -v grep
-```
-
-If that returns nothing, the runner is not running.
-
-**Step 4: Start (or restart) the runner** using the path you found in step 2:
-
-```bash
-# Start (replace path if different on your server)
-nohup ~/gitlab-runner/gitlab-runner run &
-
-# Restart (kill stale + start fresh)
-pkill gitlab-runner && nohup ~/gitlab-runner/gitlab-runner run &
-```
-
-The runner should show as online in GitLab within 30 seconds.
-
-**Auto-start on reboot** (the runner is a background process — it dies on reboot):
-
-On `apckw059aau0096` (ndo-terraform/aci-redesign):
+On `apckw059aau0096` (this repo + `ndo-terraform-nac-prod`):
 
 ```bash
 crontab -e
-# Add these lines:
-@reboot nohup /home/john.g.barber.ctr/gitlab-runner/gitlab-runner run &
-*/5 * * * * pgrep -f "gitlab-runner run" > /dev/null || nohup /home/john.g.barber.ctr/gitlab-runner/gitlab-runner run &
+@reboot                       nohup /home/john.g.barber.ctr/gitlab-runner/gitlab-runner run &
+*/5    * * * * pgrep -f "gitlab-runner run" > /dev/null || nohup /home/john.g.barber.ctr/gitlab-runner/gitlab-runner run &
 ```
 
-On `APCKW059AAU0018` (n5k/aci-lf-rplc):
+On `APCKW059AAU0018` (`n5k`, `aci-lf-rplc`):
 
 ```bash
 crontab -e
-# Add these lines:
-@reboot nohup /home/john.g.barber.ctr/gitlab-runner run &
-*/5 * * * * pgrep -f "gitlab-runner run" > /dev/null || nohup /home/john.g.barber.ctr/gitlab-runner run &
+@reboot                       nohup /home/john.g.barber.ctr/gitlab-runner run &
+*/5    * * * * pgrep -f "gitlab-runner run" > /dev/null || nohup /home/john.g.barber.ctr/gitlab-runner run &
 ```
 
-The `@reboot` line starts the runner after a reboot. The `*/5` line checks every 5 minutes and restarts it if it crashed.
+### Lab vs production runner type
 
-**Shell runner rules for `.gitlab-ci.yml`:**
+**Lab GitLab runs on a Docker executor.** Per-project CI files declare
+`image: danischm/nac:0.2.0` (the Network as Code image with terraform,
+jq, and terraform-docs pre-installed) and pipelines run inside that
+container.
 
-1. No `image:` directive (Docker only)
-2. No `---` YAML document start marker
-3. No expanded variable syntax (`description:` / `value:` sub-keys)
-4. Use `only:` instead of `rules:`
-5. Always 2 spaces for indentation, never tabs
+**Production GitLab runs on a shell executor.** It silently ignores
+`image:`, runs job scripts directly on the runner host, and relies on
+terraform/jq being installed under `/usr/bin/`. Each `.tf-job` template
+in the orchestrator includes `before_script: export PATH="/usr/bin:$PATH"`
+to keep the host PATH sane on the shell runner.
+
+The same `.gitlab-ci.yml` files work on both — only the CI/CD variable
+values (URLs, credentials, `*_PROD` vs unsuffixed) differ between the
+lab and prod GitLab project settings.
+
+### State backend (CI vs laptop)
+
+Every Terraform root in this repo declares `backend "http" {}` so CI can
+push state to the GitLab HTTP backend at
+`${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/<state-name>`.
+State names are project-unique (`aci-redesign-ndo`,
+`ndo-terraform-ipv6`, etc.) so two pipelines can never collide on the
+same state file or lock.
+
+**For laptop runs** you opt out of the HTTP backend with a gitignored
+`local_override.tf` next to the project's `main.tf`:
+
+```bash
+cat > local_override.tf <<'EOF'
+terraform {
+  backend "local" {}
+}
+EOF
+terraform init        # picks up the override; uses local terraform.tfstate
+```
+
+The `*_override.tf` glob is in the repo root `.gitignore`, so this file
+never reaches CI. Each project's `README_LAB.md` walks through this for
+the new operator.
+
+State backups created during migration go in `.local-state-backups/`
+(also gitignored at the root). Don't commit state files — `*.tfstate*`
+is gitignored too.
+
+### Coding conventions for `.gitlab-ci.yml` files in this repo
+
+1. Two-space indentation, no tabs.
+2. Each per-project file scopes itself with `rules: changes:` and an
+   `if: $PROJECT == "<name>"` clause for manual triggering.
+3. `apply` jobs are always `when: manual`. No project auto-applies.
+4. Sensitive `TF_VAR_*` get sourced from masked CI variables inside the
+   per-job `variables:` block, never declared at the top level (so a
+   leak in one project doesn't expose another).
+5. The `.tf-job` template (defined in the root orchestrator) is extended
+   by every per-project job to inherit `image:` and `before_script:`.
+6. State backend addresses use `${GITLAB_API_URL}/projects/${CI_PROJECT_ID}/terraform/state/<state-name>`
+   with a project-unique `<state-name>` so two projects can never collide
+   on the same state file or lock.
 
 ---
 
-## Related Projects
+## Related projects (other Mac repos)
 
-| Project | GitLab Repo | Purpose |
+| Project | GitLab repo | Purpose |
 |---|---|---|
-| N5K Migration | `n5k_replacement` | N5K switch migration and ACI leaf replacement |
-| NDO NAC Terraform | `ndo_terraform` | Full NDO NAC configs (schema, sites, Robot Framework tests) |
+| `~/DC/ACI/ndo-terraform-nac-prod/` | `root/ndo_terraform` | **Phase 1** of the deployment runbook in this repo's `README_LAB.md` — foundational NDO-NAC stack (tenant `EUR`, schema `AEDCE`, 5 templates, 812 VPC bindings) |
+| `~/DC/NXOS/n5k/` | `root/n5k_replacement` | N5K switch migration and ACI leaf replacement (separate workflow) |
+| `~/DC/NXOS/n5k/Snake/{LAB,PRODUCTION}/aci-lf-rplc/` | sub-dirs of `n5k_replacement` | Leaf-replacement bindings tool (post-migration) |
 
-See [PROJECT_MAP.md](PROJECT_MAP.md) for the complete cross-project reference.
+See [`PROJECT_MAP.md`](PROJECT_MAP.md) for the complete cross-project reference.
 
 ---
 
-## Files NOT in Git
+## Files NOT in git
 
-These are excluded via `.gitignore` and must be created locally:
+Excluded via `.gitignore` — must be created locally:
 
 | File | Purpose |
-|---|---|
+|------|---------|
 | `*.tfvars` | Terraform credentials |
 | `*.tfstate*` | Terraform state |
 | `.terraform/` | Provider cache |
 | `vault.yml` / `vault_pass.txt` | Ansible Vault |
-| `backend.hcl` | Local backend config |
-| `*.json` | Generated data files |
+| `.env` | Per-stack credential block (e.g. `ndo-terraform-nac-prod`) |
+| `backend.hcl` / `local_override.tf` | Local backend config (e.g. `ndo-terraform-ipv6`) |
+| `data/nac-aci-{aedcg,aedck}-rendered/` | VMM YAML rendered from `TF_VAR_vcenter_*` |
+| `*.json` (generated) | Bindings JSONs from `dump_bindings.py` / `generate_fi_bindings.py` |

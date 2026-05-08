@@ -17,9 +17,12 @@ This stack is the IPv6 layer that complements the redesigned IPv4 stack in `../a
 | NDO endpoint | dCloud lab NDO (currently `https://198.18.133.100`) |
 | MSO provider `domain` | `"local"` |
 | MSO provider `platform` | `"nd"` |
-| VRF template name | `VRF_Template` |
-| Terraform state | local file, this directory |
-| GitLab CI/CD | not used for lab; CI targets prod |
+| VRF template name | `VRF_Template` (set via `lab.tfvars`; CI defaults the `TF_VAR_vrf_template_name` to `UpgradeTemplate1` for prod) |
+| Terraform state (laptop) | local file (this directory) via `local_override.tf` |
+| Terraform state (CI) | GitLab HTTP backend at `…/projects/<project_id>/terraform/state/ndo-terraform-ipv6`, authenticated with `${CI_JOB_TOKEN}` |
+| GitLab CI/CD | wired for both lab and prod against the same `.gitlab-ci.yml`; per-project CI variables (`NDO_URL` / `NDO_USERNAME` / `NDO_PASSWORD`) are set independently on each GitLab project. See [`README.md` → "CI/CD Pipeline"](README.md#cicd-pipeline). |
+
+> **You can run this stack from CI.** Push to a branch / open MR for plan; merge to `main` (or run pipeline manually with `PROJECT=ndo-terraform-ipv6`) for plan + apply (apply is a manual button — never auto). State stays in the GitLab HTTP slot. The walkthrough below is the **laptop** path, which is what most operators use day-to-day for this stack because of the long plan times (~30 minutes) and the desire to eyeball the diff before clicking apply.
 
 ---
 
@@ -400,4 +403,4 @@ If the rule is missing, your `.gitignore` was clobbered — restore from `git sh
   - `--ports-override <file.json>` appends or replaces per-EPG bindings from a JSON file. Use this to add **individual interface** bindings (`type='port'`, e.g. `eth1/x`) — the default code path never emits these. See `ports_override.example.json` in this directory for the file shape; shorthand `{site, leaf, port}` expands to `topology/pod-1/paths-{leaf}/pathep-[{port}]` automatically.
 
   The script also ties into the `../scripts/deploy_bindings.py` flow.
-- **The CI pipeline** — `.gitlab-ci.yml` runs prod deploys, not lab. Lab is intentionally laptop-driven.
+- **The CI pipeline** — see [`README.md` → "CI/CD Pipeline"](README.md#cicd-pipeline). The pipeline drives plan + manual-apply for both lab and prod (per-project GitLab CI variables decide which NDO it talks to). This walkthrough is laptop-driven because most operators want to eyeball the long plan diff before applying; CI is fully supported but less commonly used day-to-day for this stack.
