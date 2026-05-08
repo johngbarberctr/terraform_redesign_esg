@@ -8,6 +8,14 @@
 *.tfplan
 crash.log
 terraform_debug.log
+# Local-only Terraform overrides used to swap the http backend (CI-driven)
+# for a local backend on a developer laptop. See ndo-terraform-ipv6/.gitignore
+# for an explanation; the same pattern applies to every sub-project that
+# declares `backend "http" {}`.
+*_override.tf
+*_override.tf.json
+# Local-state backups created by the migration helper.
+.local-state-backups/
 
 # Python
 __pycache__/
@@ -45,6 +53,11 @@ vault_pass.txt
 # Allow checked-in example/template JSON (sanitized -- no real credentials),
 # mirrors the *.tfvars / !*.tfvars.example pattern above.
 !*.example.json
+# Allow the FI-binding manifest committed alongside the schema. This file
+# is sanitized by generate_fi_bindings.py (--output-manifest): no creds,
+# no VLANs -- just the EPG list and the chosen mode. CI uses it as the
+# parity-check reference for schema-vs-bindings drift.
+!aci-redesign/scripts/fi_epg_manifest.json
 *.tar.gz
 *.zip
 *.xlsx

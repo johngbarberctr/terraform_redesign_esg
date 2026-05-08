@@ -7,7 +7,7 @@
 #
 #   - 2 VRFs (VRF-EUR, VRF-DMZ) with vzAny enforced
 #   - 2 contracts (Any_VRF-EUR, Any_VRF-DMZ), filter cross-ref to
-#     AEDCE/UpgradeTemplate1/Any (filter names are unique per tenant)
+#     AEDCE/VRF_Template/Any (filter names are unique per tenant)
 #   - 39 stretched BDs (l2_stretch=true is the default in nac-ndo)
 #   - 2 ANPs (AppProf-AppCentric, AppProf-DMZ) with 39 EPGs total
 #   - VMware VMM bindings on every EPG to APCG-VDS1 on AEDCG and APCK-VDS1
@@ -19,7 +19,7 @@
 #   * No cross-template references => no risk of NDO 4.0+ cyclical dep error.
 #   * One deploy click in the NDO UI per change.
 #   * One rollback unit per coherent change set.
-#   * Aligns with the existing AEDCE/UpgradeTemplate1 single-template pattern.
+#   * Aligns with the existing AEDCE/VRF_Template single-template pattern.
 #
 # Deploy / cutover:
 #   * The ndo/ Terraform root runs with deploy_templates=false. This file
@@ -33,9 +33,9 @@
 #
 # Notes:
 #   * Filter "Any" intentionally NOT defined here. Tenant EUR already has
-#     filter Any in schema AEDCE / template UpgradeTemplate1 from the IPv6
-#     redesign. NDO enforces unique object names per tenant, so the two
-#     contracts below cross-reference that existing filter.
+#     filter Any in schema AEDCE / template VRF_Template (created by the
+#     ndo-terraform-nac-prod stack). NDO enforces unique object names per
+#     tenant, so the two contracts below cross-reference that existing filter.
 #   * L3Outs and External EPGs are NOT declared in this schema. North-south
 #     routing for VRF-EUR and VRF-DMZ is provided by the L3Outs that already
 #     exist in the legacy IPv6 schema (managed by ../../ndo-terraform/). Both
@@ -105,7 +105,7 @@ ndo:
               filters:
                 - name: Any
                   schema: AEDCE
-                  template: UpgradeTemplate1
+                  template: VRF_Template
 
             - name: Any_VRF-DMZ
               scope: context
@@ -113,7 +113,7 @@ ndo:
               filters:
                 - name: Any
                   schema: AEDCE
-                  template: UpgradeTemplate1
+                  template: VRF_Template
 
           # ─────────────────────────────────────────────────────────────────────
           # Bridge Domains (39 total: 36 in VRF-EUR, 3 in VRF-DMZ)

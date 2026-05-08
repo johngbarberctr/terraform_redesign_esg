@@ -215,9 +215,13 @@ class NDOBindingDeployer:
             interface = interface_match.group(1)
             if interface.lower().startswith('vpc') or 'protpaths' in path:
                 return 'vpc'
-            elif interface.startswith('Po'):
+            # Single-leaf port-channel policy groups: APIC `Po1` (auto-generated
+            # name) and the redesign Design A naming convention `PC_*` (e.g.
+            # `PC_FI_A`/`PC_FI_B` from access-policies.nac.yaml). Both ride a
+            # `topology/.../paths-N/...` path (NOT protpaths), so they are dpc.
+            elif interface.startswith('Po') or interface.startswith('PC_'):
                 return 'dpc'
-        
+
         return 'port'
     
     def normalize_interface_name(self, interface_name, port_type):

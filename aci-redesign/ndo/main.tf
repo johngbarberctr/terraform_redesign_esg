@@ -1,4 +1,9 @@
 terraform {
+  # GitLab HTTP backend for CI. Local users override to local state via a
+  # gitignored `local_override.tf` containing:
+  #     terraform { backend "local" {} }
+  backend "http" {}
+
   required_providers {
     mso = {
       source  = "CiscoDevNet/mso"
