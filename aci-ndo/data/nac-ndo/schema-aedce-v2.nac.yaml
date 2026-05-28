@@ -1,0 +1,771 @@
+# =============================================================================
+# Schema AEDCE-V2 -- single source of truth for the consolidated tenant tree.
+#
+# Single-template design (Cisco NDO "Approach 1: Single Template Deployment"
+# from the 4.3.1 templates overview). Everything for the redesign lives in
+# one template:
+#
+#   - 2 VRFs (VRF-EUR-V2, VRF-DMZ-V2) with vzAny enforced
+#   - 2 contracts (Any_VRF-EUR-V2, Any_VRF-DMZ-V2), filter cross-ref to
+#     AEDCE/VRF_Template/Any (filter names are unique per tenant)
+#   - 39 stretched BDs (l2_stretch=true is the default in nac-ndo)
+#   - 2 ANPs (AppProf-NetCentric-V2, AppProf-DMZ-V2) with 39 EPGs total
+#     (a third ANP, AppProf-AppCentric-V2, is created APIC-direct in
+#     ../nac-aci-shared/tenant-eur-esgs.nac.yaml -- it holds the Phase-2
+#     ESGs that overlay these EPGs; see "ESGs" note below)
+#   - VMware VMM bindings on every EPG to APCG-VDS1 on AEDCG and APCK-VDS1
+#     on AEDCK (per-fabric VMM domains: each adopts its own pre-existing VDS
+#     in the shared vCenter rather than creating a new shared VDS)
+#
+# Naming convention -- WHY THE -V2 SUFFIX:
+#   * Every tenant-scoped object (BDs, EPGs, VRFs, contracts, ANPs) carries
+#     -V2. The legacy AEDCE schema (managed by ../../../sac-johbarbe-AFRICOM-terraform-nac-ndo)
+#     deploys to the same tenant EUR. ACI enforces unique object names per
+#     tenant (uni/tn-EUR/BD-foo is one MO; two NDO templates cannot both own
+#     it), so the redesign needs distinct names to coexist with AEDCE during
+#     the parallel-run period.
+#   * The suffix is GENERATIONAL, not address-family. These objects are NOT
+#     "the IPv4 versions" -- they are version 2 of the tenant model and will
+#     eventually carry both IPv4 and IPv6 subnets (dual-stack BDs). Do not
+#     read -V2 as a synonym for -IPv4.
+#   * After cutover (when AEDCE is decommissioned) the suffix can either stay
+#     (cosmetic only) or be dropped during a per-object maintenance window
+#     (each rename = destroy+recreate of that one BD/EPG, so it carries a
+#     brief drop on that object's traffic). Most operators just keep -V2.
+#   * Filter "Any" in the contracts below is INTENTIONALLY left un-suffixed
+#     -- it is referenced cross-schema from AEDCE/VRF_Template/Any, not
+#     redefined here, so there is nothing to collide.
+#
+# Why single template:
+#   * Fully-stretched, fully-symmetric tenant -- no site-local objects.
+#   * No cross-template references => no risk of NDO 4.0+ cyclical dep error.
+#   * One deploy click in the NDO UI per change.
+#   * One rollback unit per coherent change set.
+#   * Aligns with the existing AEDCE/VRF_Template single-template pattern.
+#
+# Deploy / cutover:
+#   * The ndo/ Terraform root runs with deploy_templates=false. This file
+#     creates the schema and template content in NDO only. Pushes to AEDCG
+#     and AEDCK are operator-driven from the NDO UI:
+#       Application Management -> Schemas -> AEDCE-V2
+#         -> Tenant_EUR_V2 -> Deploy to sites
+#   * Static port bindings on the EPGs are NOT in this file. They land via
+#     ../../scripts/deploy_bindings.py against the NDO REST API after the
+#     template is deployed.
+#
+# Notes:
+#   * Filter "Any" intentionally NOT defined here. Tenant EUR already has
+#     filter Any in schema AEDCE / template VRF_Template (created by the
+#     sac-johbarbe-AFRICOM-terraform-nac-ndo stack). NDO enforces unique object names per
+#     tenant, so the two contracts below cross-reference that existing filter.
+#   * L3Outs and External EPGs are NOT declared in this schema. North-south
+#     routing for VRF-EUR-V2 and VRF-DMZ-V2 is provided by the L3Outs that
+#     already exist in the legacy IPv6 schema (managed by ../../ndo-terraform/
+#     and sac-johbarbe-AFRICOM-terraform-nac-ndo). Eventually the redesign will own its own
+#     L3Outs (different VRF names, different EPG-to-L3Out scoping); when that
+#     work lands, add `l3outs:` and `external_epgs:` blocks here.
+#   * ESGs are NOT declared in this NDO schema. The netascode/nac-ndo/mso
+#     v1.2.x module schema does not model endpoint_security_groups, and the
+#     upstream Cisco mso Terraform provider also lacks ESG resource types
+#     (verified against v1.7.x). ESGs therefore live APIC-direct in
+#     ../nac-aci-shared/tenant-eur-esgs.nac.yaml (loaded by both AEDCG and
+#     AEDCK modules in ../../apic-vmware/main.tf), under the third ANP
+#     AppProf-AppCentric-V2. Phase 2 ships two lift-and-shift ESGs:
+#       - ESG-All-Internal-V2 (VRF-EUR-V2)  -> selects all 36 EPGs in
+#         AppProf-NetCentric-V2 (declared below).
+#       - ESG-All-DMZ-V2      (VRF-DMZ-V2)  -> selects all 3 EPGs in
+#         AppProf-DMZ-V2 (declared below).
+#     vzAny+permit-all on each VRF (set below) makes these ESGs reachability-
+#     neutral: applying them does not change traffic. Phase 3 will start
+#     splitting them into per-zone ESGs by adding tag_selectors. See
+#     ../../DESIGN.md "Migration phases" and the header of
+#     ../nac-aci-shared/tenant-eur-esgs.nac.yaml for the full ESG playbook.
+#     If the netascode/nac-ndo/mso module ever gains ESG support, the ESG
+#     content can be migrated into this schema with a Terraform state move
+#     (no destroy/recreate).
+#   * Static port bindings (staticPorts[] on EPGs) are NOT in this YAML.
+#     nac-ndo doesn't model that field yet. They are PATCHed into NDO via
+#     ../../scripts/deploy_bindings.py from a curated JSON file AFTER this
+#     schema is deployed. Three EPGs (EPG-LB-V2, EPG-LMR-V2, EPG-VHOST-MGMT-V2)
+#     are deliberately NOT bound to a VMM domain because their endpoints are
+#     physical (F5 BIG-IP, LMR gateways, ESXi vmkernel); they require
+#     static bindings to function.
+#   * sites: at the template level associates the template to AEDCG/AEDCK.
+#     sites: under each VRF is for site-local VRF properties; with no
+#     site-local overrides, listing the sites is harmless and matches the
+#     style of the existing IPv6 schema.
+# =============================================================================
+---
+ndo:
+  schemas:
+    - name: AEDCE-V2
+      templates:
+        - name: Tenant_EUR_V2
+          tenant: EUR
+          sites:
+            - AEDCG
+            - AEDCK
+
+          # ─────────────────────────────────────────────────────────────────────
+          # VRFs and contracts (vzAny permit-all between EPGs in the VRF)
+          # ─────────────────────────────────────────────────────────────────────
+          vrfs:
+            - name: VRF-EUR-V2
+              vzany: true
+              contracts:
+                providers:
+                  - name: Any_VRF-EUR-V2
+                consumers:
+                  - name: Any_VRF-EUR-V2
+              sites:
+                - name: AEDCG
+                - name: AEDCK
+
+            - name: VRF-DMZ-V2
+              vzany: true
+              contracts:
+                providers:
+                  - name: Any_VRF-DMZ-V2
+                consumers:
+                  - name: Any_VRF-DMZ-V2
+              sites:
+                - name: AEDCG
+                - name: AEDCK
+
+          contracts:
+            - name: Any_VRF-EUR-V2
+              scope: context
+              type: bothWay
+              filters:
+                - name: Any
+                  schema: AEDCE
+                  template: VRF_Template
+
+            - name: Any_VRF-DMZ-V2
+              scope: context
+              type: bothWay
+              filters:
+                - name: Any
+                  schema: AEDCE
+                  template: VRF_Template
+
+          # ─────────────────────────────────────────────────────────────────────
+          # Bridge Domains (39 total: 36 in VRF-EUR-V2, 3 in VRF-DMZ-V2)
+          # All BDs are L2-stretched (default behaviour in nac-ndo).
+          # VRF refs are in-template, so no schema/template fields needed.
+          #
+          # The "From: BD-Vxxxx" comments document the legacy BDs that each
+          # consolidated BD absorbs from the pre-redesign IPv6 schema. The
+          # "(IPv6-only, no IPv4 predecessor)" markers note BDs that have no
+          # legacy IPv4 subnet history; these will be dual-stack from day one
+          # in the V2 model when IPv6 prefixes are added.
+          # ─────────────────────────────────────────────────────────────────────
+          bridge_domains:
+
+            # ── BD-ACAS-MGMT-V2 (no legacy IPv4 predecessor) ─────────────────
+            - name: BD-ACAS-MGMT-V2
+              vrf: { name: VRF-EUR-V2 }
+
+            # ── BD-ACAS-SCANNERS-V2 ──────────────────────────────────────────
+            # From: BD-V0174 (APCG_ACAS), BD-V0474 (APCK_RETINA), BD-V0099
+            - name: BD-ACAS-SCANNERS-V2
+              vrf: { name: VRF-EUR-V2 }
+              subnets:
+                - ip: 136.215.194.1/27
+                  scope: public
+                - ip: 136.215.66.1/27
+                  scope: public
+
+            # ── BD-AD-V2 ─────────────────────────────────────────────────────
+            # From: BD-V0172 (APCG_AD), BD-V0322, BD-V0222
+            - name: BD-AD-V2
+              vrf: { name: VRF-EUR-V2 }
+              subnets:
+                - ip: 136.215.193.1/26
+                  scope: public
+                - ip: 155.155.136.1/26
+                  scope: public
+                - ip: 155.155.72.1/26
+                  scope: public
+
+            # ── BD-ADM-DCO-V2 ────────────────────────────────────────────────
+            # From: BD-V0481 (DCOD_IDS)
+            - name: BD-ADM-DCO-V2
+              vrf: { name: VRF-EUR-V2 }
+              subnets:
+                - ip: 155.155.230.97/28
+                  scope: public
+
+            # ── BD-ADFS-V2 (no legacy IPv4 predecessor) ──────────────────────
+            - name: BD-ADFS-V2
+              vrf: { name: VRF-EUR-V2 }
+
+            # ── BD-APP-SVR-V2 ────────────────────────────────────────────────
+            # Absorbs 45 legacy BDs -- largest consolidation.
+            - name: BD-APP-SVR-V2
+              vrf: { name: VRF-EUR-V2 }
+              subnets:
+                - ip: 155.155.236.65/26
+                  scope: public
+                - ip: 155.155.172.1/24
+                  scope: public
+                - ip: 155.155.108.1/24
+                  scope: public
+                - ip: 136.215.37.129/26
+                  scope: public
+                - ip: 155.155.231.1/27
+                  scope: public
+                - ip: 136.215.3.1/24
+                  scope: public
+                - ip: 206.39.28.193/27
+                  scope: public
+                - ip: 155.155.224.1/23
+                  scope: public
+                - ip: 136.215.137.1/25
+                  scope: public
+                - ip: 206.39.28.161/28
+                  scope: public
+                - ip: 206.39.28.177/28
+                  scope: public
+                - ip: 155.155.230.65/27
+                  scope: public
+                - ip: 136.215.161.1/27
+                  scope: public
+                - ip: 155.155.234.65/27
+                  scope: public
+                - ip: 136.215.64.193/26
+                  scope: public
+                - ip: 155.155.120.129/27
+                  scope: public
+                - ip: 155.155.71.129/27
+                  scope: public
+                - ip: 155.155.230.1/27
+                  scope: public
+                - ip: 155.155.236.193/26
+                  scope: public
+                - ip: 155.155.64.1/23
+                  scope: public
+                - ip: 155.155.64.10/23
+                  scope: public
+                - ip: 155.155.128.1/23
+                  scope: public
+                - ip: 155.155.128.9/23
+                  scope: public
+                - ip: 155.155.226.1/27
+                  scope: public
+                - ip: 155.155.238.1/27
+                  scope: public
+                - ip: 136.215.97.1/28
+                  scope: public
+                - ip: 155.155.84.1/23
+                  scope: public
+                - ip: 136.215.64.1/25
+                  scope: public
+                - ip: 136.215.66.129/26
+                  scope: public
+                - ip: 155.155.236.1/27
+                  scope: public
+                - ip: 155.155.94.129/26
+                  scope: public
+                - ip: 155.155.94.193/26
+                  scope: public
+
+            # ── BD-BACKUP-SVR-V2 ─────────────────────────────────────────────
+            # From: BD-V0544, V0144, V0444, V0809 (EMC_RECOVERPOINT)
+            - name: BD-BACKUP-SVR-V2
+              vrf: { name: VRF-EUR-V2 }
+              subnets:
+                - ip: 155.155.234.129/27
+                  scope: public
+                - ip: 136.215.162.1/23
+                  scope: public
+                - ip: 136.215.34.1/27
+                  scope: public
+                - ip: 136.215.128.193/26
+                  scope: public
+
+            # ── BD-C2C-SCANNERS-V2 (no legacy IPv4 predecessor) ──────────────
+            - name: BD-C2C-SCANNERS-V2
+              vrf: { name: VRF-EUR-V2 }
+
+            # ── BD-CFG-MGMT-V2 ───────────────────────────────────────────────
+            - name: BD-CFG-MGMT-V2
+              vrf: { name: VRF-EUR-V2 }
+              subnets:
+                - ip: 155.155.20.1/25
+                  scope: public
+                - ip: 155.155.30.1/26
+                  scope: public
+                - ip: 155.155.60.1/26
+                  scope: public
+                - ip: 155.155.20.129/25
+                  scope: public
+                - ip: 136.215.132.1/24
+                  scope: public
+                - ip: 136.215.135.1/24
+                  scope: public
+                - ip: 136.215.4.1/24
+                  scope: public
+                - ip: 136.215.6.129/25
+                  scope: public
+                - ip: 206.39.28.1/25
+                  scope: public
+                - ip: 155.155.62.249/29
+                  scope: public
+                - ip: 155.155.62.241/29
+                  scope: public
+                - ip: 155.155.68.1/24
+                  scope: public
+                - ip: 155.155.130.1/24
+                  scope: public
+                - ip: 155.155.250.1/23
+                  scope: public
+
+            # ── BD-DB-SVR-V2 ─────────────────────────────────────────────────
+            # From: BD-V0250, V0350, V0445, V0141, V0532, V0140, V0293, V0441
+            - name: BD-DB-SVR-V2
+              vrf: { name: VRF-EUR-V2 }
+              subnets:
+                - ip: 155.155.80.1/25
+                  scope: public
+                - ip: 155.155.144.1/25
+                  scope: public
+                - ip: 136.215.35.1/27
+                  scope: public
+                - ip: 136.215.160.129/26
+                  scope: public
+                - ip: 155.155.228.1/27
+                  scope: public
+                - ip: 136.215.160.1/25
+                  scope: public
+                - ip: 136.215.98.1/25
+                  scope: public
+                - ip: 136.215.32.129/26
+                  scope: public
+
+            # ── BD-DHCP-SVR-V2 (no legacy IPv4 predecessor) ──────────────────
+            - name: BD-DHCP-SVR-V2
+              vrf: { name: VRF-EUR-V2 }
+
+            # ── BD-DNS-MGMT-V2 (no subnets in legacy config) ─────────────────
+            - name: BD-DNS-MGMT-V2
+              vrf: { name: VRF-EUR-V2 }
+
+            # ── BD-E911-SVR-V2 (no legacy IPv4 predecessor) ──────────────────
+            - name: BD-E911-SVR-V2
+              vrf: { name: VRF-EUR-V2 }
+
+            # ── BD-FILE-SVR-V2 ───────────────────────────────────────────────
+            # From: BD-V0150, V0450, V0550
+            - name: BD-FILE-SVR-V2
+              vrf: { name: VRF-EUR-V2 }
+              subnets:
+                - ip: 136.215.165.1/25
+                  scope: public
+                - ip: 136.215.37.1/25
+                  scope: public
+                - ip: 155.155.235.129/26
+                  scope: public
+
+            # ── BD-FMWR-SVR-V2 (no legacy IPv4 predecessor) ──────────────────
+            - name: BD-FMWR-SVR-V2
+              vrf: { name: VRF-EUR-V2 }
+
+            # ── BD-GEF-MGMT-V2 (9 legacy GEF BDs, all L2-only) ───────────────
+            - name: BD-GEF-MGMT-V2
+              vrf: { name: VRF-EUR-V2 }
+
+            # ── BD-LB-V2 ─────────────────────────────────────────────────────
+            # From: BD-V0591, V0191, V0491
+            - name: BD-LB-V2
+              vrf: { name: VRF-EUR-V2 }
+              subnets:
+                - ip: 155.155.240.1/26
+                  scope: public
+                - ip: 136.215.224.129/26
+                  scope: public
+                - ip: 136.215.96.129/26
+                  scope: public
+
+            # ── BD-LMR-V2 (no legacy IPv4 predecessor) ───────────────────────
+            - name: BD-LMR-V2
+              vrf: { name: VRF-EUR-V2 }
+
+            # ── BD-MECM-V2 ───────────────────────────────────────────────────
+            # From: BD-V0171 (SCCMHost), V0176, V0476, V0473, V0173, V0170
+            - name: BD-MECM-V2
+              vrf: { name: VRF-EUR-V2 }
+              subnets:
+                - ip: 136.215.192.129/27
+                  scope: public
+                - ip: 136.215.196.1/27
+                  scope: public
+                - ip: 136.215.66.193/27
+                  scope: public
+                - ip: 136.215.65.129/28
+                  scope: public
+                - ip: 136.215.193.129/28
+                  scope: public
+                - ip: 136.215.192.1/25
+                  scope: public
+
+            # ── BD-NAC-V2 (no legacy IPv4 predecessor) ───────────────────────
+            - name: BD-NAC-V2
+              vrf: { name: VRF-EUR-V2 }
+
+            # ── BD-NMS-V2 ────────────────────────────────────────────────────
+            # From: BD-V0014 (ACI_OOBM), BD-V0256 (Army_Metering_Public)
+            - name: BD-NMS-V2
+              vrf: { name: VRF-EUR-V2 }
+              subnets:
+                - ip: 206.39.28.249/29
+                  scope: public
+
+            # ── BD-OCSP-V2 (no legacy IPv4 predecessor) ──────────────────────
+            - name: BD-OCSP-V2
+              vrf: { name: VRF-EUR-V2 }
+
+            # ── BD-PATCH-V2 ──────────────────────────────────────────────────
+            # From: BD-V0471 (APCK_PATCH)
+            - name: BD-PATCH-V2
+              vrf: { name: VRF-EUR-V2 }
+              subnets:
+                - ip: 136.215.64.129/27
+                  scope: public
+
+            # ── BD-PKI-SRV-V2 ────────────────────────────────────────────────
+            # From: BD-V0522 (APCE_RCERT)
+            - name: BD-PKI-SRV-V2
+              vrf: { name: VRF-EUR-V2 }
+              subnets:
+                - ip: 155.155.230.129/26
+                  scope: public
+
+            # ── BD-PRINT-SVR-V2 (no legacy IPv4 predecessor) ─────────────────
+            - name: BD-PRINT-SVR-V2
+              vrf: { name: VRF-EUR-V2 }
+
+            # ── BD-RCC-DCO-V2 (no legacy IPv4 predecessor) ───────────────────
+            - name: BD-RCC-DCO-V2
+              vrf: { name: VRF-EUR-V2 }
+
+            # ── BD-RCC-DNS-V2 (no legacy IPv4 predecessor) ───────────────────
+            - name: BD-RCC-DNS-V2
+              vrf: { name: VRF-EUR-V2 }
+
+            # ── BD-RCC-SVR-V2 (no legacy IPv4 predecessor) ───────────────────
+            - name: BD-RCC-SVR-V2
+              vrf: { name: VRF-EUR-V2 }
+
+            # ── BD-RCC-UNIX-V2 (no legacy IPv4 predecessor) ──────────────────
+            - name: BD-RCC-UNIX-V2
+              vrf: { name: VRF-EUR-V2 }
+
+            # ── BD-SMTP-SVR-V2 (no legacy IPv4 predecessor) ──────────────────
+            - name: BD-SMTP-SVR-V2
+              vrf: { name: VRF-EUR-V2 }
+
+            # ── BD-SYSLOG-V2 ─────────────────────────────────────────────────
+            # From: BD-V0540 (APCE_POLL_LOG), BD-V0575 (ARCSIGHT)
+            - name: BD-SYSLOG-V2
+              vrf: { name: VRF-EUR-V2 }
+              subnets:
+                - ip: 155.155.234.1/26
+                  scope: public
+                - ip: 155.155.237.129/25
+                  scope: public
+                - ip: 155.155.237.1/25
+                  scope: public
+
+            # ── BD-SYSMAN-V2 (no legacy IPv4 predecessor) ────────────────────
+            - name: BD-SYSMAN-V2
+              vrf: { name: VRF-EUR-V2 }
+
+            # ── BD-VHOST-MGMT-V2 ─────────────────────────────────────────────
+            # From: BD-V0820 (APCW_SRVR_MGMT)
+            - name: BD-VHOST-MGMT-V2
+              vrf: { name: VRF-EUR-V2 }
+              subnets:
+                - ip: 136.207.132.1/24
+                  scope: public
+
+            # ── BD-VVOIP-MGMT-V2 ─────────────────────────────────────────────
+            # From: BD-V0860, V0160, V0163, V0863, V0161, V0861, V0178, V0478, V0179
+            - name: BD-VVOIP-MGMT-V2
+              vrf: { name: VRF-EUR-V2 }
+              subnets:
+                - ip: 136.207.176.1/26
+                  scope: public
+                - ip: 136.215.176.1/26
+                  scope: public
+                - ip: 136.215.177.129/27
+                  scope: public
+                - ip: 136.207.177.129/27
+                  scope: public
+                - ip: 136.215.178.1/24
+                  scope: public
+                - ip: 136.215.78.1/24
+                  scope: public
+                - ip: 6.64.1.1/27
+                  scope: public
+
+            # ── BD-VVOIP-PROXY-V2 ────────────────────────────────────────────
+            # From: BD-V0220 (ENTERPRISE_CALL_CENTER)
+            - name: BD-VVOIP-PROXY-V2
+              vrf: { name: VRF-EUR-V2 }
+              subnets:
+                - ip: 155.155.82.1/27
+                  scope: public
+
+            # ── BD-WEB-SVR-V2 ────────────────────────────────────────────────
+            - name: BD-WEB-SVR-V2
+              vrf: { name: VRF-EUR-V2 }
+              subnets:
+                - ip: 206.39.28.129/27
+                  scope: public
+                - ip: 136.215.226.1/25
+                  scope: public
+                - ip: 155.155.71.1/25
+                  scope: public
+                - ip: 155.155.96.1/27
+                  scope: public
+                - ip: 155.155.235.1/25
+                  scope: public
+                - ip: 136.215.225.1/25
+                  scope: public
+                - ip: 155.155.160.1/27
+                  scope: public
+                - ip: 155.155.236.129/26
+                  scope: public
+                - ip: 136.215.98.129/25
+                  scope: public
+                - ip: 155.155.239.129/27
+                  scope: public
+                - ip: 155.155.239.65/27
+                  scope: public
+
+            # ─── DMZ BDs (VRF-DMZ-V2) ────────────────────────────────────────
+
+            # ── BD-D64-PROXY-V2 (no legacy IPv4 predecessor) ─────────────────
+            - name: BD-D64-PROXY-V2
+              vrf: { name: VRF-DMZ-V2 }
+
+            # ── BD-FWEB-PROXY-V2 ─────────────────────────────────────────────
+            # From: BD-V0950 (PVT_DMZ_IN), BD-V1119
+            - name: BD-FWEB-PROXY-V2
+              vrf: { name: VRF-DMZ-V2 }
+              subnets:
+                - ip: 139.139.1.129/26
+                  scope: public
+                - ip: 139.139.1.65/26
+                  scope: public
+                - ip: 139.139.251.1/28
+                  scope: public
+
+            # ── BD-RWEB-PROXY-V2 (no legacy IPv4 predecessor) ────────────────
+            - name: BD-RWEB-PROXY-V2
+              vrf: { name: VRF-DMZ-V2 }
+
+          # ─────────────────────────────────────────────────────────────────────
+          # Application Profiles and EPGs
+          # BD refs are in-template, so no schema/template fields needed.
+          # Each EPG associates to AEDCG via VMM domain APCG-VDS1 and to AEDCK
+          # via APCK-VDS1 (the VMM domain objects themselves are created
+          # APIC-direct in ../apic-vmware/, one per fabric, each adopting its
+          # pre-existing VDS in the shared vCenter).
+          # ─────────────────────────────────────────────────────────────────────
+          application_profiles:
+
+            # ── AppProf-NetCentric-V2 (VRF-EUR-V2) -- 36 EPGs ────────────────
+            # Network-centric layer: one EPG per BD per legacy VLAN/subnet
+            # group. The Phase-2 ESGs in ../nac-aci-shared/tenant-eur-esgs.
+            # nac.yaml (under the APIC-direct AppProf-AppCentric-V2 ANP)
+            # reference these EPGs by application_profile + endpoint_group;
+            # any rename here MUST be mirrored in the epg_selectors list
+            # over there or the ESG selectors will silently match nothing.
+            - name: AppProf-NetCentric-V2
+              description: "Network-centric layer: one EPG per BD per legacy VLAN/subnet (V2 consolidated tenant model)"
+              endpoint_groups:
+
+                - name: EPG-ACAS-MGMT-V2
+                  bridge_domain: { name: BD-ACAS-MGMT-V2 }
+                  sites: &epg_sites_internal
+                    - name: AEDCG
+                      vmware_vmm_domains:
+                        - name: APCG-VDS1
+                          deployment_immediacy: immediate
+                          resolution_immediacy: immediate
+                    - name: AEDCK
+                      vmware_vmm_domains:
+                        - name: APCK-VDS1
+                          deployment_immediacy: immediate
+                          resolution_immediacy: immediate
+
+                - name: EPG-ACAS-SCANNERS-V2
+                  bridge_domain: { name: BD-ACAS-SCANNERS-V2 }
+                  sites: *epg_sites_internal
+
+                - name: EPG-AD-V2
+                  bridge_domain: { name: BD-AD-V2 }
+                  sites: *epg_sites_internal
+
+                - name: EPG-ADM-DCO-V2
+                  bridge_domain: { name: BD-ADM-DCO-V2 }
+                  sites: *epg_sites_internal
+
+                - name: EPG-ADFS-V2
+                  bridge_domain: { name: BD-ADFS-V2 }
+                  sites: *epg_sites_internal
+
+                - name: EPG-APP-SVR-V2
+                  bridge_domain: { name: BD-APP-SVR-V2 }
+                  sites: *epg_sites_internal
+
+                - name: EPG-BACKUP-SVR-V2
+                  bridge_domain: { name: BD-BACKUP-SVR-V2 }
+                  sites: *epg_sites_internal
+
+                - name: EPG-C2C-SCANNERS-V2
+                  bridge_domain: { name: BD-C2C-SCANNERS-V2 }
+                  sites: *epg_sites_internal
+
+                - name: EPG-CFG-MGMT-V2
+                  bridge_domain: { name: BD-CFG-MGMT-V2 }
+                  sites: *epg_sites_internal
+
+                - name: EPG-DB-SVR-V2
+                  bridge_domain: { name: BD-DB-SVR-V2 }
+                  sites: *epg_sites_internal
+
+                - name: EPG-DHCP-SVR-V2
+                  bridge_domain: { name: BD-DHCP-SVR-V2 }
+                  sites: *epg_sites_internal
+
+                - name: EPG-DNS-MGMT-V2
+                  bridge_domain: { name: BD-DNS-MGMT-V2 }
+                  sites: *epg_sites_internal
+
+                - name: EPG-E911-SVR-V2
+                  bridge_domain: { name: BD-E911-SVR-V2 }
+                  sites: *epg_sites_internal
+
+                - name: EPG-FILE-SVR-V2
+                  bridge_domain: { name: BD-FILE-SVR-V2 }
+                  sites: *epg_sites_internal
+
+                - name: EPG-FMWR-SVR-V2
+                  bridge_domain: { name: BD-FMWR-SVR-V2 }
+                  sites: *epg_sites_internal
+
+                - name: EPG-GEF-MGMT-V2
+                  bridge_domain: { name: BD-GEF-MGMT-V2 }
+                  sites: *epg_sites_internal
+
+                - name: EPG-LB-V2
+                  bridge_domain: { name: BD-LB-V2 }
+                  # F5 BIG-IP is a physical appliance (vPC to F5_BIGIP in legacy
+                  # N5K config). VMM domain removed -- bound statically only.
+                  sites:
+                    - name: AEDCG
+                    - name: AEDCK
+
+                - name: EPG-LMR-V2
+                  bridge_domain: { name: BD-LMR-V2 }
+                  # Land Mobile Radio gateways are physical. VMM domain removed.
+                  sites:
+                    - name: AEDCG
+                    - name: AEDCK
+
+                - name: EPG-MECM-V2
+                  bridge_domain: { name: BD-MECM-V2 }
+                  sites: *epg_sites_internal
+
+                - name: EPG-NAC-V2
+                  bridge_domain: { name: BD-NAC-V2 }
+                  sites: *epg_sites_internal
+
+                - name: EPG-NMS-V2
+                  bridge_domain: { name: BD-NMS-V2 }
+                  sites: *epg_sites_internal
+
+                - name: EPG-OCSP-V2
+                  bridge_domain: { name: BD-OCSP-V2 }
+                  sites: *epg_sites_internal
+
+                - name: EPG-PATCH-V2
+                  bridge_domain: { name: BD-PATCH-V2 }
+                  sites: *epg_sites_internal
+
+                - name: EPG-PKI-SRV-V2
+                  bridge_domain: { name: BD-PKI-SRV-V2 }
+                  sites: *epg_sites_internal
+
+                - name: EPG-PRINT-SVR-V2
+                  bridge_domain: { name: BD-PRINT-SVR-V2 }
+                  sites: *epg_sites_internal
+
+                - name: EPG-RCC-DCO-V2
+                  bridge_domain: { name: BD-RCC-DCO-V2 }
+                  sites: *epg_sites_internal
+
+                - name: EPG-RCC-DNS-V2
+                  bridge_domain: { name: BD-RCC-DNS-V2 }
+                  sites: *epg_sites_internal
+
+                - name: EPG-RCC-SVR-V2
+                  bridge_domain: { name: BD-RCC-SVR-V2 }
+                  sites: *epg_sites_internal
+
+                - name: EPG-RCC-UNIX-V2
+                  bridge_domain: { name: BD-RCC-UNIX-V2 }
+                  sites: *epg_sites_internal
+
+                - name: EPG-SMTP-SVR-V2
+                  bridge_domain: { name: BD-SMTP-SVR-V2 }
+                  sites: *epg_sites_internal
+
+                - name: EPG-SYSLOG-V2
+                  bridge_domain: { name: BD-SYSLOG-V2 }
+                  sites: *epg_sites_internal
+
+                - name: EPG-SYSMAN-V2
+                  bridge_domain: { name: BD-SYSMAN-V2 }
+                  sites: *epg_sites_internal
+
+                - name: EPG-VHOST-MGMT-V2
+                  bridge_domain: { name: BD-VHOST-MGMT-V2 }
+                  # ESXi hypervisor management (vmkernel) lives on the bare-metal
+                  # hosts themselves and cannot ride a VDS port-group; VMM
+                  # domain removed.
+                  sites:
+                    - name: AEDCG
+                    - name: AEDCK
+
+                - name: EPG-VVOIP-MGMT-V2
+                  bridge_domain: { name: BD-VVOIP-MGMT-V2 }
+                  sites: *epg_sites_internal
+
+                - name: EPG-VVOIP-PROXY-V2
+                  bridge_domain: { name: BD-VVOIP-PROXY-V2 }
+                  sites: *epg_sites_internal
+
+                - name: EPG-WEB-SVR-V2
+                  bridge_domain: { name: BD-WEB-SVR-V2 }
+                  sites: *epg_sites_internal
+
+            # ── AppProf-DMZ-V2 (VRF-DMZ-V2) -- 3 EPGs ────────────────────────
+            - name: AppProf-DMZ-V2
+              description: "DMZ proxy segments -- routing-isolated from internal"
+              endpoint_groups:
+
+                - name: EPG-D64-PROXY-V2
+                  bridge_domain: { name: BD-D64-PROXY-V2 }
+                  sites: *epg_sites_internal
+
+                - name: EPG-FWEB-PROXY-V2
+                  bridge_domain: { name: BD-FWEB-PROXY-V2 }
+                  sites: *epg_sites_internal
+
+                - name: EPG-RWEB-PROXY-V2
+                  bridge_domain: { name: BD-RWEB-PROXY-V2 }
+                  sites: *epg_sites_internal

@@ -4,7 +4,7 @@
 >
 > That file is the canonical 7-phase end-to-end procedure for bringing the
 > lab up from scratch, including the dependency on the sibling repo
-> `~/DC/ACI/ndo-terraform-nac-prod/`. Production cutover walks the same
+> `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/`. Production cutover walks the same
 > phase order; per-stack deltas are in each stack's own README.
 
 This file (the repo root README) covers what the repo *is*, GitLab CI/runner
@@ -31,14 +31,14 @@ pipeline that contains a plaintext credential in tracked YAML.
 ## Repository contents
 
 This repo contains **four Terraform roots** plus shared scripts and docs.
-The fifth root in the deployment order — `ndo-terraform-nac-prod/` — lives
-in a **sibling repo** at `~/DC/ACI/ndo-terraform-nac-prod/`.
+The fifth root in the deployment order — `sac-johbarbe-AFRICOM-terraform-nac-ndo/` — lives
+in a **sibling repo** at `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/`.
 
 | Path | Terraform root? | What it owns | Reference |
 |------|-----------------|--------------|-----------|
 | `aci-redesign/apic-vmware/` | yes (lab APIC) | Per-fabric APIC access policies, MCP, VMware VMM domains for AEDCG and AEDCK | [`aci-redesign/apic-vmware/README.md`](aci-redesign/apic-vmware/README.md) (+ [`README_LAB.md`](aci-redesign/apic-vmware/README_LAB.md)) |
 | `aci-redesign/apic-vmware-prod/` | yes (prod APIC) | Same shape as `apic-vmware/`, but Design A (UCS-FI) and prod credentials, separate state | [`aci-redesign/apic-vmware-prod/README.md`](aci-redesign/apic-vmware-prod/README.md) |
-| `aci-redesign/ndo/` | yes (lab NDO redesign) | Schema `AEDCE-IPv4`, single template `Tenant_EUR_IPv4` (2 VRFs, 39 BDs/EPGs, 2 contracts) | [`aci-redesign/ndo/README.md`](aci-redesign/ndo/README.md) (+ [`README_LAB.md`](aci-redesign/ndo/README_LAB.md)) |
+| `aci-redesign/ndo/` | yes (lab NDO redesign) | Schema `AEDCE-V2`, single template `Tenant_EUR_V2` (2 VRFs, 39 BDs/EPGs, 2 contracts; all tenant-scoped objects suffixed `-V2` to coexist with the legacy `AEDCE` schema in tenant `EUR`) | [`aci-redesign/ndo/README.md`](aci-redesign/ndo/README.md) (+ [`README_LAB.md`](aci-redesign/ndo/README_LAB.md)) |
 | `ndo-terraform-ipv6/` | yes (IPv6 RCC layer) | `AppProf-RCC` ANP + 39 IPv6 EPGs + L3Outs into existing `L2_Stretched` template | [`ndo-terraform-ipv6/README.md`](ndo-terraform-ipv6/README.md) (+ [`README_LAB.md`](ndo-terraform-ipv6/README_LAB.md)) |
 | `aci-redesign/scripts/` | no (Python tools) | Bindings push helpers (`dump_bindings.py`, `deploy_bindings.py`, `generate_fi_bindings.py`) | [`aci-redesign/scripts/README.md`](aci-redesign/scripts/README.md) |
 | `aci-redesign/data/` | no (NAC YAML inputs) | Per-fabric YAML consumed by the four Terraform roots above | [`aci-redesign/data/_archive/README.md`](aci-redesign/data/_archive/README.md), [`nac-aci-shared/README.md`](aci-redesign/data/nac-aci-shared/README.md) |
@@ -50,7 +50,7 @@ The sibling repo is the foundational layer:
 
 | Sibling repo | What it owns |
 |---|---|
-| `~/DC/ACI/ndo-terraform-nac-prod/` (separate git repo) | Tenant `EUR`, schema `AEDCE` with 5 templates (`VRF_Template`, `L2_Stretched`, `L2_Non-Stretched`, `G-Specific_Only`, `K-Specific_Only`), 11 prod VRFs, 266 BDs, 265 EPGs, 13 L3Outs, 812 VPC static-port bindings |
+| `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/` (separate git repo) | Tenant `EUR`, schema `AEDCE` with 5 templates (`VRF_Template`, `L2_Stretched`, `L2_Non-Stretched`, `G-Specific_Only`, `K-Specific_Only`), 11 prod VRFs, 266 BDs, 265 EPGs, 13 L3Outs, 812 VPC static-port bindings |
 
 That stack creates the `Any` filter under `AEDCE/VRF_Template` that
 `aci-redesign/ndo/`'s schema cross-references. **It must be deployed
@@ -84,9 +84,11 @@ first** — the runbook in [`README_LAB.md`](README_LAB.md) makes this Phase 1.
 git clone http://localhost:8080/root/terraform_redesign_esg.git
 cd terraform_redesign_esg
 
-# Python venv (one-time)
-python3 -m venv ~/my_venv
-source ~/my_venv/bin/activate
+# Python venv (one-time). Canonical name on this laptop is ~/dc_redesign.
+# Activate it before every session (or after every shell restart) before
+# running any of the scripts in aci-redesign/scripts/ or ndo-terraform-ipv6/.
+python3 -m venv ~/dc_redesign
+source ~/dc_redesign/bin/activate
 pip install requests urllib3 PyYAML
 ```
 
@@ -99,9 +101,11 @@ Then follow [`README_LAB.md`](README_LAB.md) Phase 1 onwards.
 git clone https://sync.git.mil/john.g.barber.ctr/my-new-ipv6-project.git
 cd my-new-ipv6-project
 
-# Python venv (one-time)
-python3 -m venv ~/my_venv
-source ~/my_venv/bin/activate
+# Python venv (one-time). On the prod RHEL 8 host the venv is named ~/ansvenv
+# (NOT ~/dc_redesign, which is the laptop name). Activate it before running any
+# of the scripts in aci-redesign/scripts/ or ndo-terraform-ipv6/.
+python3 -m venv ~/ansvenv
+source ~/ansvenv/bin/activate
 pip install requests urllib3 PyYAML
 ```
 
@@ -143,14 +147,14 @@ file.
 |---------|---------------------|---------------|--------------------------------|------|
 | `aci-redesign/apic-vmware/` | [`aci-redesign/apic-vmware/.gitlab-ci.yml`](aci-redesign/apic-vmware/.gitlab-ci.yml) | Lab APIC fabrics (AEDCG + AEDCK) | No — APIC has it | Dormant — file untracked; activate per [Enabling and disabling per-project pipelines](#enabling-and-disabling-per-project-pipelines) |
 | `aci-redesign/apic-vmware-prod/` | [`aci-redesign/apic-vmware-prod/.gitlab-ci.yml`](aci-redesign/apic-vmware-prod/.gitlab-ci.yml) | Prod APIC fabrics | No — APIC has it | Dormant — file untracked |
-| `aci-redesign/ndo/` | [`aci-redesign/ndo/.gitlab-ci.yml`](aci-redesign/ndo/.gitlab-ci.yml) | NDO schema `AEDCE-IPv4` | **Yes** — Deploy `Tenant_EUR_IPv4` to AEDCG/AEDCK | **Yes** |
+| `aci-redesign/ndo/` | [`aci-redesign/ndo/.gitlab-ci.yml`](aci-redesign/ndo/.gitlab-ci.yml) | NDO schema `AEDCE-V2` | **Yes** — Deploy `Tenant_EUR_V2` to AEDCG/AEDCK | **Yes** |
 | `ndo-terraform-ipv6/` | [`ndo-terraform-ipv6/.gitlab-ci.yml`](ndo-terraform-ipv6/.gitlab-ci.yml) | NDO schema `AEDCE / L2_Stretched` (extends) | **Yes** — Re-deploy `L2_Stretched` | **Yes** |
 
 The sibling foundational stack lives in its own repo with its own root CI:
 
 | Sibling repo | Per-project CI file | Apply targets | Manual NDO-UI step? |
 |--------------|---------------------|---------------|---------------------|
-| `~/DC/ACI/ndo-terraform-nac-prod/` | `~/DC/ACI/ndo-terraform-nac-prod/.gitlab-ci.yml` | NDO tenant `EUR` + schema `AEDCE` (5 templates) | **Yes** — Deploy 5 templates in strict order |
+| `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/` | `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/.gitlab-ci.yml` | NDO tenant `EUR` + schema `AEDCE` (5 templates) | **Yes** — Deploy 5 templates in strict order |
 
 ### How to trigger a single-project pipeline
 
@@ -234,12 +238,12 @@ them onto the `TF_VAR_*` variables Terraform expects.
 > manage.** If you've previously set `TF_HTTP_USERNAME` /
 > `TF_HTTP_PASSWORD` on the project, you can delete them — they are no
 > longer used. The same applies to the sibling repo
-> `~/DC/ACI/ndo-terraform-nac-prod/`.
+> `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/`.
 
-Sibling repo `ndo-terraform-nac-prod/` has its own variable set
+Sibling repo `sac-johbarbe-AFRICOM-terraform-nac-ndo/` has its own variable set
 (`MSO_URL`, `MSO_USERNAME`, `MSO_PASSWORD`, `MSO_DOMAIN`) defined on that
-repo's GitLab project. See [`~/DC/ACI/ndo-terraform-nac-prod/README.md` →
-"GitLab CI/CD variables"](../ndo-terraform-nac-prod/README.md#gitlab-cicd-variables).
+repo's GitLab project. See [`~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/README.md` →
+"GitLab CI/CD variables"](../sac-johbarbe-AFRICOM-terraform-nac-ndo/README.md#gitlab-cicd-variables).
 
 #### Provisioning the lab variable set in one shot
 
@@ -253,7 +257,7 @@ your workflow:
 ```
 
 Auto-discovers NDO/APIC URLs, usernames, and the lab NDO password from
-your existing `terraform.tfvars` and `~/DC/ACI/ndo-terraform-nac-prod/.env`
+your existing `terraform.tfvars` and `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/.env`
 files. Auto-generates two distinct MCP keys (16 chars, APIC- and
 GitLab-mask-compatible alphabet `[A-Za-z0-9+=]`, with at least one of
 each character class). Silently prompts for what it can't discover:
@@ -288,10 +292,51 @@ Each value comes from a same-named env var. Both scripts:
 
 Re-run any time — only variables whose env var is set are touched.
 
-For the `_PROD` half of the table, set `_PROD`-suffixed env vars and
-adapt accordingly. The production GitLab project is normally a
-separate instance from your lab GitLab so provisioning is intentionally
-a separate one-time task.
+#### Provisioning the `_PROD` APIC variables (production cutover)
+
+`apic-vmware-prod/.gitlab-ci.yml` reads 8 `_PROD`-suffixed APIC variables
+(`AEDCG_APIC_URL_PROD`, `AEDCG_APIC_USERNAME_PROD`,
+`AEDCG_APIC_PASSWORD_PROD`, `AEDCG_MCP_KEY_PROD`, and the four matching
+`AEDCK_*_PROD`). There are two patterns for populating them; both are
+supported by the same scripts.
+
+**Pattern A — separate production GitLab instance (recommended).**
+Lab and prod CI live on different GitLab servers. Variable names are
+identical on both servers — only the values differ. Re-run the lab
+scripts against the production server:
+
+```bash
+GITLAB_URL=https://gitlab.prod.example.com \
+GITLAB_PROJECT=team/terraform-esg \
+  ./scripts/setup_gitlab_ci_variables_interactive.sh
+```
+
+**Pattern B — one GitLab project hosts both lab and prod CI.** Run the
+lab pass first to seed the 18 lab variables, then add the 8 `_PROD`
+APIC variables with `--prod`:
+
+```bash
+./scripts/setup_gitlab_ci_variables_interactive.sh           # lab pass (18 vars)
+./scripts/setup_gitlab_ci_variables_interactive.sh --prod    # prod pass (8 *_PROD APIC vars)
+```
+
+`--prod` mode prompts for the prod APIC URLs and admin password, auto-
+generates fresh prod MCP keys, and leaves `NDO_*`, `VCENTER_*`, and
+`TF_HTTP_*` alone (the per-project CI files have no `_PROD` variant for
+those — they're either shared with lab or already provisioned).
+
+For scripted use the non-interactive variant accepts a `PROD=1` env
+var that flips it into the same prod-only set:
+
+```bash
+PROD=1 \
+AEDCG_APIC_URL_PROD=https://... AEDCG_APIC_USERNAME_PROD=admin \
+AEDCG_APIC_PASSWORD_PROD='...' AEDCG_MCP_KEY_PROD='...' \
+AEDCK_APIC_URL_PROD=https://... AEDCK_APIC_USERNAME_PROD=admin \
+AEDCK_APIC_PASSWORD_PROD='...' AEDCK_MCP_KEY_PROD='...' \
+GITLAB_TOKEN=... \
+  ./scripts/setup_gitlab_ci_variables.sh
+```
 
 ---
 
@@ -302,7 +347,7 @@ There are **two runner servers**:
 
 | Server | Hostname | Projects served |
 |--------|----------|-----------------|
-| `apckw059aau0096` | aci-automation-runner | this repo + `ndo-terraform-nac-prod` |
+| `apckw059aau0096` | aci-automation-runner | this repo + `sac-johbarbe-AFRICOM-terraform-nac-ndo` |
 | `APCKW059AAU0018` | — | `n5k`, `aci-lf-rplc` |
 
 This repo's pipelines run on **`apckw059aau0096`**.
@@ -325,7 +370,7 @@ pkill gitlab-runner && nohup ~/gitlab-runner/gitlab-runner run &   # restart
 The runner shows online in GitLab within 30 seconds. It's a background
 process — it dies on reboot. Auto-restart via crontab:
 
-On `apckw059aau0096` (this repo + `ndo-terraform-nac-prod`):
+On `apckw059aau0096` (this repo + `sac-johbarbe-AFRICOM-terraform-nac-ndo`):
 
 ```bash
 crontab -e
@@ -408,7 +453,7 @@ is gitignored too.
 
 | Project | GitLab repo | Purpose |
 |---|---|---|
-| `~/DC/ACI/ndo-terraform-nac-prod/` | `root/ndo_terraform` | **Phase 1** of the deployment runbook in this repo's `README_LAB.md` — foundational NDO-NAC stack (tenant `EUR`, schema `AEDCE`, 5 templates, 812 VPC bindings) |
+| `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/` | `root/ndo_terraform` | **Phase 1** of the deployment runbook in this repo's `README_LAB.md` — foundational NDO-NAC stack (tenant `EUR`, schema `AEDCE`, 5 templates, 812 VPC bindings) |
 | `~/DC/NXOS/n5k/` | `root/n5k_replacement` | N5K switch migration and ACI leaf replacement (separate workflow) |
 | `~/DC/NXOS/n5k/Snake/{LAB,PRODUCTION}/aci-lf-rplc/` | sub-dirs of `n5k_replacement` | Leaf-replacement bindings tool (post-migration) |
 
@@ -426,7 +471,7 @@ Excluded via `.gitignore` — must be created locally:
 | `*.tfstate*` | Terraform state |
 | `.terraform/` | Provider cache |
 | `vault.yml` / `vault_pass.txt` | Ansible Vault |
-| `.env` | Per-stack credential block (e.g. `ndo-terraform-nac-prod`) |
+| `.env` | Per-stack credential block (e.g. `sac-johbarbe-AFRICOM-terraform-nac-ndo`) |
 | `backend.hcl` / `local_override.tf` | Local backend config (e.g. `ndo-terraform-ipv6`) |
 | `data/nac-aci-{aedcg,aedck}-rendered/` | VMM YAML rendered from `TF_VAR_vcenter_*` |
 | `*.json` (generated) | Bindings JSONs from `dump_bindings.py` / `generate_fi_bindings.py` |

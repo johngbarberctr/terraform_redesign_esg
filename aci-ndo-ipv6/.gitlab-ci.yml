@@ -1,0 +1,158 @@
+# aci-ndo-ipv6 (IPv6 RCC LAYER, NDO-managed) CI
+#
+# Per-project pipeline for the IPv6 RCC layer. Adds a new ANP (AppProf-RCC)
+# and 39 IPv6 EPGs INTO the existing AEDCE / L2_Stretched template that
+# Phase 1 (~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/) created. Also manages a few
+# IPv6 BD subnets and the NDO bootstrap on a fresh dCloud ND 4.1.
+#
+# Pipeline shape: validate -> plan -> apply (manual)
+#
+# >>> After `apply` succeeds, AEDCE/L2_Stretched is UPDATED in NDO but the
+# >>> changes are NOT YET deployed to AEDCG/AEDCK. YOU MANUALLY click in
+# >>> the NDO UI:
+# >>>     Application Management -> Schemas -> AEDCE -> L2_Stretched
+# >>>     -> Deploy to sites -> [AEDCG, AEDCK]
+#
+# Phase-1 prerequisite: schema AEDCE with template L2_Stretched MUST
+# already exist in NDO (created by ~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/).
+#
+# Trigger:
+#   - Auto: any push / MR that changes aci-ndo-ipv6/**.
+#   - Manual: GitLab UI -> Run pipeline -> set PROJECT=aci-ndo-ipv6.
+#
+# Performance notes (kept from the legacy CI; do not change):
+#   - parallelism=3      large schema; Terraform thrashes NDO with the
+#                        default 10 parallel ops.
+#   - refresh=false      avoids the per-resource GET storm during plan
+#                        which often exceeds NDO's default rate limits.
+#   - timeout: 2h        a clean plan can take ~30 minutes; an apply with
+#                        the full ANP creation can take ~90 minutes.
+#   - retry x2           NDO occasionally returns 503 mid-apply.
+#
+# Required GitLab CI/CD variables:
+#   NDO_USERNAME, NDO_PASSWORD (Masked), NDO_URL
+#   TF_VARS_FILE              checked-in var-file selecting per-env knobs
+#                             (vrf_template_name, mso_domain, mso_platform).
+#                             Defaults to "lab.tfvars" so the lab GitLab
+#                             project works out of the box. Production GitLab
+#                             projects override this to "prod.tfvars" in
+#                             Settings -> CI/CD -> Variables.
+#   GITLAB_API_URL (defaults to ${CI_API_V4_URL})
+#
+# Why TF_VARS_FILE instead of per-knob TF_VAR_* CI variables:
+#   The mso provider needs domain="local" + platform="nd" against an ND-
+#   based NDO (lab), but null/null against MSO 3.x (legacy prod). Hard-
+#   coding TF_VAR_vrf_template_name + missing TF_VAR_mso_domain/platform
+#   has bitten us before (HTTP 200 parse error from the provider against
+#   lab NDO). The -var-file pattern keeps all three knobs co-located in
+#   lab.tfvars / prod.tfvars (already checked in) and matches the CLI
+#   workflow documented in README_LAB.md Phase 5.
+#
+# Note: the HTTP state backend is authenticated with the per-job
+# $CI_JOB_TOKEN (see .ndo-ipv6-vars below). No PAT is required in CI
+# variables, and there is no expiry to manage.
+
+.ndo-ipv6-rules: &ndo-ipv6-rules
+  - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    changes:
+      - aci-ndo-ipv6/**/*
+  - if: $CI_COMMIT_BRANCH == "main"
+    changes:
+      - aci-ndo-ipv6/**/*
+  - if: $PROJECT == "aci-ndo-ipv6"
+
+.ndo-ipv6-vars: &ndo-ipv6-vars
+  TF_HTTP_ADDRESS: "${GITLAB_API_URL}/projects/${CI_PROJECT_ID}/terraform/state/aci-ndo-ipv6"
+  TF_HTTP_LOCK_ADDRESS: "${GITLAB_API_URL}/projects/${CI_PROJECT_ID}/terraform/state/aci-ndo-ipv6/lock"
+  TF_HTTP_LOCK_METHOD: POST
+  TF_HTTP_UNLOCK_ADDRESS: "${GITLAB_API_URL}/projects/${CI_PROJECT_ID}/terraform/state/aci-ndo-ipv6/lock"
+  TF_HTTP_UNLOCK_METHOD: DELETE
+  # Authenticate the HTTP state backend with the per-job CI token. No PAT
+  # in CI variables, no expiry to manage. The token is auto-revoked at job
+  # end and only has read/write to this project's terraform state.
+  TF_HTTP_USERNAME: "gitlab-ci-token"
+  TF_HTTP_PASSWORD: "${CI_JOB_TOKEN}"
+  TF_VAR_ndo_username: "${NDO_USERNAME}"
+  TF_VAR_ndo_password: "${NDO_PASSWORD}"
+  TF_VAR_ndo_url: "${NDO_URL}"
+  # vrf_template_name, mso_domain, mso_platform come from the checked-in
+  # var-file selected via TF_VARS_FILE (default: lab.tfvars). Production
+  # GitLab projects override TF_VARS_FILE=prod.tfvars in CI/CD variables.
+  TF_VARS_FILE: "lab.tfvars"
+
+validate-aci-ndo-ipv6:
+  extends: .tf-job
+  stage: validate
+  script:
+    - cd aci-ndo-ipv6
+    - terraform fmt -check
+    - terraform init -backend=false -input=false
+    - terraform validate
+  cache: []
+  allow_failure: true
+  rules: *ndo-ipv6-rules
+
+plan-aci-ndo-ipv6:
+  extends: .tf-job
+  stage: plan
+  resource_group: aci-ndo-ipv6
+  timeout: 2h
+  retry:
+    max: 2
+    when: script_failure
+  variables:
+    <<: *ndo-ipv6-vars
+  script:
+    - cd aci-ndo-ipv6
+    - terraform init -input=false
+    - 'echo "Using var-file: ${TF_VARS_FILE}"'
+    - terraform plan -out=plan.tfplan -input=false -parallelism=3 -refresh=false -var-file="${TF_VARS_FILE}"
+    - terraform show -no-color plan.tfplan > plan.txt
+    - terraform show -json    plan.tfplan | jq > plan.json
+    - terraform show -json    plan.tfplan | jq '([.resource_changes[]?.change.actions?]|flatten)|{"create":(map(select(.=="create"))|length),"update":(map(select(.=="update"))|length),"delete":(map(select(.=="delete"))|length)}' > plan_gitlab.json
+  artifacts:
+    paths:
+      - aci-ndo-ipv6/plan.tfplan
+      - aci-ndo-ipv6/plan.txt
+      - aci-ndo-ipv6/plan.json
+      - aci-ndo-ipv6/plan_gitlab.json
+    reports:
+      terraform: aci-ndo-ipv6/plan_gitlab.json
+    expire_in: 1 week
+  needs:
+    - validate-aci-ndo-ipv6
+  rules: *ndo-ipv6-rules
+
+apply-aci-ndo-ipv6:
+  extends: .tf-job
+  stage: deploy
+  resource_group: aci-ndo-ipv6
+  timeout: 2h
+  retry:
+    max: 2
+    when: script_failure
+  variables:
+    <<: *ndo-ipv6-vars
+  script:
+    - cd aci-ndo-ipv6
+    - terraform init -input=false
+    - terraform apply -input=false -auto-approve -parallelism=3 plan.tfplan
+    - echo
+    - echo '============================================================'
+    - echo 'NDO schema AEDCE / L2_Stretched has been UPDATED in NDO.'
+    - echo 'The change is NOT YET DEPLOYED to APIC.'
+    - echo
+    - echo 'Manual NDO UI step required:'
+    - echo '  Application Management -> Schemas -> AEDCE ->'
+    - echo '  L2_Stretched -> Deploy to sites -> [AEDCG, AEDCK]'
+    - echo '============================================================'
+  dependencies:
+    - plan-aci-ndo-ipv6
+  needs:
+    - plan-aci-ndo-ipv6
+  when: manual
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      changes:
+        - aci-ndo-ipv6/**/*
+    - if: $PROJECT == "aci-ndo-ipv6"

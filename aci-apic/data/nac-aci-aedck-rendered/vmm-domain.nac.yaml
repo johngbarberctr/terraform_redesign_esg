@@ -1,0 +1,53 @@
+# VMware VMM Domain -- rendered by scripts/render-vmm-yaml.sh from this
+# template BEFORE `terraform plan` runs. The rendered output goes to
+# ../data/nac-aci-<fabric>-rendered/vmm-domain.nac.yaml, which is gitignored.
+#
+# DO NOT EDIT THE RENDERED FILE -- edit this template or the env vars that
+# feed it:
+#   TF_VAR_vcenter_hostname_ip, TF_VAR_vcenter_datacenter,
+#   TF_VAR_vcenter_username,    TF_VAR_vcenter_password,
+#   TF_VAR_vcenter_dvs_version  -- "unmanaged" recommended (APIC adopts the
+#       existing VDS at whatever version vCenter has, instead of trying to
+#       upgrade/downgrade it). The pinned netascode/nac-aci module's
+#       validator only accepts: unmanaged, 5.1, 5.5, 6.0, 6.5, 6.6 -- so
+#       newer concrete values like 7.0 / 8.0 / 8.0.2 are rejected at plan
+#       time. "unmanaged" both works and is the right semantic for adoption.
+#
+# vmm_domain_name (= VDS name in vCenter) is NOT an env var. It is fabric-
+# specific: AEDCG -> APCG-VDS1, AEDCK -> APCK-VDS1. The mapping lives in
+# scripts/render-vmm-yaml.sh and is keyed off the fabric arg passed to it.
+# This is required because each fabric adopts its own pre-existing VDS in
+# the shared vCenter rather than creating a single shared "vmm-vcenter-rcc"
+# VDS that no host is wired to.
+#
+# Source the sensitive values from env vars / GitLab CI masked variables /
+# Vault. See aci-redesign/README.md section 5.
+# The $-placeholders below are interpreted by Python string.Template in
+# render-vmm-yaml.sh (not by Terraform's templatefile()).
+---
+apic:
+  fabric_policies:
+    vmware_vmm_domains:
+      - name: APCK-VDS1
+        access_mode: read-write
+        tag_collection: true
+        vlan_pool: vmm-vlan-pool
+        vswitch:
+          cdp_policy: cdp-enabled
+          lldp_policy: lldp-enabled
+          port_channel_policy: mac-pinning
+        credential_policies:
+          - name: vcenter-creds
+            username: "administrator"
+            password: "C1sco12345!"
+        vcenters:
+          - name: vcenter01
+            hostname_ip: "198.18.134.80"
+            datacenter: "Datacenter"
+            credential_policy: vcenter-creds
+            dvs_version: "unmanaged"
+        uplinks:
+          - id: 1
+            name: uplink1
+          - id: 2
+            name: uplink2

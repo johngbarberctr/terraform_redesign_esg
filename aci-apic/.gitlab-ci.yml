@@ -1,0 +1,254 @@
+# aci-apic — APIC-direct (lab + prod) CI
+#
+# Merged pipeline for the lab and production APIC roots. Both roots share
+# the same Terraform code in this directory; lab vs prod is distinguished by
+# the tfvars file and the CI/CD variables (unsuffixed for lab, *_PROD for
+# production).
+#
+# Pipeline shape: validate -> plan -> apply (manual)
+#
+# Terraform state backends (keys kept from original split roots — do NOT
+# rename without migrating state first):
+#   lab:  state key "aci-redesign"
+#   prod: state key "aci-redesign-prod"
+#
+# Trigger:
+#   Auto:   any push / MR that changes aci-apic/**
+#   Manual: GitLab UI -> Run pipeline -> set PROJECT=apic-vmware (lab)
+#           or PROJECT=apic-vmware-prod (prod)
+#
+# Required GitLab CI/CD variables:
+#   Lab:  AEDCG_APIC_URL, AEDCG_APIC_USERNAME, AEDCG_APIC_PASSWORD (Masked),
+#         AEDCG_MCP_KEY (Masked), AEDCK_APIC_URL, AEDCK_APIC_USERNAME,
+#         AEDCK_APIC_PASSWORD (Masked), AEDCK_MCP_KEY (Masked)
+#   Prod: AEDCG_APIC_URL_PROD, AEDCG_APIC_USERNAME_PROD,
+#         AEDCG_APIC_PASSWORD_PROD (Masked+Protected),
+#         AEDCG_MCP_KEY_PROD (Masked+Protected),
+#         AEDCK_APIC_URL_PROD, AEDCK_APIC_USERNAME_PROD,
+#         AEDCK_APIC_PASSWORD_PROD (Masked+Protected),
+#         AEDCK_MCP_KEY_PROD (Masked+Protected)
+#   Both: VCENTER_HOSTNAME_IP, VCENTER_DATACENTER, VCENTER_DVS_VERSION,
+#         VCENTER_USERNAME, VCENTER_PASSWORD (Masked+Protected)
+#         GITLAB_API_URL (defaults to ${CI_API_V4_URL})
+
+# ---------------------------------------------------------------------------
+# LAB
+# ---------------------------------------------------------------------------
+
+.apic-vmware-rules: &apic-vmware-rules
+  - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    changes:
+      - aci-apic/**/*
+      - .gitlab/ci-secret-scan.sh
+  - if: $CI_COMMIT_BRANCH == "main"
+    changes:
+      - aci-apic/**/*
+      - .gitlab/ci-secret-scan.sh
+  - if: $PROJECT == "apic-vmware"
+
+.apic-vmware-vars: &apic-vmware-vars
+  TF_HTTP_ADDRESS: "${GITLAB_API_URL}/projects/${CI_PROJECT_ID}/terraform/state/aci-redesign"
+  TF_HTTP_LOCK_ADDRESS: "${GITLAB_API_URL}/projects/${CI_PROJECT_ID}/terraform/state/aci-redesign/lock"
+  TF_HTTP_LOCK_METHOD: POST
+  TF_HTTP_UNLOCK_ADDRESS: "${GITLAB_API_URL}/projects/${CI_PROJECT_ID}/terraform/state/aci-redesign/lock"
+  TF_HTTP_UNLOCK_METHOD: DELETE
+  TF_HTTP_USERNAME: "gitlab-ci-token"
+  TF_HTTP_PASSWORD: "${CI_JOB_TOKEN}"
+  TF_VAR_aedcg_apic_url: "${AEDCG_APIC_URL}"
+  TF_VAR_aedcg_apic_username: "${AEDCG_APIC_USERNAME}"
+  TF_VAR_aedcg_apic_password: "${AEDCG_APIC_PASSWORD}"
+  TF_VAR_aedcg_apic_insecure: "true"
+  TF_VAR_aedcg_mcp_key: "${AEDCG_MCP_KEY}"
+  TF_VAR_aedck_apic_url: "${AEDCK_APIC_URL}"
+  TF_VAR_aedck_apic_username: "${AEDCK_APIC_USERNAME}"
+  TF_VAR_aedck_apic_password: "${AEDCK_APIC_PASSWORD}"
+  TF_VAR_aedck_apic_insecure: "true"
+  TF_VAR_aedck_mcp_key: "${AEDCK_MCP_KEY}"
+  TF_VAR_vcenter_hostname_ip: "${VCENTER_HOSTNAME_IP}"
+  TF_VAR_vcenter_datacenter: "${VCENTER_DATACENTER}"
+  TF_VAR_vcenter_dvs_version: "${VCENTER_DVS_VERSION}"
+  TF_VAR_vcenter_username: "${VCENTER_USERNAME}"
+  TF_VAR_vcenter_password: "${VCENTER_PASSWORD}"
+  TF_VAR_manage_tenants: "true"
+
+validate-apic-vmware:
+  extends: .tf-job
+  stage: validate
+  variables:
+    TF_VAR_vcenter_hostname_ip: "${VCENTER_HOSTNAME_IP}"
+    TF_VAR_vcenter_datacenter: "${VCENTER_DATACENTER}"
+    TF_VAR_vcenter_dvs_version: "${VCENTER_DVS_VERSION}"
+    TF_VAR_vcenter_username: "${VCENTER_USERNAME}"
+    TF_VAR_vcenter_password: "${VCENTER_PASSWORD}"
+  script:
+    - bash .gitlab/ci-secret-scan.sh
+    - cd aci-apic
+    - ./scripts/render-vmm-yaml.sh aedcg
+    - ./scripts/render-vmm-yaml.sh aedck
+    - terraform fmt -check -recursive
+    - terraform init -backend=false -input=false
+    - terraform validate
+  cache: []
+  rules: *apic-vmware-rules
+
+plan-apic-vmware:
+  extends: .tf-job
+  stage: plan
+  resource_group: apic-vmware
+  variables:
+    <<: *apic-vmware-vars
+  script:
+    - cd aci-apic
+    - ./scripts/render-vmm-yaml.sh aedcg
+    - ./scripts/render-vmm-yaml.sh aedck
+    - terraform init -input=false
+    - terraform plan -out=plan.tfplan -input=false -var-file=lab.tfvars
+    - terraform show -no-color plan.tfplan > plan.txt
+    - terraform show -json    plan.tfplan | jq > plan.json
+    - terraform show -json    plan.tfplan | jq '([.resource_changes[]?.change.actions?]|flatten)|{"create":(map(select(.=="create"))|length),"update":(map(select(.=="update"))|length),"delete":(map(select(.=="delete"))|length)}' > plan_gitlab.json
+  artifacts:
+    paths:
+      - aci-apic/plan.tfplan
+      - aci-apic/plan.txt
+      - aci-apic/plan.json
+      - aci-apic/plan_gitlab.json
+    reports:
+      terraform: aci-apic/plan_gitlab.json
+    expire_in: 1 week
+  needs:
+    - validate-apic-vmware
+  rules: *apic-vmware-rules
+
+apply-apic-vmware:
+  extends: .tf-job
+  stage: deploy
+  resource_group: apic-vmware
+  variables:
+    <<: *apic-vmware-vars
+  script:
+    - cd aci-apic
+    - ./scripts/render-vmm-yaml.sh aedcg
+    - ./scripts/render-vmm-yaml.sh aedck
+    - terraform init -input=false
+    - terraform apply -input=false -auto-approve plan.tfplan
+  dependencies:
+    - plan-apic-vmware
+  needs:
+    - plan-apic-vmware
+  when: manual
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      changes:
+        - aci-apic/**/*
+    - if: $PROJECT == "apic-vmware"
+
+# ---------------------------------------------------------------------------
+# PROD
+# ---------------------------------------------------------------------------
+
+.apic-vmware-prod-rules: &apic-vmware-prod-rules
+  - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    changes:
+      - aci-apic/**/*
+      - .gitlab/ci-secret-scan.sh
+  - if: $CI_COMMIT_BRANCH == "main"
+    changes:
+      - aci-apic/**/*
+      - .gitlab/ci-secret-scan.sh
+  - if: $PROJECT == "apic-vmware-prod"
+
+.apic-vmware-prod-vars: &apic-vmware-prod-vars
+  TF_HTTP_ADDRESS: "${GITLAB_API_URL}/projects/${CI_PROJECT_ID}/terraform/state/aci-redesign-prod"
+  TF_HTTP_LOCK_ADDRESS: "${GITLAB_API_URL}/projects/${CI_PROJECT_ID}/terraform/state/aci-redesign-prod/lock"
+  TF_HTTP_LOCK_METHOD: POST
+  TF_HTTP_UNLOCK_ADDRESS: "${GITLAB_API_URL}/projects/${CI_PROJECT_ID}/terraform/state/aci-redesign-prod/lock"
+  TF_HTTP_UNLOCK_METHOD: DELETE
+  TF_HTTP_USERNAME: "gitlab-ci-token"
+  TF_HTTP_PASSWORD: "${CI_JOB_TOKEN}"
+  TF_VAR_aedcg_apic_url: "${AEDCG_APIC_URL_PROD}"
+  TF_VAR_aedcg_apic_username: "${AEDCG_APIC_USERNAME_PROD}"
+  TF_VAR_aedcg_apic_password: "${AEDCG_APIC_PASSWORD_PROD}"
+  TF_VAR_aedcg_apic_insecure: "true"
+  TF_VAR_aedcg_mcp_key: "${AEDCG_MCP_KEY_PROD}"
+  TF_VAR_aedck_apic_url: "${AEDCK_APIC_URL_PROD}"
+  TF_VAR_aedck_apic_username: "${AEDCK_APIC_USERNAME_PROD}"
+  TF_VAR_aedck_apic_password: "${AEDCK_APIC_PASSWORD_PROD}"
+  TF_VAR_aedck_apic_insecure: "true"
+  TF_VAR_aedck_mcp_key: "${AEDCK_MCP_KEY_PROD}"
+  TF_VAR_vcenter_hostname_ip: "${VCENTER_HOSTNAME_IP}"
+  TF_VAR_vcenter_datacenter: "${VCENTER_DATACENTER}"
+  TF_VAR_vcenter_dvs_version: "${VCENTER_DVS_VERSION}"
+  TF_VAR_vcenter_username: "${VCENTER_USERNAME}"
+  TF_VAR_vcenter_password: "${VCENTER_PASSWORD}"
+  TF_VAR_manage_tenants: "false"
+
+validate-apic-vmware-prod:
+  extends: .tf-job
+  stage: validate
+  variables:
+    TF_VAR_vcenter_hostname_ip: "${VCENTER_HOSTNAME_IP}"
+    TF_VAR_vcenter_datacenter: "${VCENTER_DATACENTER}"
+    TF_VAR_vcenter_dvs_version: "${VCENTER_DVS_VERSION}"
+    TF_VAR_vcenter_username: "${VCENTER_USERNAME}"
+    TF_VAR_vcenter_password: "${VCENTER_PASSWORD}"
+  script:
+    - bash .gitlab/ci-secret-scan.sh
+    - cd aci-apic
+    - ./scripts/render-vmm-yaml.sh aedcg
+    - ./scripts/render-vmm-yaml.sh aedck
+    - terraform fmt -check -recursive
+    - terraform init -backend=false -input=false
+    - terraform validate
+  cache: []
+  rules: *apic-vmware-prod-rules
+
+plan-apic-vmware-prod:
+  extends: .tf-job
+  stage: plan
+  resource_group: apic-vmware-prod
+  variables:
+    <<: *apic-vmware-prod-vars
+  script:
+    - cd aci-apic
+    - ./scripts/render-vmm-yaml.sh aedcg
+    - ./scripts/render-vmm-yaml.sh aedck
+    - terraform init -input=false
+    - terraform plan -out=plan.tfplan -input=false -var-file=prod.tfvars
+    - terraform show -no-color plan.tfplan > plan.txt
+    - terraform show -json    plan.tfplan | jq > plan.json
+    - terraform show -json    plan.tfplan | jq '([.resource_changes[]?.change.actions?]|flatten)|{"create":(map(select(.=="create"))|length),"update":(map(select(.=="update"))|length),"delete":(map(select(.=="delete"))|length)}' > plan_gitlab.json
+  artifacts:
+    paths:
+      - aci-apic/plan.tfplan
+      - aci-apic/plan.txt
+      - aci-apic/plan.json
+      - aci-apic/plan_gitlab.json
+    reports:
+      terraform: aci-apic/plan_gitlab.json
+    expire_in: 1 week
+  needs:
+    - validate-apic-vmware-prod
+  rules: *apic-vmware-prod-rules
+
+apply-apic-vmware-prod:
+  extends: .tf-job
+  stage: deploy
+  resource_group: apic-vmware-prod
+  variables:
+    <<: *apic-vmware-prod-vars
+  script:
+    - cd aci-apic
+    - ./scripts/render-vmm-yaml.sh aedcg
+    - ./scripts/render-vmm-yaml.sh aedck
+    - terraform init -input=false
+    - terraform apply -input=false -auto-approve plan.tfplan
+  dependencies:
+    - plan-apic-vmware-prod
+  needs:
+    - plan-apic-vmware-prod
+  when: manual
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      changes:
+        - aci-apic/**/*
+    - if: $PROJECT == "apic-vmware-prod"

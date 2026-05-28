@@ -4,6 +4,14 @@ One-off reference. Lists every project across `~/DC/`: Mac path, git remotes,
 purpose, and what it pushes where. Companion to `PROJECT_MAP.md`, which
 focuses on CI/runners and file paths.
 
+> **Heads-up on IPs in this document.** Lab APIC, NDO, and vCenter IPs shown
+> below are point-in-time snapshots from when this file was written. Lab
+> infrastructure gets re-IP'd periodically. The **operative** IPs for any
+> given project are the values in that project's `terraform.tfvars`,
+> `ndo.nac.yaml`, or `.env` file — not these tables. Always cross-check
+> before relying on any IP listed here. As of 2026-05-04, the lab APICs are
+> AEDCG = `198.18.134.252`, AEDCK = `198.18.134.253`.
+
 ---
 
 ## ACI projects
@@ -22,8 +30,8 @@ Two Terraform roots:
 
 | Root            | Owns                                                                                                              |
 | --------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `apic-vmware/`  | APIC access/fabric policies, VMware VMM domain (one per fabric), MCP instance policy.                              |
-| `ndo/`          | Tenant `EUR`, 2 VRFs (VRF-EUR / VRF-DMZ with vzAny), 39 BDs, 39 EPGs across `AppProf-NetCentric` + `AppProf-DMZ`. |
+| `apic-vmware/`  | APIC access/fabric policies, VMware VMM domain (one per fabric), MCP instance policy. Also the **ESG layer**: ANP `AppProf-AppCentric-V2` + `ESG-All-Internal-V2` (VRF-EUR-V2) + `ESG-All-DMZ-V2` (VRF-DMZ-V2), loaded from `data/nac-aci-shared/tenant-eur-esgs.nac.yaml` -- ESGs ride the `nac-aci@0.7.0` wrapper because `nac-ndo`/`mso` provider don't model `endpoint_security_groups`. |
+| `ndo/`          | Tenant `EUR` (referenced), 2 VRFs (VRF-EUR-V2 / VRF-DMZ-V2 with vzAny+permit-all), 39 BDs, 39 EPGs across `AppProf-NetCentric-V2` (36) + `AppProf-DMZ-V2` (3). |
 
 Six data dirs:
 
@@ -31,10 +39,10 @@ Six data dirs:
 | -------------------------------- | -------------------------------------------------------------------- |
 | `data/nac-aci-aedcg/`            | AEDCG lab access policy (lab simulator topology)                     |
 | `data/nac-aci-aedck/`            | AEDCK lab access policy (lab simulator topology)                     |
-| `data/nac-aci-shared/`           | cross-fabric APIC policy (modules toggles)                           |
+| `data/nac-aci-shared/`           | cross-fabric APIC policy: nac-aci module toggles (`modules.nac.yaml`) AND the V2 ESG layer (`tenant-eur-esgs.nac.yaml` -- ANP `AppProf-AppCentric-V2` + 2 ESGs, loaded by both AEDCG and AEDCK modules) |
 | `data/nac-aci-aedcg-prod/`       | AEDCG **prod** access policy (Design A: UCS-FI direct attach, no vPC) |
 | `data/nac-aci-aedck-prod/`       | AEDCK **prod** access policy (Design A)                              |
-| `data/nac-ndo/`                  | NDO schema (`AEDCE-IPv4`, template `Tenant_EUR_IPv4`) -- shared lab + prod |
+| `data/nac-ndo/`                  | NDO schema (`AEDCE-V2`, template `Tenant_EUR_V2`) -- shared lab + prod |
 
 Targets: lab APICs `198.18.134.253` / `198.18.134.254` and NDO `198.18.133.100`.
 
@@ -102,7 +110,7 @@ Targets: lab APICs `198.18.134.253` / `198.18.134.254` and NDO `198.18.133.100`.
 
 | Workspace        | File                                                                              | Folders mapped                                                                       |
 | ---------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| `ACI_LAB`        | `/Users/johbarbe/DC/ACI/terraform-esg/ACI_LAB.code-workspace`                     | terraform-esg, ndo-terraform (sibling), ndo-terraform-nac, n5k                      |
+| `ACI_LAB`        | `/Users/johbarbe/DC/ACI/terraform-esg/ACI_LAB.code-workspace`                     | terraform-esg, ndo-terraform-nac, sac-johbarbe-AFRICOM-terraform-nac-ndo, n5k, n5k/.../aci-lf-rplc   |
 | `ACI_PRODUCTION` | `/Users/johbarbe/DC/ACI/terraform-esg/ACI_PRODUCTION.code-workspace`              | ndo-terraform-nac/136.215.4.96, n5k/Snake/PRODUCTION                                |
 
 ---

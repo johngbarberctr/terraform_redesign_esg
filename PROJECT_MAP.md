@@ -42,7 +42,9 @@ Everything in one place. Saved at: `/Users/johbarbe/DC/ACI/terraform-esg/PROJECT
 | LAB - ESG Terraform | `/Users/johbarbe/DC/ACI/terraform-esg/` |
 | LAB - IPv4 NAC | `/Users/johbarbe/DC/ACI/ndo-terraform/` |
 | LAB - IPv4 NAC Terraform | `/Users/johbarbe/DC/ACI/ndo-terraform-nac/` |
+| LAB - IPv4 NAC Terraform (PROD) | `/Users/johbarbe/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/` |
 | LAB - N5K Migration & Leaf Replacement | `/Users/johbarbe/DC/NXOS/n5k/` |
+| LAB - ACI Leaf Replacement | `/Users/johbarbe/DC/NXOS/n5k/Snake/PRODUCTION/aci-lf-rplc/` |
 
 ### ACI_PRODUCTION workspace folders
 
@@ -273,4 +275,4 @@ This is the IPv6/ESG Terraform project — separate from aci-lf-rplc and n5k.
 | FI uplink PGs | -- | `PC_FI_A` (eth1/6), `PC_FI_B` (eth1/7); `mac-pinning` (mode `mac-pin`); single-leaf, no vPC |
 | Terraform roots | `apic-vmware/` (lab) + `ndo/` (lab+prod schema) | `apic-vmware-prod/` not yet created |
 
-NDO schema `data/nac-ndo/schema-aedce-ipv4.nac.yaml` is shared between lab and prod (same EPG model). The split is purely on the APIC access-policy side.
+NDO schema `data/nac-ndo/schema-aedce-v2.nac.yaml` is shared between lab and prod (same EPG model). The split is purely on the APIC access-policy side.

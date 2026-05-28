@@ -1,0 +1,266 @@
+# Access policies for VMM host connectivity and direct UCS-FI uplinks (AEDCK, PROD).
+#
+# This directory targets the PRODUCTION fabric (Design A: UCS-FI direct attach
+# without vPC). It is NOT consumed by the lab Terraform root in
+# ../../apic-vmware/ -- the lab continues to read ../nac-aci-aedck/, which
+# describes the simulator topology shown in
+# aci-redesign/Screenshot 2026-04-29 at 14.55.40.png.
+#
+# Mirrors data/nac-aci-aedcg-prod/access-policies.nac.yaml. Names are scoped
+# per-APIC, so reusing them across fabrics is safe and intentional.
+#
+# Production topology after the N5K -> ACI cutover:
+#   FI-A is single-homed to Leaf-119 via PC_FI_A (eth1/6).
+#   FI-B is single-homed to Leaf-191 via PC_FI_B (eth1/7).
+#   Same port numbers as AEDCG for symmetry.
+#   No vPC explicit protection group: FIs are not peered with each other.
+#
+# AEDCK leaf nodes are 119 and 191 (non-contiguous). The combined VMM
+# switch profile uses two single-node node_blocks rather than a from/to
+# range; the new per-leaf FI switch profiles each use a single-node block.
+---
+apic:
+  access_policies:
+    vlan_pools:
+      - name: vmm-vlan-pool
+        allocation: dynamic
+        ranges:
+          - from: 3501
+            to: 3967
+
+      # Identical to AEDCG prod (213 VLANs, 93 contiguous ranges).
+      - name: fi-static-vlan-pool
+        allocation: static
+        ranges:
+          - { from: 9,    to: 10   }
+          - { from: 14,   to: 17   }
+          - { from: 20,   to: 22   }
+          - { from: 33,   to: 33   }
+          - { from: 66,   to: 67   }
+          - { from: 91,   to: 92   }
+          - { from: 99,   to: 99   }
+          - { from: 106,  to: 106  }
+          - { from: 108,  to: 108  }
+          - { from: 110,  to: 110  }
+          - { from: 120,  to: 120  }
+          - { from: 122,  to: 122  }
+          - { from: 125,  to: 125  }
+          - { from: 140,  to: 142  }
+          - { from: 144,  to: 144  }
+          - { from: 150,  to: 150  }
+          - { from: 160,  to: 164  }
+          - { from: 170,  to: 174  }
+          - { from: 176,  to: 176  }
+          - { from: 178,  to: 179  }
+          - { from: 191,  to: 194  }
+          - { from: 210,  to: 210  }
+          - { from: 216,  to: 216  }
+          - { from: 218,  to: 220  }
+          - { from: 222,  to: 222  }
+          - { from: 229,  to: 240  }
+          - { from: 250,  to: 251  }
+          - { from: 253,  to: 256  }
+          - { from: 260,  to: 268  }
+          - { from: 272,  to: 272  }
+          - { from: 276,  to: 276  }
+          - { from: 292,  to: 294  }
+          - { from: 299,  to: 299  }
+          - { from: 310,  to: 314  }
+          - { from: 316,  to: 316  }
+          - { from: 322,  to: 322  }
+          - { from: 350,  to: 350  }
+          - { from: 372,  to: 373  }
+          - { from: 376,  to: 376  }
+          - { from: 410,  to: 411  }
+          - { from: 419,  to: 420  }
+          - { from: 422,  to: 422  }
+          - { from: 441,  to: 441  }
+          - { from: 444,  to: 445  }
+          - { from: 450,  to: 450  }
+          - { from: 454,  to: 455  }
+          - { from: 470,  to: 476  }
+          - { from: 478,  to: 479  }
+          - { from: 481,  to: 481  }
+          - { from: 491,  to: 491  }
+          - { from: 501,  to: 501  }
+          - { from: 503,  to: 505  }
+          - { from: 510,  to: 510  }
+          - { from: 512,  to: 514  }
+          - { from: 516,  to: 516  }
+          - { from: 520,  to: 522  }
+          - { from: 524,  to: 524  }
+          - { from: 528,  to: 532  }
+          - { from: 540,  to: 540  }
+          - { from: 542,  to: 542  }
+          - { from: 544,  to: 544  }
+          - { from: 546,  to: 546  }
+          - { from: 550,  to: 550  }
+          - { from: 570,  to: 570  }
+          - { from: 572,  to: 572  }
+          - { from: 574,  to: 577  }
+          - { from: 580,  to: 582  }
+          - { from: 591,  to: 591  }
+          - { from: 595,  to: 595  }
+          - { from: 610,  to: 613  }
+          - { from: 616,  to: 616  }
+          - { from: 790,  to: 794  }
+          - { from: 809,  to: 809  }
+          - { from: 820,  to: 820  }
+          - { from: 860,  to: 861  }
+          - { from: 863,  to: 863  }
+          - { from: 950,  to: 954  }
+          - { from: 956,  to: 956  }
+          - { from: 958,  to: 958  }
+          - { from: 970,  to: 972  }
+          - { from: 976,  to: 976  }
+          - { from: 1116, to: 1117 }
+          - { from: 1119, to: 1120 }
+          - { from: 1140, to: 1149 }
+          - { from: 1571, to: 1571 }
+          - { from: 1581, to: 1581 }
+          - { from: 1583, to: 1583 }
+          - { from: 1591, to: 1596 }
+          - { from: 2001, to: 2005 }
+          - { from: 2150, to: 2150 }
+          - { from: 2170, to: 2176 }
+          - { from: 2205, to: 2205 }
+          - { from: 2250, to: 2250 }
+
+    physical_domains:
+      - name: phys-vmm-domain
+        vlan_pool: vmm-vlan-pool
+
+      - name: phys-fi-domain
+        vlan_pool: fi-static-vlan-pool
+
+    # netascode/nac-aci 0.7.0 reads CDP/LLDP/Port-Channel/Link-Level policies
+    # from access_policies.interface_policies.* -- not directly under
+    # access_policies. The module has no lacp_policies key (lacpLagPol is
+    # created from port_channel_policies, and PGs reference it via
+    # port_channel_policy:).
+    interface_policies:
+      cdp_policies:
+        - name: cdp-enabled
+          admin_state: true
+
+      lldp_policies:
+        - name: lldp-enabled
+          admin_rx_state: true
+          admin_tx_state: true
+
+      port_channel_policies:
+        - name: mac-pinning
+          mode: mac-pin
+
+      link_level_policies:
+        - name: 10G
+          speed: "10G"
+          auto: true
+
+    aaeps:
+      - name: vmm-aaep
+        infra_vlan: true
+        vmware_vmm_domains:
+          # APCK-VDS1: existing per-fabric VDS in shared vCenter (Option A).
+          - APCK-VDS1
+        physical_domains:
+          - phys-vmm-domain
+
+      - name: fi-aaep
+        infra_vlan: true
+        vmware_vmm_domains:
+          # APCK-VDS1: existing per-fabric VDS in shared vCenter (Option A).
+          - APCK-VDS1
+        physical_domains:
+          - phys-fi-domain
+
+    leaf_interface_policy_groups:
+      - name: vpc-vmm-hosts
+        type: vpc
+        aaep: vmm-aaep
+        link_level_policy: 10G
+        cdp_policy: cdp-enabled
+        lldp_policy: lldp-enabled
+        port_channel_policy: mac-pinning
+
+      - name: PC_FI_A
+        type: pc
+        aaep: fi-aaep
+        link_level_policy: 10G
+        cdp_policy: cdp-enabled
+        lldp_policy: lldp-enabled
+        port_channel_policy: mac-pinning
+
+      - name: PC_FI_B
+        type: pc
+        aaep: fi-aaep
+        link_level_policy: 10G
+        cdp_policy: cdp-enabled
+        lldp_policy: lldp-enabled
+        port_channel_policy: mac-pinning
+
+    # VMM port range trimmed from 1-48 to 8-48 to reserve eth1/6 and eth1/7
+    # for the FI uplink profiles below.
+    leaf_interface_profiles:
+      - name: leaf-119-191-intprof
+        interface_selectors:
+          - name: vmm-host-ports
+            policy_group: vpc-vmm-hosts
+            port_blocks:
+              - name: block1
+                from_port: 8
+                to_port: 48
+
+      - name: leaf-119-fi-intprof
+        interface_selectors:
+          - name: fi-a-uplink
+            policy_group: PC_FI_A
+            port_blocks:
+              - name: block1
+                from_port: 6
+                to_port: 6
+
+      - name: leaf-191-fi-intprof
+        interface_selectors:
+          - name: fi-b-uplink
+            policy_group: PC_FI_B
+            port_blocks:
+              - name: block1
+                from_port: 7
+                to_port: 7
+
+    # Two non-contiguous node_blocks preserved on the existing combined profile.
+    # Two new per-leaf profiles added for FI uplinks (one node_block each).
+    leaf_switch_profiles:
+      - name: leaf-119-191-prof
+        selectors:
+          - name: leaf-119-191-sel
+            node_blocks:
+              - name: block1
+                from: 119
+                to: 119
+              - name: block2
+                from: 191
+                to: 191
+        interface_profiles:
+          - leaf-119-191-intprof
+
+      - name: leaf-119-prof
+        selectors:
+          - name: leaf-119-sel
+            node_blocks:
+              - name: block1
+                from: 119
+                to: 119
+        interface_profiles:
+          - leaf-119-fi-intprof
+
+      - name: leaf-191-prof
+        selectors:
+          - name: leaf-191-sel
+            node_blocks:
+              - name: block1
+                from: 191
+                to: 191
+        interface_profiles:
+          - leaf-191-fi-intprof

@@ -1,0 +1,220 @@
+# =============================================================================
+# tenant-eur-esgs.nac.yaml -- APIC-direct ESG layer for the V2 redesign.
+#
+# What this file owns:
+#   * Tenant EUR (name only -- no description/alias overrides; see "Tenant
+#     ownership" note below).
+#   * One Application Profile: AppProf-AppCentric-V2 (per-fabric, identical
+#     on AEDCG and AEDCK because this YAML is loaded by both
+#     module.aci_aedcg and module.aci_aedck in apic-vmware/main.tf).
+#   * Two Endpoint Security Groups:
+#       - ESG-All-Internal-V2 in VRF-EUR-V2  -> selects every EPG in
+#         AppProf-NetCentric-V2 (36 internal EPGs).
+#       - ESG-All-DMZ-V2      in VRF-DMZ-V2  -> selects every EPG in
+#         AppProf-DMZ-V2      (3 DMZ EPGs).
+#
+# Why this file exists separately from ../nac-ndo/schema-aedce-v2.nac.yaml:
+#   The netascode/nac-ndo/mso v1.2.x module does not model
+#   endpoint_security_groups. The Cisco mso Terraform provider also lacks
+#   ESG resource types as of v1.7.x. So NDO cannot create ESGs via
+#   Terraform today -- the only NDO-managed paths are the GUI or hand-rolled
+#   REST API calls. Rather than fork the schema across two paradigms (NDO
+#   for everything else, REST for ESGs), we put ESGs APIC-direct via
+#   netascode/nac-aci/aci@0.7.0, which DOES model endpoint_security_groups
+#   natively in YAML (see ../archive/migration-phases/2-add-single-esg-for-
+#   all-epgs.nac.yaml for the original wrapper YAML idiom proof).
+#
+#   Trade-off: NDO will NOT show these ESGs in its tenant template view
+#   (because it does not own them). To inspect them, use the APIC GUI on
+#   each fabric directly:
+#     Tenants -> EUR -> Application Profiles -> AppProf-AppCentric-V2
+#       -> Endpoint Security Groups
+#   When the netascode/nac-ndo/mso module gains ESG support, this file
+#   becomes a candidate for migration into the NDO schema (one-time, with
+#   a state move rather than destroy/recreate; see DESIGN.md).
+#
+# Naming -- WHY THE THREE ANPs:
+#   * AppProf-NetCentric-V2 (NDO-managed, schema-aedce-v2.nac.yaml):
+#       network-centric layer -- one EPG per BD per legacy VLAN/subnet
+#       group. The 36 internal EPGs.
+#   * AppProf-DMZ-V2 (NDO-managed, schema-aedce-v2.nac.yaml):
+#       DMZ proxy EPGs. Routing-isolated in VRF-DMZ-V2; kept in a
+#       separate ANP for blast-radius and operational visibility.
+#   * AppProf-AppCentric-V2 (APIC-direct, this file):
+#       app-centric layer -- ESGs grouping the NetCentric and DMZ EPGs
+#       by function. Phase 2 starts with one ESG per VRF (lift-and-shift,
+#       all current EPGs join their VRF's ESG); Phase 3 will split these
+#       into per-zone ESGs as the security policy granularity increases.
+#
+# Tenant ownership (FIRST-PLAN HEADS-UP):
+#   The EUR tenant exists on APIC today (it predates the V2 redesign).
+#   Today, NO Terraform stack manages tenant EUR's attributes -- the
+#   legacy ../../../sac-johbarbe-AFRICOM-terraform-nac-ndo stack only references it
+#   (`tenant: EUR` under templates) without claiming ownership of the
+#   tenant object's description/alias/annotations.
+#
+#   When you flip manage_tenants = true in apic-vmware/main.tf and run
+#   the first plan, the netascode/nac-aci wrapper will become the
+#   Terraform owner of the EUR tenant attributes on each fabric. The
+#   first plan WILL show drift on the description/alias if APIC has any
+#   manually-set values that this YAML does not declare. Two options:
+#     1. Accept the drift -- let the wrapper set tenant attributes to
+#        what is declared here (currently nothing, so empty strings).
+#        Future NDO and APIC-direct applies are then idempotent.
+#     2. Pre-set the description/alias here to match what is on APIC
+#        today (inspect via APIC GUI: Tenants -> EUR -> overview pane).
+#        Recommended if the manual description has operational meaning.
+#
+# vzAny interaction:
+#   The two VRFs (VRF-EUR-V2 and VRF-DMZ-V2) already have vzAny
+#   permit-all configured in the NDO schema (vzany: true plus the
+#   Any_VRF-*-V2 contracts). vzAny applies to ESG endpoints exactly
+#   like EPG endpoints, so creating the ESGs below does NOT change
+#   reachability -- everything in the VRF still reaches everything else
+#   in the same VRF. Phase 3 will start REPLACING vzAny with
+#   ESG-to-ESG contracts as we tighten the policy; that work is
+#   tracked in ../../DESIGN.md.
+#
+# Phase 2 selector model -- EPG selectors only:
+#   Each ESG matches endpoints by EPG membership (the auto-managed tag
+#   that ACI applies when an endpoint joins an EPG). This is the
+#   simplest, most reversible Phase 2 model: delete the ESG, the
+#   endpoints flip back to pure EPG classification, no Phase 1
+#   teardown needed.
+#
+#   Phase 3 will introduce tag_selectors for per-zone splits. The
+#   commented-out tag_selectors block in ESG-All-Internal-V2 below is
+#   the wire-format upgrade path: ACI matches an endpoint when ANY
+#   selector matches (EPG OR tag), so adding tag selectors is
+#   additive. The vCenter custom-attribute story (which tag scheme to
+#   use, who owns it) is open and lives in DESIGN.md "Phase 3".
+# =============================================================================
+---
+apic:
+  tenants:
+    - name: EUR
+      # See "Tenant ownership" note in the file header. Intentionally
+      # NO description/alias/annotation here on the first iteration.
+      # Add them in a follow-up PR after coordinating with the manual
+      # description on APIC.
+
+      application_profiles:
+        - name: AppProf-AppCentric-V2
+          description: "App-centric layer (ESGs grouping NetCentric/DMZ EPGs by function)"
+
+          endpoint_security_groups:
+
+            # ─── ESG-All-Internal-V2 ────────────────────────────────────────
+            # Lift-and-shift Phase 2: every EPG in AppProf-NetCentric-V2
+            # joins this ESG. vzAny on VRF-EUR-V2 keeps reachability
+            # unchanged. Phase 3 will split this into per-zone ESGs by
+            # adding tag_selectors and removing matching epg_selectors.
+            - name: ESG-All-Internal-V2
+              description: "Phase 2: every internal EPG (NetCentric ANP) joins this ESG. vzAny permit-all on VRF-EUR-V2 preserves reachability."
+              vrf: VRF-EUR-V2
+              shutdown: false
+              intra_esg_isolation: false
+              preferred_group: false
+              epg_selectors:
+                - application_profile: AppProf-NetCentric-V2
+                  endpoint_group: EPG-ACAS-MGMT-V2
+                - application_profile: AppProf-NetCentric-V2
+                  endpoint_group: EPG-ACAS-SCANNERS-V2
+                - application_profile: AppProf-NetCentric-V2
+                  endpoint_group: EPG-AD-V2
+                - application_profile: AppProf-NetCentric-V2
+                  endpoint_group: EPG-ADM-DCO-V2
+                - application_profile: AppProf-NetCentric-V2
+                  endpoint_group: EPG-ADFS-V2
+                - application_profile: AppProf-NetCentric-V2
+                  endpoint_group: EPG-APP-SVR-V2
+                - application_profile: AppProf-NetCentric-V2
+                  endpoint_group: EPG-BACKUP-SVR-V2
+                - application_profile: AppProf-NetCentric-V2
+                  endpoint_group: EPG-C2C-SCANNERS-V2
+                - application_profile: AppProf-NetCentric-V2
+                  endpoint_group: EPG-CFG-MGMT-V2
+                - application_profile: AppProf-NetCentric-V2
+                  endpoint_group: EPG-DB-SVR-V2
+                - application_profile: AppProf-NetCentric-V2
+                  endpoint_group: EPG-DHCP-SVR-V2
+                - application_profile: AppProf-NetCentric-V2
+                  endpoint_group: EPG-DNS-MGMT-V2
+                - application_profile: AppProf-NetCentric-V2
+                  endpoint_group: EPG-E911-SVR-V2
+                - application_profile: AppProf-NetCentric-V2
+                  endpoint_group: EPG-FILE-SVR-V2
+                - application_profile: AppProf-NetCentric-V2
+                  endpoint_group: EPG-FMWR-SVR-V2
+                - application_profile: AppProf-NetCentric-V2
+                  endpoint_group: EPG-GEF-MGMT-V2
+                - application_profile: AppProf-NetCentric-V2
+                  endpoint_group: EPG-LB-V2
+                - application_profile: AppProf-NetCentric-V2
+                  endpoint_group: EPG-LMR-V2
+                - application_profile: AppProf-NetCentric-V2
+                  endpoint_group: EPG-MECM-V2
+                - application_profile: AppProf-NetCentric-V2
+                  endpoint_group: EPG-NAC-V2
+                - application_profile: AppProf-NetCentric-V2
+                  endpoint_group: EPG-NMS-V2
+                - application_profile: AppProf-NetCentric-V2
+                  endpoint_group: EPG-OCSP-V2
+                - application_profile: AppProf-NetCentric-V2
+                  endpoint_group: EPG-PATCH-V2
+                - application_profile: AppProf-NetCentric-V2
+                  endpoint_group: EPG-PKI-SRV-V2
+                - application_profile: AppProf-NetCentric-V2
+                  endpoint_group: EPG-PRINT-SVR-V2
+                - application_profile: AppProf-NetCentric-V2
+                  endpoint_group: EPG-RCC-DCO-V2
+                - application_profile: AppProf-NetCentric-V2
+                  endpoint_group: EPG-RCC-DNS-V2
+                - application_profile: AppProf-NetCentric-V2
+                  endpoint_group: EPG-RCC-SVR-V2
+                - application_profile: AppProf-NetCentric-V2
+                  endpoint_group: EPG-RCC-UNIX-V2
+                - application_profile: AppProf-NetCentric-V2
+                  endpoint_group: EPG-SMTP-SVR-V2
+                - application_profile: AppProf-NetCentric-V2
+                  endpoint_group: EPG-SYSLOG-V2
+                - application_profile: AppProf-NetCentric-V2
+                  endpoint_group: EPG-SYSMAN-V2
+                - application_profile: AppProf-NetCentric-V2
+                  endpoint_group: EPG-VHOST-MGMT-V2
+                - application_profile: AppProf-NetCentric-V2
+                  endpoint_group: EPG-VVOIP-MGMT-V2
+                - application_profile: AppProf-NetCentric-V2
+                  endpoint_group: EPG-VVOIP-PROXY-V2
+                - application_profile: AppProf-NetCentric-V2
+                  endpoint_group: EPG-WEB-SVR-V2
+
+              # PHASE 3 PREVIEW -- DO NOT UNCOMMENT YET.
+              # tag_selectors fire when a vCenter custom-attribute (synced
+              # to ACI as a tag on the endpoint) matches. Combined with
+              # epg_selectors, an endpoint joins this ESG if ANY selector
+              # matches. The "aci-zone" key is a placeholder; the actual
+              # tag scheme is decided in DESIGN.md "Phase 3 -- per-zone
+              # ESG splits" before any production rollout.
+              #
+              # tag_selectors:
+              #   - key: aci-zone
+              #     value: internal
+
+            # ─── ESG-All-DMZ-V2 ────────────────────────────────────────────
+            # Same lift-and-shift pattern as ESG-All-Internal-V2 but for
+            # the 3 DMZ proxy EPGs in VRF-DMZ-V2. vzAny on VRF-DMZ-V2
+            # keeps reachability unchanged.
+            - name: ESG-All-DMZ-V2
+              description: "Phase 2: every DMZ EPG (DMZ ANP) joins this ESG. vzAny permit-all on VRF-DMZ-V2 preserves reachability."
+              vrf: VRF-DMZ-V2
+              shutdown: false
+              intra_esg_isolation: false
+              preferred_group: false
+              epg_selectors:
+                - application_profile: AppProf-DMZ-V2
+                  endpoint_group: EPG-D64-PROXY-V2
+                - application_profile: AppProf-DMZ-V2
+                  endpoint_group: EPG-FWEB-PROXY-V2
+                - application_profile: AppProf-DMZ-V2
+                  endpoint_group: EPG-RWEB-PROXY-V2

@@ -19,7 +19,7 @@
 #
 # Sibling foundational stack (Phase 1 in the canonical runbook) lives in
 # its OWN repo and has its OWN root .gitlab-ci.yml:
-#   ~/DC/ACI/ndo-terraform-nac-prod/.gitlab-ci.yml
+#   ~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/.gitlab-ci.yml
 #
 # Pipeline triggering:
 #   - Push / MR with file changes: only the affected project's jobs run
@@ -58,7 +58,7 @@ variables:
   # the operator a hint of what's required, even before any included
   # file has rendered.
   PROJECT:
-    description: "Manually trigger one project's jobs only. One of: apic-vmware | apic-vmware-prod | aci-redesign-ndo | ndo-terraform-ipv6. Leave empty for changes-driven runs."
+    description: "Manually trigger one project's jobs only. One of: apic-vmware | apic-vmware-prod | aci-redesign-ndo | aci-ndo-ipv6. Leave empty for changes-driven runs."
     value: ""
   NDO_USERNAME:
     description: "NDO username (used by aci-redesign/ndo and ndo-terraform-ipv6)"
@@ -128,24 +128,21 @@ variables:
 # stable while individual projects come online (e.g. apic-vmware-prod
 # only goes live once *_PROD CI variables are populated).
 include:
-  - local: aci-redesign/apic-vmware/.gitlab-ci.yml
+  - local: aci-apic/.gitlab-ci.yml
     rules:
-      - exists: [aci-redesign/apic-vmware/.gitlab-ci.yml]
-  - local: aci-redesign/apic-vmware-prod/.gitlab-ci.yml
+      - exists: [aci-apic/.gitlab-ci.yml]
+  - local: aci-ndo/.gitlab-ci.yml
     rules:
-      - exists: [aci-redesign/apic-vmware-prod/.gitlab-ci.yml]
-  - local: aci-redesign/ndo/.gitlab-ci.yml
+      - exists: [aci-ndo/.gitlab-ci.yml]
+  - local: aci-ndo-ipv6/.gitlab-ci.yml
     rules:
-      - exists: [aci-redesign/ndo/.gitlab-ci.yml]
-  - local: ndo-terraform-ipv6/.gitlab-ci.yml
-    rules:
-      - exists: [ndo-terraform-ipv6/.gitlab-ci.yml]
+      - exists: [aci-ndo-ipv6/.gitlab-ci.yml]
 
 # ============================================
 # Cross-project: FI-binding parity check
 #
-# The IPv4 redesign deploys two coupled artifacts: the tenant tree (via
-# Terraform from data/nac-ndo/schema-aedce-ipv4.nac.yaml) and the FI-uplink
+# The V2 redesign deploys two coupled artifacts: the tenant tree (via
+# Terraform from data/nac-ndo/schema-aedce-v2.nac.yaml) and the FI-uplink
 # static-port bindings on PC_FI_A / PC_FI_B (PATCHed via deploy_bindings.py).
 # If they drift -- e.g. an EPG added to the schema without a corresponding
 # regeneration of fi_epg_manifest.json -- VMs behind the UCS FI on that EPG
@@ -157,20 +154,20 @@ parity-check-fi-bindings:
   extends: .tf-job
   stage: validate
   script:
-    - cd aci-redesign/scripts
+    - cd scripts
     - python3 check_fi_bindings_parity.py
   cache: []
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes:
-        - aci-redesign/data/nac-ndo/schema-aedce-ipv4.nac.yaml
-        - aci-redesign/scripts/generate_fi_bindings.py
-        - aci-redesign/scripts/check_fi_bindings_parity.py
-        - aci-redesign/scripts/fi_epg_manifest.json
+        - aci-ndo/data/nac-ndo/schema-aedce-v2.nac.yaml
+        - scripts/generate_fi_bindings.py
+        - scripts/check_fi_bindings_parity.py
+        - scripts/fi_epg_manifest.json
     - if: $CI_COMMIT_BRANCH == "main"
       changes:
-        - aci-redesign/data/nac-ndo/schema-aedce-ipv4.nac.yaml
-        - aci-redesign/scripts/generate_fi_bindings.py
-        - aci-redesign/scripts/check_fi_bindings_parity.py
-        - aci-redesign/scripts/fi_epg_manifest.json
+        - aci-ndo/data/nac-ndo/schema-aedce-v2.nac.yaml
+        - scripts/generate_fi_bindings.py
+        - scripts/check_fi_bindings_parity.py
+        - scripts/fi_epg_manifest.json
     - if: $PROJECT == "aci-redesign-ndo"
