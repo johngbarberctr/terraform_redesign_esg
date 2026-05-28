@@ -674,3 +674,31 @@ operational deltas live in:
   `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/README.md`.
 - Per-stack troubleshooting catalogs → each stack's own `README.md` /
   `README_LAB.md`.
+
+
+---
+
+## Publishing to wwwin-github.cisco.com
+
+Real customer IPs live on `main` — only push the `publish` branch externally.
+The `publish` branch has all real IPs replaced with RFC1918/ULA equivalents.
+
+All three repos follow the same pattern:
+
+```bash
+# Push each repo's publish branch to Cisco internal GitHub (cx-usps-auto org)
+git -C ~/DC/ACI/sac-johbarbe-AFRICOM-terraform-esg-nac-ndo \
+  push git@wwwin-github.cisco.com:cx-usps-auto/sac-johbarbe-AFRICOM-terraform-esg-nac-ndo.git publish:main
+
+git -C ~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo \
+  push git@wwwin-github.cisco.com:cx-usps-auto/sac-johbarbe-AFRICOM-terraform-nac-ndo.git publish:main
+
+git -C ~/DC/nxos/sac-johbarbe-AFRICOM-nxos-n5k \
+  push git@wwwin-github.cisco.com:cx-usps-auto/sac-johbarbe-AFRICOM-nxos-n5k.git publish:main
+```
+
+**Re-syncing after new work on main:**
+1. `git checkout publish && git rebase main`
+2. Re-run sed substitutions (see `.claude/session-state.md` in each repo for the full map)
+3. `git add -A && git commit -m "sanitize: replace real IPs/IPv6 with private/ULA equivalents"`
+4. Force-push `publish`
