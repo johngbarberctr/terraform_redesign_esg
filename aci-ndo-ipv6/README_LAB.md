@@ -410,3 +410,39 @@ If the rule is missing, your `.gitignore` was clobbered — restore from `git sh
 
   The script also ties into the `../scripts/deploy_bindings.py` flow.
 - **The CI pipeline** — see [`README.md` → "CI/CD Pipeline"](README.md#cicd-pipeline). The pipeline drives plan + manual-apply for both lab and prod (per-project GitLab CI variables decide which NDO it talks to). This walkthrough is laptop-driven because most operators want to eyeball the long plan diff before applying; CI is fully supported but less commonly used day-to-day for this stack.
+
+---
+
+## Enabling the NDO Orchestrator App (single-node ND / dCloud)
+
+When using dCloud or any single-node Nexus Dashboard, the Orchestrator app is not licensed by default. You need to activate it via API before NDO is usable.
+
+### Step 1 — Get a token
+
+```bash
+curl -k -X POST https://<ND-IP>/login \
+  -H "Content-Type: application/json" \
+  -d '{"userName":"admin","userPasswd":"<password>","domain":"local"}'
+```
+
+Copy the `token` value from the response.
+
+### Step 2 — Enable the Premier license tier with the Orchestrator app
+
+```bash
+curl -k -X POST https://<ND-IP>/api/v1/licensetier \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
+  -d '{
+    "licenseTier": "Premier",
+    "apps": ["cisco-mso"]
+  }'
+```
+
+### ND 4.x UI setup
+
+1. **Admin → System Settings → Advanced Settings** — enable "Display advanced settings and options for TAC support."
+2. **Admin → System Status → Features** — disable NDFC and Insights; enable Orchestrator only.
+3. **Manage → Fabrics → Create Fabric** — when onboarding: select the **Premier** license tier and **uncheck Telemetry** (leaving Telemetry checked blocks the Orchestrator radio button in the next step).
+4. Back at **Manage → Fabrics**, select the fabric → **Actions → Edit Fabric Settings** → select the **Orchestrator** radio button.
+5. Access NDO via **Manage → Orchestration**.

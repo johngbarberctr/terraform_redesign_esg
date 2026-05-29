@@ -702,3 +702,39 @@ git -C ~/DC/nxos/sac-johbarbe-AFRICOM-nxos-n5k \
 2. Re-run sed substitutions (see `.claude/session-state.md` in each repo for the full map)
 3. `git add -A && git commit -m "sanitize: replace real IPs/IPv6 with private/ULA equivalents"`
 4. Force-push `publish`
+
+---
+
+## Enabling the NDO Orchestrator App (single-node ND / dCloud)
+
+When using dCloud or any single-node Nexus Dashboard, the Orchestrator app is not licensed by default. You need to activate it via API before NDO is usable.
+
+### Step 1 — Get a token
+
+```bash
+curl -k -X POST https://<ND-IP>/login \
+  -H "Content-Type: application/json" \
+  -d '{"userName":"admin","userPasswd":"<password>","domain":"local"}'
+```
+
+Copy the `token` value from the response.
+
+### Step 2 — Enable the Premier license tier with the Orchestrator app
+
+```bash
+curl -k -X POST https://<ND-IP>/api/v1/licensetier \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
+  -d '{
+    "licenseTier": "Premier",
+    "apps": ["cisco-mso"]
+  }'
+```
+
+### ND 4.x UI setup
+
+1. **Admin → System Settings → Advanced Settings** — enable "Display advanced settings and options for TAC support."
+2. **Admin → System Status → Features** — disable NDFC and Insights; enable Orchestrator only.
+3. **Manage → Fabrics → Create Fabric** — when onboarding: select the **Premier** license tier and **uncheck Telemetry** (leaving Telemetry checked blocks the Orchestrator radio button in the next step).
+4. Back at **Manage → Fabrics**, select the fabric → **Actions → Edit Fabric Settings** → select the **Orchestrator** radio button.
+5. Access NDO via **Manage → Orchestration**.
