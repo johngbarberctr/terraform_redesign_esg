@@ -5,15 +5,15 @@
 #   * Tenant EUR (name only -- no description/alias overrides; see "Tenant
 #     ownership" note below).
 #   * One Application Profile: AppProf-AppCentric-V2 (per-fabric, identical
-#     on AEDCG and AEDCK because this YAML is loaded by both
-#     module.aci_aedcg and module.aci_aedck in apic-vmware/main.tf).
+#     on Site1 and Site2 because this YAML is loaded by both
+#     module.aci_site1 and module.aci_site2 in apic-vmware/main.tf).
 #   * Two Endpoint Security Groups:
 #       - ESG-All-Internal-V2 in VRF-EUR-V2  -> selects every EPG in
 #         AppProf-NetCentric-V2 (36 internal EPGs).
 #       - ESG-All-DMZ-V2      in VRF-DMZ-V2  -> selects every EPG in
 #         AppProf-DMZ-V2      (3 DMZ EPGs).
 #
-# Why this file exists separately from ../nac-ndo/schema-aedce-v2.nac.yaml:
+# Why this file exists separately from ../nac-ndo/schema-africom-v2.nac.yaml:
 #   The netascode/nac-ndo/mso v1.2.x module does not model
 #   endpoint_security_groups. The Cisco mso Terraform provider also lacks
 #   ESG resource types as of v1.7.x. So NDO cannot create ESGs via
@@ -34,10 +34,10 @@
 #   a state move rather than destroy/recreate; see DESIGN.md).
 #
 # Naming -- WHY THE THREE ANPs:
-#   * AppProf-NetCentric-V2 (NDO-managed, schema-aedce-v2.nac.yaml):
+#   * AppProf-NetCentric-V2 (NDO-managed, schema-africom-v2.nac.yaml):
 #       network-centric layer -- one EPG per BD per legacy VLAN/subnet
 #       group. The 36 internal EPGs.
-#   * AppProf-DMZ-V2 (NDO-managed, schema-aedce-v2.nac.yaml):
+#   * AppProf-DMZ-V2 (NDO-managed, schema-africom-v2.nac.yaml):
 #       DMZ proxy EPGs. Routing-isolated in VRF-DMZ-V2; kept in a
 #       separate ANP for blast-radius and operational visibility.
 #   * AppProf-AppCentric-V2 (APIC-direct, this file):

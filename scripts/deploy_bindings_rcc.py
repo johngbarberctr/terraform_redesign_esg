@@ -10,7 +10,7 @@ import re
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 class NDOBindingDeployer:
-    def __init__(self, ndo_host, username, password, schema_name="AEDCE"):
+    def __init__(self, ndo_host, username, password, schema_name="AFRICOM"):
         self.ndo_host = ndo_host
         self.schema_name = schema_name
         self.session = requests.Session()
@@ -120,7 +120,7 @@ class NDOBindingDeployer:
                         'app_profile': binding.get('app_profile'),
                         'bd_name': binding.get('bd_name'),
                         'vrf_name': binding.get('vrf_name'),
-                        'site': 'AEDCG',  # Assuming AEDCG site
+                        'site': 'Site1',  # Assuming Site1 site
                         'template': 'L2_Stretched',  # Assuming L2_Stretched template
                         'path': port.get('path'),
                         'deployment_immediacy': port.get('deployment_immediacy', 'immediate'),
@@ -415,7 +415,7 @@ def main():
         print("Usage: python deploy_bindings_rcc.py <bindings.json> [schema_name]")
         print("\nExamples:")
         print("  python deploy_bindings_rcc.py epg_port_bindings.json")
-        print("  python deploy_bindings_rcc.py epg_port_bindings.json AEDCE")
+        print("  python deploy_bindings_rcc.py epg_port_bindings.json AFRICOM")
         sys.exit(1)
     
     # Configuration
@@ -424,7 +424,7 @@ def main():
     NDO_PASSWORD = "IRanthehoodtocoast2021@"
     
     # Allow schema name to be specified as argument
-    schema_name = sys.argv[2] if len(sys.argv) > 2 else "AEDCE"
+    schema_name = sys.argv[2] if len(sys.argv) > 2 else "AFRICOM"
     
     print("NDO Binding Deployment (Python) - RCC EPGs")
     print("="*50)

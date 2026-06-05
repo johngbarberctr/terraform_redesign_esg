@@ -4,8 +4,8 @@
 
 This project deploys IPv6 infrastructure for RCC-E (Regional Cyber Center - Europe) across two ACI sites managed by Nexus Dashboard Orchestrator (NDO):
 
-- **AEDCG** - Site G (Grafenwoehr)
-- **AEDCK** - Site K (Kaiserslautern)
+- **Site1** - Site G (Grafenwoehr)
+- **Site2** - Site K (Kaiserslautern)
 
 The deployment creates 39 Bridge Domains, 39 EPGs, L3Outs, External EPGs, and associated contracts within the `VRF-RCC` routing domain.
 
@@ -16,14 +16,14 @@ The deployment creates 39 Bridge Domains, 39 EPGs, L3Outs, External EPGs, and as
 ```
                               ┌─────────────────────────────────────┐
                               │      Nexus Dashboard Orchestrator   │
-                              │           (Schema: AEDCE)           │
+                              │           (Schema: AFRICOM)           │
                               └─────────────────┬───────────────────┘
                                                 │
                     ┌───────────────────────────┴───────────────────────────┐
                     │                                                       │
             ┌───────▼───────┐                                       ┌───────▼───────┐
             │   Site G      │                                       │   Site K      │
-            │   (AEDCG)     │                                       │   (AEDCK)     │
+            │   (Site1)     │                                       │   (Site2)     │
             └───────┬───────┘                                       └───────┬───────┘
                     │                                                       │
         ┌───────────┴───────────┐                           ┌───────────────┴───────────┐
@@ -35,7 +35,7 @@ The deployment creates 39 Bridge Domains, 39 EPGs, L3Outs, External EPGs, and as
    └────┬────┘            └─────┬─────┘               └─────┬─────┘             └───────┬───────┘
         │                       │                           │                           │
    PC_DC_FTD_A/B          ┌─────▼─────┐               ┌─────▼─────┐              PC_DC_FTD_A/B
-   (L3Out to FW)          │ 152/153   │               │ 152/153   │              (L3Out to FW)
+   (L3Out to FW)          │ 101/102   │               │ 101/102   │              (L3Out to FW)
                           │ Compute   │               │ Compute   │
                           │ Leaves    │               │ Leaves    │
                           └───────────┘               └───────────┘
@@ -46,8 +46,8 @@ The deployment creates 39 Bridge Domains, 39 EPGs, L3Outs, External EPGs, and as
 | Leaves | Role | Bindings |
 |--------|------|----------|
 | **101/102** | Border leaves | L3Out to firewall via PC_DC_FTD_A/B, limited EPG bindings |
-| **111/112** | Compute leaves | Mirrored with 152/153 |
-| **152/153** | Compute leaves | Mirrored with 111/112 |
+| **111/112** | Compute leaves | Mirrored with 101/102 |
+| **101/102** | Compute leaves | Mirrored with 111/112 |
 
 ---
 
@@ -58,8 +58,8 @@ The deployment creates 39 Bridge Domains, 39 EPGs, L3Outs, External EPGs, and as
 | `UpgradeTemplate1` | VRF and Contract definitions | Both |
 | `L2_Stretched` | L2 stretched BDs/EPGs (majority) | Both |
 | `L2_Non-Stretched` | Non-stretched BDs/EPGs | Both |
-| `G-Specific_Only` | Site G specific resources | AEDCG only |
-| `K-Specific_Only` | Site K specific resources | AEDCK only |
+| `Site1-Specific_Only` | Site G specific resources | Site1 only |
+| `Site2-Specific_Only` | Site K specific resources | Site2 only |
 
 ---
 
@@ -109,10 +109,10 @@ attach the same VMM domain.
 |--------|------|----------|
 | VRF | `VRF-RCC` | UpgradeTemplate1 |
 | Contract | `Any_VRF-RCC` | UpgradeTemplate1 |
-| L3Out (Site G) | `L3Out-RCC-E-G` | G-Specific_Only |
-| L3Out (Site K) | `L3Out-RCC-E-K` | K-Specific_Only |
-| External EPG (Site G) | `ExtEPG-RCC-E-G` | G-Specific_Only |
-| External EPG (Site K) | `ExtEPG-RCC-E-K` | K-Specific_Only |
+| L3Out (Site G) | `L3Out-RCC-E-G` | Site1-Specific_Only |
+| L3Out (Site K) | `L3Out-RCC-E-K` | Site2-Specific_Only |
+| External EPG (Site G) | `ExtEPG-RCC-E-G` | Site1-Specific_Only |
+| External EPG (Site K) | `ExtEPG-RCC-E-K` | Site2-Specific_Only |
 
 ### Bridge Domains & EPGs (39 total)
 
@@ -167,8 +167,8 @@ attach the same VMM domain.
 
 | BD/EPG Name | Template | IPv6 VLAN | Description |
 |-------------|----------|-----------|-------------|
-| GEF-MGMT | G-Specific_Only | 3062 | GEF Management (Site G) |
-| BACKUP-SVR | K-Specific_Only | 3070 | Backup Server (Site K) |
+| GEF-MGMT | Site1-Specific_Only | 3062 | GEF Management (Site G) |
+| BACKUP-SVR | Site2-Specific_Only | 3070 | Backup Server (Site K) |
 
 ---
 
@@ -180,8 +180,8 @@ The `generate_ipv6_bindings3.py` script applies static port bindings based on IP
 
 1. **Template Source**: Uses IPv4 EPG bindings as template for IPv6 EPGs
 2. **Compute Leaf Mirroring**: 
-   - Bindings on 152/153 → copied to both 152/153 AND 111/112
-   - Bindings on 111/112 → copied to both 111/112 AND 152/153
+   - Bindings on 101/102 → copied to both 101/102 AND 111/112
+   - Bindings on 111/112 → copied to both 111/112 AND 101/102
 3. **Border Leaf Isolation**:
    - Bindings on 101/102 → remain ONLY on 101/102 (no mirroring)
 
@@ -337,23 +337,23 @@ python3 remove_all_rcc_bindings.py --dry-run --show-all
 ## Schema Structure
 
 ```
-Schema: AEDCE
+Schema: AFRICOM
 ├── UpgradeTemplate1
 │   ├── VRF-RCC
 │   └── Contract: Any_VRF-RCC
 ├── L2_Stretched
 │   ├── BDs (35)
 │   ├── EPGs (35) in AppProf-RCC
-│   └── Site deployments (AEDCG, AEDCK)
+│   └── Site deployments (Site1, Site2)
 ├── L2_Non-Stretched
 │   ├── BDs (2)
 │   └── EPGs (2)
-├── G-Specific_Only
+├── Site1-Specific_Only
 │   ├── BD-GEF-MGMT
 │   ├── EPG-GEF-MGMT
 │   ├── L3Out-RCC-E-G
 │   └── ExtEPG-RCC-E-G
-└── K-Specific_Only
+└── Site2-Specific_Only
     ├── BD-BACKUP-SVR
     ├── EPG-BACKUP-SVR
     ├── L3Out-RCC-E-K

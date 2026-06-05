@@ -6,12 +6,12 @@
 # `terraform plan`. The rendered file is gitignored.
 #
 # Usage:
-#   ./render-vmm-yaml.sh aedcg     # render AEDCG VMM YAML
-#   ./render-vmm-yaml.sh aedck     # render AEDCK VMM YAML
-#   ./render-vmm-yaml.sh           # default to aedcg (backward compatibility)
+#   ./render-vmm-yaml.sh kelley    # render Kelley VMM YAML
+#   ./render-vmm-yaml.sh deldin    # render Del-Din VMM YAML
+#   ./render-vmm-yaml.sh           # default to kelley (backward compatibility)
 #
 # Both fabrics currently consume the same TF_VAR_vcenter_* env vars (one
-# vCenter shared between AEDCG and AEDCK in the lab and production today).
+# vCenter shared between Kelley and Del-Din in the lab and production today).
 # If they diverge, introduce TF_VAR_<fabric>_vcenter_* and pick from those
 # in the env-loading block below.
 #
@@ -36,12 +36,12 @@
 
 set -euo pipefail
 
-FABRIC="${1:-aedcg}"
+FABRIC="${1:-kelley}"
 case "$FABRIC" in
-  aedcg) VMM_DOMAIN_NAME="APCG-VDS1" ;;
-  aedck) VMM_DOMAIN_NAME="APCK-VDS1" ;;
+  kelley) VMM_DOMAIN_NAME="APCG-VDS1" ;;
+  deldin) VMM_DOMAIN_NAME="APCK-VDS1" ;;
   *)
-    echo "render-vmm-yaml: unknown fabric '$FABRIC'. Use one of: aedcg, aedck." >&2
+    echo "render-vmm-yaml: unknown fabric '$FABRIC'. Use one of: kelley, deldin." >&2
     exit 2
     ;;
 esac

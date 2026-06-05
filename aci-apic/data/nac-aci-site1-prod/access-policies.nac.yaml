@@ -1,15 +1,14 @@
-# Access policies for VMM host connectivity and direct UCS-FI uplinks (AEDCG, PROD).
+# Access policies for VMM host connectivity and direct UCS-FI uplinks (Site1, PROD).
 #
 # This directory targets the PRODUCTION fabric (Design A: UCS-FI direct attach
 # without vPC). It is NOT consumed by the lab Terraform root in
-# ../../apic-vmware/ -- the lab continues to read ../nac-aci-aedcg/, which
-# describes the simulator topology shown in
-# aci-redesign/Screenshot 2026-04-29 at 14.55.40.png (3 ESXi hosts attached
-# directly to simulated leaves, no FIs, no UCS chassis).
+# ../../apic-vmware/ -- the lab continues to read ../nac-aci-site1/, which
+# describes the simulator topology (3 ESXi hosts attached directly to
+# simulated leaves, no FIs, no UCS chassis).
 #
 # Production topology after the N5K -> ACI cutover:
-#   FI-A is single-homed to Leaf-152 via PC_FI_A (eth1/6).
-#   FI-B is single-homed to Leaf-153 via PC_FI_B (eth1/7).
+#   FI-A is single-homed to Leaf-101 via PC_FI_A (eth1/6).
+#   FI-B is single-homed to Leaf-102 via PC_FI_B (eth1/7).
 #   No vPC explicit protection group: FIs are not peered with each other.
 #   All VM traffic rides the same FI port-channels via the VDS pushed by the
 #   VMM domain; static (non-VM) traffic uses the static physical domain.
@@ -17,7 +16,7 @@
 #   physical domain.
 #
 # fi-static-vlan-pool mirrors every VLAN currently in use on production NDO
-# schema AEDCE / ANP AppProf-NetCentric (sourced live 2026-04-29). Both sites
+# schema AFRICOM / ANP AppProf-NetCentric (sourced live 2026-04-29). Both sites
 # use the same union (213 VLANs, 93 contiguous ranges) for symmetry; per-site
 # differences are tiny (3 VLANs across both sites).
 #
@@ -34,8 +33,8 @@ apic:
             to: 3967
 
       # Static pool for FI-attached, non-VMM workloads. Union of every VLAN
-      # in use today across AEDCG + AEDCK production EPGs (213 VLANs in 93
-      # contiguous ranges). Identical to the AEDCK prod pool.
+      # in use today across Site1 + Site2 production EPGs (213 VLANs in 93
+      # contiguous ranges). Identical to the Site2 prod pool.
       - name: fi-static-vlan-pool
         allocation: static
         ranges:
@@ -219,7 +218,7 @@ apic:
     # for the FI uplink profiles below (avoids selector collision on the
     # same ports). Eth1/1-5 is held in reserve.
     leaf_interface_profiles:
-      - name: leaf-152-153-intprof
+      - name: leaf-101-102-intprof
         interface_selectors:
           - name: vmm-host-ports
             policy_group: vpc-vmm-hosts
@@ -228,7 +227,7 @@ apic:
                 from_port: 8
                 to_port: 48
 
-      - name: leaf-152-fi-intprof
+      - name: leaf-101-fi-intprof
         interface_selectors:
           - name: fi-a-uplink
             policy_group: PC_FI_A
@@ -237,7 +236,7 @@ apic:
                 from_port: 6
                 to_port: 6
 
-      - name: leaf-153-fi-intprof
+      - name: leaf-102-fi-intprof
         interface_selectors:
           - name: fi-b-uplink
             policy_group: PC_FI_B
@@ -250,32 +249,32 @@ apic:
     # added for the FI uplinks (one per leaf, since FI-A and FI-B home to
     # different leaves under Design A).
     leaf_switch_profiles:
-      - name: leaf-152-153-prof
+      - name: leaf-101-102-prof
         selectors:
-          - name: leaf-152-153-sel
+          - name: leaf-101-102-sel
             node_blocks:
               - name: block1
-                from: 152
-                to: 153
+                from: 101
+                to: 102
         interface_profiles:
-          - leaf-152-153-intprof
+          - leaf-101-102-intprof
 
-      - name: leaf-152-prof
+      - name: leaf-101-prof
         selectors:
-          - name: leaf-152-sel
+          - name: leaf-101-sel
             node_blocks:
               - name: block1
-                from: 152
-                to: 152
+                from: 101
+                to: 101
         interface_profiles:
-          - leaf-152-fi-intprof
+          - leaf-101-fi-intprof
 
-      - name: leaf-153-prof
+      - name: leaf-102-prof
         selectors:
-          - name: leaf-153-sel
+          - name: leaf-102-sel
             node_blocks:
               - name: block1
-                from: 153
-                to: 153
+                from: 102
+                to: 102
         interface_profiles:
-          - leaf-153-fi-intprof
+          - leaf-102-fi-intprof

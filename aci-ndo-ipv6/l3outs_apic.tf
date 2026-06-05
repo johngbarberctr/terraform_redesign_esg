@@ -156,7 +156,7 @@ resource "aci_ospf_interface_policy" "ospf_int_pol_k" {
 }
 
 # ============================================================================
-# SITE G (AEDCG / Grafenwoehr) - L3OUT CONFIGURATION
+# SITE G (Site1 / Grafenwoehr) - L3OUT CONFIGURATION
 # ============================================================================
 
 # Data source to reference existing L3Out (deployed from NDO)
@@ -332,7 +332,7 @@ resource "aci_rest_managed" "l3out_rcc_e_g_rtctrl_scope" {
 }
 
 # ============================================================================
-# SITE K (AEDCK / Kaiserslautern) - L3OUT CONFIGURATION
+# SITE K (Site2 / Kaiserslautern) - L3OUT CONFIGURATION
 # ============================================================================
 
 # Data source to reference existing L3Out (deployed from NDO)

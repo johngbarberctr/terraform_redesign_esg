@@ -40,7 +40,7 @@ SCHEMA_FIXTURE = textwrap.dedent(
     """\
     ndo:
       schemas:
-        - name: AEDCE-V2
+        - name: AFRICOM-V2
           templates:
             - name: Tenant_EUR_V2
               application_profiles:
@@ -49,12 +49,12 @@ SCHEMA_FIXTURE = textwrap.dedent(
                     - name: EPG-VMM-ANCHOR
                       bridge_domain: { name: BD-VMM-ANCHOR }
                       sites: &epg_sites_internal
-                        - name: AEDCG
+                        - name: Site1
                           vmware_vmm_domains:
                             - name: APCG-VDS1
                               deployment_immediacy: immediate
                               resolution_immediacy: immediate
-                        - name: AEDCK
+                        - name: Site2
                           vmware_vmm_domains:
                             - name: APCK-VDS1
                               deployment_immediacy: immediate
@@ -65,23 +65,23 @@ SCHEMA_FIXTURE = textwrap.dedent(
                     - name: EPG-VMM-INLINE
                       bridge_domain: { name: BD-VMM-INLINE }
                       sites:
-                        - name: AEDCG
+                        - name: Site1
                           vmware_vmm_domains:
                             - name: APCG-VDS1
-                        - name: AEDCK
+                        - name: Site2
                           vmware_vmm_domains:
                             - name: APCK-VDS1
                     - name: EPG-PHYS-1
                       bridge_domain: { name: BD-PHYS-1 }
                       # F5 BIG-IP -- physical, no VMM.
                       sites:
-                        - name: AEDCG
-                        - name: AEDCK
+                        - name: Site1
+                        - name: Site2
                     - name: EPG-PHYS-2
                       bridge_domain: { name: BD-PHYS-2 }
                       sites:
-                        - name: AEDCG
-                        - name: AEDCK
+                        - name: Site1
+                        - name: Site2
                 - name: AppProf-DMZ-V2
                   endpoint_groups:
                     - name: EPG-D64-PROXY-V2
@@ -138,11 +138,11 @@ class TestParseEpgsVmmDetection(unittest.TestCase):
         self.assertEqual(epgs["EPG-D64-PROXY-V2"]["app_profile"], "AppProf-DMZ-V2")
 
     def test_real_schema_counts(self) -> None:
-        """Sanity check against the real schema-aedce-v2 file: 39 total,
+        """Sanity check against the real schema-africom-v2 file: 39 total,
         36 VMM-bound, 3 physical (EPG-LB-V2 / EPG-LMR-V2 / EPG-VHOST-MGMT-V2)."""
         here = os.path.dirname(os.path.abspath(__file__))
         real = os.path.normpath(
-            os.path.join(here, "..", "data", "nac-ndo", "schema-aedce-v2.nac.yaml")
+            os.path.join(here, "..", "data", "nac-ndo", "schema-africom-v2.nac.yaml")
         )
         if not os.path.isfile(real):
             self.skipTest(f"real schema not present at {real}")
@@ -167,7 +167,7 @@ class TestGenerateBindingsPhysicalOnly(unittest.TestCase):
     def test_full_mode_emits_for_every_epg(self) -> None:
         bindings, _missing, skipped = gen.generate_bindings(
             epgs=self.epgs,
-            sites_filter=["AEDCG", "AEDCK"],
+            sites_filter=["Site1", "Site2"],
             vlan_map={},
             deployment_immediacy="immediate",
             mode="regular",
@@ -182,7 +182,7 @@ class TestGenerateBindingsPhysicalOnly(unittest.TestCase):
     def test_physical_only_emits_only_for_phys_epgs(self) -> None:
         bindings, _missing, skipped = gen.generate_bindings(
             epgs=self.epgs,
-            sites_filter=["AEDCG", "AEDCK"],
+            sites_filter=["Site1", "Site2"],
             vlan_map={},
             deployment_immediacy="immediate",
             mode="regular",
@@ -205,7 +205,7 @@ class TestGenerateBindingsPhysicalOnly(unittest.TestCase):
         # it (and not double-count anything).
         bindings, _missing, skipped = gen.generate_bindings(
             epgs=self.epgs,
-            sites_filter=["AEDCG"],
+            sites_filter=["Site1"],
             vlan_map={},
             deployment_immediacy="immediate",
             mode="regular",
@@ -219,7 +219,7 @@ class TestGenerateBindingsPhysicalOnly(unittest.TestCase):
     def test_physical_only_path_type_is_dpc(self) -> None:
         bindings, _missing, _skipped = gen.generate_bindings(
             epgs=self.epgs,
-            sites_filter=["AEDCG"],
+            sites_filter=["Site1"],
             vlan_map={},
             deployment_immediacy="immediate",
             mode="regular",

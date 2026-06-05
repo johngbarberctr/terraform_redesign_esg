@@ -3,7 +3,7 @@
 
 **Date:** January 23, 2026  
 **Project:** Regional Cyber Center Europe (RCC-E) IPv6 Network Infrastructure  
-**Environment:** Cisco ACI Multi-Site (NDO) - Sites AEDCG & AEDCK
+**Environment:** Cisco ACI Multi-Site (NDO) - Sites Site1 & Site2
 
 ---
 
@@ -26,10 +26,10 @@ The Terraform plan provisions **39 IPv6 Endpoint Groups (EPGs)** organized acros
 
 | Template | Scope | EPG Count | Sites |
 |----------|-------|-----------|-------|
-| L2_Stretched | Stretched across both sites | 29 | AEDCG, AEDCK |
-| G-Specific_Only | Site-local | 1 | AEDCG only |
-| K-Specific_Only | Site-local | 1 | AEDCK only |
-| L2_Non-Stretched | Both sites (non-stretched) | 2 | AEDCG, AEDCK |
+| L2_Stretched | Stretched across both sites | 29 | Site1, Site2 |
+| Site1-Specific_Only | Site-local | 1 | Site1 only |
+| Site2-Specific_Only | Site-local | 1 | Site2 only |
+| L2_Non-Stretched | Both sites (non-stretched) | 2 | Site1, Site2 |
 
 ### Bridge Domains Created
 
@@ -94,7 +94,7 @@ The `generate_ipv6_bindings3.py` script automates the creation of **static port 
 |---------|-------------|
 | **Port Inheritance** | Copies VPC/port paths from IPv4 reference EPGs |
 | **VLAN Assignment** | Applies unique IPv6 VLANs (3000+ range) |
-| **Dual-Site Support** | Handles both AEDCG and AEDCK sites |
+| **Dual-Site Support** | Handles both Site1 and Site2 sites |
 | **Idempotent** | Safe to run multiple times without duplicates |
 | **Dry-Run Mode** | Preview changes before applying |
 
@@ -143,8 +143,8 @@ Step 2: NDO Template Deployment
 ─────────────────────────────────
   Manual Step: Deploy templates to sites via NDO GUI
   - Deploy L2_Stretched to both sites
-  - Deploy G-Specific_Only to AEDCG
-  - Deploy K-Specific_Only to AEDCK
+  - Deploy Site1-Specific_Only to Site1
+  - Deploy Site2-Specific_Only to Site2
   - Deploy L2_Non-Stretched to both sites
 
                     │

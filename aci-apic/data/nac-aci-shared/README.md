@@ -1,7 +1,7 @@
 # nac-aci-shared
 
 YAML loaded by **both** APIC-direct fabric modules in
-`../../apic-vmware/main.tf` (AEDCG and AEDCK).
+`../../apic-vmware/main.tf` (Kelley and Del-Din).
 
 ## What lives here
 
@@ -14,7 +14,7 @@ YAML loaded by **both** APIC-direct fabric modules in
 The previous `tenant-epg-nac.nac.yaml` (the EUR tenant + BDs + EPGs +
 contracts) was moved to `../_archive/tenant-epg-nac.nac.yaml.archived` when
 tenant management migrated to NDO. The new source of truth is
-`../nac-ndo/schema-aedce-v2.nac.yaml`, consumed by the sister Terraform
+`../nac-ndo/schema-africom-v2.nac.yaml`, consumed by the sister Terraform
 root in `../../ndo/`. Both APIC modules now run with `manage_tenants =
 false`.
 

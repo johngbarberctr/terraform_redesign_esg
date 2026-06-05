@@ -10,7 +10,7 @@ focuses on CI/runners and file paths.
 > given project are the values in that project's `terraform.tfvars`,
 > `ndo.nac.yaml`, or `.env` file — not these tables. Always cross-check
 > before relying on any IP listed here. As of 2026-05-04, the lab APICs are
-> AEDCG = `198.18.134.252`, AEDCK = `198.18.134.253`.
+> Site1 = `198.18.134.252`, Site2 = `198.18.134.253`.
 
 ---
 
@@ -37,17 +37,17 @@ Six data dirs:
 
 | Dir                              | Purpose                                                              |
 | -------------------------------- | -------------------------------------------------------------------- |
-| `data/nac-aci-aedcg/`            | AEDCG lab access policy (lab simulator topology)                     |
-| `data/nac-aci-aedck/`            | AEDCK lab access policy (lab simulator topology)                     |
-| `data/nac-aci-shared/`           | cross-fabric APIC policy: nac-aci module toggles (`modules.nac.yaml`) AND the V2 ESG layer (`tenant-eur-esgs.nac.yaml` -- ANP `AppProf-AppCentric-V2` + 2 ESGs, loaded by both AEDCG and AEDCK modules) |
-| `data/nac-aci-aedcg-prod/`       | AEDCG **prod** access policy (Design A: UCS-FI direct attach, no vPC) |
-| `data/nac-aci-aedck-prod/`       | AEDCK **prod** access policy (Design A)                              |
-| `data/nac-ndo/`                  | NDO schema (`AEDCE-V2`, template `Tenant_EUR_V2`) -- shared lab + prod |
+| `data/nac-aci-site1/`            | Site1 lab access policy (lab simulator topology)                     |
+| `data/nac-aci-site2/`            | Site2 lab access policy (lab simulator topology)                     |
+| `data/nac-aci-shared/`           | cross-fabric APIC policy: nac-aci module toggles (`modules.nac.yaml`) AND the V2 ESG layer (`tenant-eur-esgs.nac.yaml` -- ANP `AppProf-AppCentric-V2` + 2 ESGs, loaded by both Site1 and Site2 modules) |
+| `data/nac-aci-site1-prod/`       | Site1 **prod** access policy (Design A: UCS-FI direct attach, no vPC) |
+| `data/nac-aci-site2-prod/`       | Site2 **prod** access policy (Design A)                              |
+| `data/nac-ndo/`                  | NDO schema (`AFRICOM-V2`, template `Tenant_EUR_V2`) -- shared lab + prod |
 
 Targets: lab APICs `198.18.134.253` / `198.18.134.254` and NDO `198.18.133.100`.
 
 **Subproject `ndo-terraform/`** -- the IPv6 RCC NDO/MSO Terraform
-(39 BDs/EPGs in `VRF-RCC`, schema `AEDCE`). Lab-only via NDO. Helper scripts
+(39 BDs/EPGs in `VRF-RCC`, schema `AFRICOM`). Lab-only via NDO. Helper scripts
 (`generate_ipv6_bindings*.py`) generate static port bindings. Lives next to
 `aci-redesign/` but is logically a separate stack.
 
@@ -63,7 +63,7 @@ Targets: lab APICs `198.18.134.253` / `198.18.134.254` and NDO `198.18.133.100`.
 | **Git remotes**            | **none** (not a git repo -- files only)                                                  |
 | **Cursor workspace label** | `LAB - IPv4 NAC`                                                                         |
 | **Purpose**                | Old-style ansible+python tooling for IPv4 lab static-port-binding pushes against NDO.    |
-| **Files**                  | `setup_fabric_policies_aedce.yml` (ansible), `deploy_bindings_python_v2.py`, `selective_bindings_del.py`, `vault.yml`. |
+| **Files**                  | `setup_fabric_policies_africom.yml` (ansible), `deploy_bindings_python_v2.py`, `selective_bindings_del.py`, `vault.yml`. |
 | **Status**                 | Pre-NAC tooling. Superseded for the redesign by `terraform-esg/aci-redesign/scripts/deploy_bindings.py`. Keep around for IPv6 lab binding pushes that haven't been migrated to nac-ndo yet. |
 
 ### 3. `ndo-terraform-nac` — IPv6 RCC production NDO build

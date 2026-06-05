@@ -64,12 +64,12 @@ If you'd rather drive everything through CI: skip the `local_override.tf` step, 
     │   ├── prod.tfvars                        prod APIC URLs + manage_tenants=false
     │   └── data/                              per-fabric NAC YAML inputs
     │       ├── nac-aci-shared/                shared tenant/ESG YAML
-    │       ├── nac-aci-aedcg/                 AEDCG fabric-specific YAML
-    │       └── nac-aci-aedck/                 AEDCK fabric-specific YAML
+    │       ├── nac-aci-site1/                 Site1 fabric-specific YAML
+    │       └── nac-aci-site2/                 Site2 fabric-specific YAML
     │
     ├── aci-ndo/                               [Phase 4 — IPv4 redesign tenant tree]
     │   ├── README.md                          reference (cutover, schema)
-    │   └── data/nac-ndo/                      NDO YAML (AEDCE-V2 schema)
+    │   └── data/nac-ndo/                      NDO YAML (AFRICOM-V2 schema)
     │
     ├── scripts/                               [Phase 6 — bindings push tools]
     │   └── README.md                          CLI reference (dump_bindings,
@@ -96,11 +96,11 @@ at the per-stack README for details.
 | # | What | Where | Time | Manual? |
 |---|------|-------|------|---------|
 | 0 *(optional)* | Bootstrap the two GitLab projects' CI/CD variables (prerequisite for CI-driven runs only) | `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/` + `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/` | ~5 min total | One script per repo, mostly auto-discovered |
-| 1 | Build foundational NDO state (tenant `EUR`, schema `AEDCE`, 5 prod templates) | `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/` | ~10 min plan/apply | Terraform |
-| 2 | Deploy 5 templates to AEDCG/AEDCK (in strict order) | NDO UI | ~15 min total | **Manual UI** |
-| 2.5 | Push legacy N5K static port bindings to AEDCE EPGs | `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/scripts/` | ~2 min | Python (`deploy_bindings_python_v2.py`) |
+| 1 | Build foundational NDO state (tenant `EUR`, schema `AFRICOM`, 5 prod templates) | `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/` | ~10 min plan/apply | Terraform |
+| 2 | Deploy 5 templates to Site1/Site2 (in strict order) | NDO UI | ~15 min total | **Manual UI** |
+| 2.5 | Push legacy N5K static port bindings to AFRICOM EPGs | `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/scripts/` | ~2 min | Python (`deploy_bindings_python_v2.py`) |
 | 3 | APIC fabric/access policies, MCP, VMware VMM domains | `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/aci-apic/` | ~5 min apply | Terraform (both fabrics in one root) |
-| 4 | V2 redesign tenant tree (schema `AEDCE-V2`, template `Tenant_EUR_V2`; all tenant-scoped objects suffixed `-V2`) | `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/aci-ndo/` | ~5 min apply + UI deploy | Terraform + manual UI |
+| 4 | V2 redesign tenant tree (schema `AFRICOM-V2`, template `Tenant_EUR_V2`; all tenant-scoped objects suffixed `-V2`) | `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/aci-ndo/` | ~5 min apply + UI deploy | Terraform + manual UI |
 | 5 *(optional)* | IPv6 RCC layer (adds `AppProf-RCC` to existing `L2_Stretched`) | `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/aci-ndo-ipv6/` | ~30 min apply at `-parallelism=3` | Terraform + manual UI re-deploy |
 | 6 | Static port bindings (post-deploy push not modeled in NAC YAML) | `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/scripts/` | ~2 min | Python + manual UI re-deploy |
 | 7 | Verify on APICs and vCenter | APIC GUI + vCenter | as needed | Manual |
@@ -117,7 +117,7 @@ Skip this phase entirely if you plan to run everything from your laptop with `lo
 Read this phase if you want GitLab CI to drive `terraform plan` / `terraform apply` for any of Phases 1, 3, 4, or 5. The GitLab project that hosts each repo needs:
 
 - `sac-johbarbe-AFRICOM-terraform-nac-ndo`: 6 variables — `MSO_URL`, `MSO_USERNAME`, `MSO_PASSWORD` (mask+protect), `MSO_DOMAIN`, `TF_HTTP_USERNAME`, `TF_HTTP_PASSWORD` (mask).
-- `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo`: 18 variables — `NDO_*`, `AEDCG_APIC_*`, `AEDCK_APIC_*`, `VCENTER_*`, `TF_HTTP_*` (lab set, with masked/protected flags per project policy). The `_PROD`-suffixed variant for `apic-vmware-prod` is provisioned later via the same script with `--prod` (or on a separate production GitLab) — see the "Production cutover" subsection below.
+- `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo`: 18 variables — `NDO_*`, `Site1_APIC_*`, `Site2_APIC_*`, `VCENTER_*`, `TF_HTTP_*` (lab set, with masked/protected flags per project policy). The `_PROD`-suffixed variant for `apic-vmware-prod` is provisioned later via the same script with `--prod` (or on a separate production GitLab) — see the "Production cutover" subsection below.
 
 Provisioning these by hand through the GitLab UI is slow and error-prone (~24 clicks per repo). Each repo ships an interactive bootstrap script under `scripts/` that:
 
@@ -178,17 +178,17 @@ GITLAB_PROJECT=team/sac-johbarbe-AFRICOM-terraform-esg-nac-ndo \
 
 You'll be prompted for the *production* NDO password, APIC admin password, and vCenter creds. Everything else (URLs, usernames, NDO_DOMAIN, etc.) is auto-discovered from your local tfvars/`.env`. No `--prod` flag is needed in this pattern because there is no name collision between lab and prod variables — they live on different GitLab servers.
 
-**Pattern B — Same GitLab project hosts both lab and prod CI.** This is what `apic-vmware-prod/.gitlab-ci.yml` is designed for: it reads `AEDCG_APIC_PASSWORD_PROD` (etc.) so both lab and prod APIC variables can coexist on one project. For this pattern, run the lab bootstrap first to populate the 18 lab variables, then re-run the wrapper with `--prod` to add the 8 `_PROD` APIC variables alongside them:
+**Pattern B — Same GitLab project hosts both lab and prod CI.** This is what `apic-vmware-prod/.gitlab-ci.yml` is designed for: it reads `Site1_APIC_PASSWORD_PROD` (etc.) so both lab and prod APIC variables can coexist on one project. For this pattern, run the lab bootstrap first to populate the 18 lab variables, then re-run the wrapper with `--prod` to add the 8 `_PROD` APIC variables alongside them:
 
 ```bash
 cd ~/DC/ACI/sac-johbarbe-AFRICOM-terraform-esg-nac-ndo
 ./scripts/setup_gitlab_ci_variables_interactive.sh           # lab pass (one-time, already done in Phase 0 above)
-./scripts/setup_gitlab_ci_variables_interactive.sh --prod    # prod cutover: adds AEDCG_*_PROD + AEDCK_*_PROD only
+./scripts/setup_gitlab_ci_variables_interactive.sh --prod    # prod cutover: adds Site1_*_PROD + Site2_*_PROD only
 ```
 
 `--prod` mode:
 
-- prompts for both production APIC URLs (`AEDCG_APIC_URL_PROD`, `AEDCK_APIC_URL_PROD`), the production APIC admin password, and (silently) generates fresh `AEDCG_MCP_KEY_PROD` / `AEDCK_MCP_KEY_PROD` values
+- prompts for both production APIC URLs (`Site1_APIC_URL_PROD`, `Site2_APIC_URL_PROD`), the production APIC admin password, and (silently) generates fresh `Site1_MCP_KEY_PROD` / `Site2_MCP_KEY_PROD` values
 - does **not** touch `NDO_*`, `VCENTER_*`, or `TF_HTTP_*` — those are either shared between lab and prod (the per-project CI files have no `_PROD` variant for them) or already set in the lab pass
 - still validates the GitLab PAT length and downgrades any value that can't be masked, exactly like the lab pass
 
@@ -200,11 +200,11 @@ cd ~/DC/ACI/sac-johbarbe-AFRICOM-terraform-esg-nac-ndo
 
 ## Phase 1 — Foundational NDO build (`sac-johbarbe-AFRICOM-terraform-nac-ndo`)
 
-This repo creates **tenant `EUR`**, **schema `AEDCE`** with five templates
-(`VRF_Template`, `L2_Stretched`, `L2_Non-Stretched`, `G-Specific_Only`,
-`K-Specific_Only`), 11 prod VRFs, 266 BDs, 265 EPGs, 13 L3Outs, and 812 VPC
+This repo creates **tenant `EUR`**, **schema `AFRICOM`** with five templates
+(`VRF_Template`, `L2_Stretched`, `L2_Non-Stretched`, `Site1-Specific_Only`,
+`Site2-Specific_Only`), 11 prod VRFs, 266 BDs, 265 EPGs, 13 L3Outs, and 812 VPC
 static-port bindings. Phase 4 in `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/aci-ndo/` cross-
-references `AEDCE / VRF_Template / Any` (the filter), so this phase has to
+references `AFRICOM / VRF_Template / Any` (the filter), so this phase has to
 land first.
 
 ```bash
@@ -240,118 +240,140 @@ and `README_LAB.md` (lab toggle).
 
 ---
 
-## Phase 2 — Manual NDO-UI deploy of `AEDCE` templates
+## Phase 2 — Manual NDO-UI deploy of `AFRICOM` templates
 
 Strict order. Cross-template VRF dependencies will break the deploy if you skip
-ahead — error message is "VRF EUR-X must be deployed on Fabric AEDCK before
+ahead — error message is "VRF EUR-X must be deployed on Fabric Site2 before
 BD type … can be deployed".
 
-NDO UI → **Application Management → Schemas → AEDCE** → for each template,
+NDO UI → **Application Management → Schemas → AFRICOM** → for each template,
 click **Deploy to sites** in this order, **waiting for green** between steps:
 
 | # | Template | Sites |
 |---|----------|-------|
-| 2.1 | `VRF_Template` | AEDCG, then AEDCK |
-| 2.2 | `L2_Stretched` | AEDCG, then AEDCK |
-| 2.3 | `L2_Non-Stretched` | AEDCG, then AEDCK |
-| 2.4 | `G-Specific_Only` | AEDCG only |
-| 2.5 | `K-Specific_Only` | AEDCK only |
+| 2.1 | `VRF_Template` | Site1, then Site2 |
+| 2.2 | `L2_Stretched` | Site1, then Site2 |
+| 2.3 | `L2_Non-Stretched` | Site1, then Site2 |
+| 2.4 | `Site1-Specific_Only` | Site1 only |
+| 2.5 | `Site2-Specific_Only` | Site2 only |
 
-After Phase 2: tenant `EUR`, all 11 VRFs (incl. `EUR-E`), schema `AEDCE` with
-`Any` filter under `VRF_Template`, all 266 BDs and 265 EPGs are live on AEDCG
-and AEDCK.
+After Phase 2: tenant `EUR`, all 11 VRFs (incl. `EUR-E`), schema `AFRICOM` with
+`Any` filter under `VRF_Template`, all 266 BDs and 265 EPGs are live on Site1
+and Site2.
 
 ---
 
-## Phase 2.5 — Legacy AEDCE static port bindings (`~/DC/NXOS/n5k/`)
+## Phase 2.5 — N5K → ACI leaf replacement (`~/DC/NXOS/sac-johbarbe-AFRICOM-nxos-n5k/`)
 
-The NAC YAML does not model `staticPorts`, so the 265 EPGs deployed in Phase 2
-land on AEDCG and AEDCK with no static port bindings. Phase 2.5 pushes the
-legacy N5K bindings (665 VPC static-port bindings across AEDCG nodes 152/153
-and AEDCK nodes 119/191) via the NDO REST API.
+> **Note:** The 812 VPC static-port bindings deployed in Phase 1 point to the
+> existing N5K paths. Phase 2.5 is not the initial binding push — it is the
+> cutover process run each time a pair of N5K switches is physically replaced
+> with new ACI leaves.
 
-The input is `terraform.tfvars.json` from the N5K migration toolkit
-(`~/DC/NXOS/n5k/`). It is generated by Stage 1 of that toolkit
-(`process_all_switches.yml` against the N5K interface/port-channel/VLAN
-dumps) and already contains `schema_name: "AEDCE"` and the NDO credentials.
-Re-run Stage 1 whenever the switch topology changes before running this step.
+**Physical sequence per N5K replacement:**
+
+1. **Remove the N5K** from the network — powered off and disconnected. The existing NDO bindings for those ports become inactive but remain in the schema.
+2. **Install and cable the new ACI leaf** — racked, cabled to the fabric, and discovered by APIC (registered with node ID 101 or 102 at the relevant site).
+3. **Configure APIC fabric policies for the new leaf** — switch profile, interface profile, policy groups, and interface selectors (Stage 3 of the toolkit, run against the new leaf node ID).
+4. **Push updated bindings to NDO** — the Python script replaces the old N5K port paths with the new ACI leaf paths in the AFRICOM schema (Stage 2 of the toolkit).
+5. **Re-deploy affected AFRICOM templates** in the NDO UI so the updated `staticPorts` are pushed to the APICs.
+
+**Before the first replacement** — run Stage 1 once to parse the N5K data and
+generate `terraform.tfvars.json`. Re-run Stage 1 if the switch topology changes.
 
 ```bash
-cd ~/DC/NXOS/n5k
-source ~/dc_redesign/bin/activate   # needs requests + urllib3
+cd ~/DC/NXOS/sac-johbarbe-AFRICOM-nxos-n5k
+source ~/dc_redesign/bin/activate   # needs requests + urllib3 + ansible
 
-# Lab — dry run first
-python3 deploy_bindings_python_v2_lab.py terraform.tfvars.json --dry-run
+# Stage 1 — parse N5K data once (re-run if topology changes)
+ansible-playbook ansible/process_all_switches.yml        # lab
+# ansible-playbook ansible/process_all_switches_prod.yml  # prod
 
-# Lab — live push
-python3 deploy_bindings_python_v2_lab.py terraform.tfvars.json
+# Stage 3 — configure APIC fabric for the new leaf (run per replacement)
+ansible-playbook ansible/configure_apic_fabric_lab.yml   # lab
+# ansible-playbook ansible/configure_apic_fabric.yml      # prod
 
-# Production — dry run (reads credentials from vault.yml via vault_pass.txt)
-python3 deploy_bindings_python_v2_prod.py terraform.tfvars.json --dry-run
+# Stage 2 — push updated bindings to NDO (dry run first, run per replacement)
+python3 scripts/deploy_bindings_python_v2_lab.py terraform.tfvars.json --dry-run
+python3 scripts/deploy_bindings_python_v2_lab.py terraform.tfvars.json
 
-# Production — live push
-python3 deploy_bindings_python_v2_prod.py terraform.tfvars.json
+# Production (reads credentials from vault.yml via vault_pass.txt)
+# python3 scripts/deploy_bindings_python_v2_prod.py terraform.tfvars.json --dry-run
+# python3 scripts/deploy_bindings_python_v2_prod.py terraform.tfvars.json
 ```
 
-For production, `vault.yml` + `vault_pass.txt` must be present in
-`~/DC/NXOS/n5k/` and `ndo_host` in `terraform.tfvars.json` must point at the
-production NDO. Use `--no-vault` to read the password from the JSON instead.
+For production, `vault.yml` + `vault_pass.txt` must be present and `ndo_host`
+in `terraform.tfvars.json` must point at the production NDO. Use `--no-vault`
+to read the password from the JSON instead. The binding deploy script is
+idempotent — it skips bindings that already exist on NDO.
 
-After the push, re-deploy any AEDCE templates that received new bindings in
-the NDO UI so the `staticPorts` reach the APICs. Phase 2.5 is idempotent —
-the script skips bindings that already exist on NDO.
+See `~/DC/NXOS/sac-johbarbe-AFRICOM-nxos-n5k/docs/README_LAB.md` for the full
+walkthrough including port classification rules and FEX-to-leaf mapping.
+
+> **TODO (deferred):** Once all N5Ks have been replaced, the old N5K static
+> port bindings must be removed from the AFRICOM schema in NDO. Do not do this
+> during the replacement window — leave the old bindings in place until all
+> switches are swapped and the new leaf bindings are confirmed working. At that
+> point, use the NDO UI or the Python script's delete capability to clean up
+> the stale N5K paths from each EPG.
 
 ---
 
 ## Phase 3 — APIC-direct fabric & VMM (`aci-apic/`)
 
 Builds access policies, MCP Instance Policies (per fabric, with per-fabric
-keys), the VMware VMM domains `APCG-VDS1` (on AEDCG) and `APCK-VDS1`
-(on AEDCK) that Phase 4's EPGs will bind to, the UCS Fabric Interconnect
+keys), the VMware VMM domains `APCG-VDS1` (on Site1) and `APCK-VDS1`
+(on Site2) that Phase 4's EPGs will bind to, the UCS Fabric Interconnect
 uplink access policies (Design A): `fi-static-vlan-pool` (213 VLANs),
 `phys-fi-domain`, `fi-aaep`, `PC_FI_A`/`PC_FI_B` PC policy groups
-(LACP active), and per-leaf interface/switch profiles for leaves 152/153
-(AEDCG) and 119/191 (AEDCK); and the legacy IPv4 infrastructure objects:
+(LACP active), and per-leaf interface/switch profiles for leaves 101/102
+(Site1) and 101/102 (Site2); and the legacy IPv4 infrastructure objects:
 `VLAN_All_Combined` static pool (5 broad ranges, ~2148 VLANs), `PhysDom_ACI_Nexus`
 physical domain, `L3_Dom_ND` routed domain, and `AAEP_ACI_Nexus` (used by all
 N5K migration VPC/PC policy groups). Independent of Phase 2 — could technically
 run in parallel — but in practice do it after.
 
+> **No Python venv needed for this phase.** `make` calls bash scripts and
+> `terraform` only. The scripts use `python3` stdlib (`json`, `os`, `sys`) for
+> JSON escaping — no pip packages required.
+
 ```bash
 cd ~/DC/ACI/sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/aci-apic
 
-# 3.1 Non-sensitive bits in terraform.tfvars (gitignored — copy from the example)
-test -f terraform.tfvars || cp terraform.tfvars.example terraform.tfvars
-$EDITOR terraform.tfvars   # set aedcg_apic_url/username, aedck_apic_url/username
+# 3.1 Lab APIC URLs are already in lab.tfvars (used by default by the Makefile).
+#     For prod, edit prod.tfvars instead and pass TFVARS_FILE=prod.tfvars to make.
 
 # 3.2 Sensitive env vars (per shell)
 source scripts/set-apic-password.sh                 # both fabrics, same lab password
-eval "$(./scripts/generate-mcp-key.sh aedcg)"        # TF_VAR_aedcg_mcp_key
-eval "$(./scripts/generate-mcp-key.sh aedck)"        # TF_VAR_aedck_mcp_key
+eval "$(./scripts/generate-mcp-key.sh site1)"        # TF_VAR_site1_mcp_key
+eval "$(./scripts/generate-mcp-key.sh site2)"        # TF_VAR_site2_mcp_key
 export TF_VAR_vcenter_hostname_ip='198.18.134.80'
 export TF_VAR_vcenter_datacenter='Datacenter'
 export TF_VAR_vcenter_username='administrator'
 export TF_VAR_vcenter_password='C1sco12345!'         # SINGLE quotes — ! triggers history expansion
 export TF_VAR_vcenter_dvs_version='unmanaged'        # 7.x/8.x rejected by validator
 
-# 3.3 Sanity check, plan, apply
+# 3.3 Init (first time or after module/provider bumps)
+make init
+
+# 3.4 Sanity check, plan, apply
 make auth-check
 make plan
 make apply
 ```
 
-After Phase 3: `APCG-VDS1` exists on AEDCG APIC, `APCK-VDS1` exists on AEDCK
+After Phase 3: `APCG-VDS1` exists on Site1 APIC, `APCK-VDS1` exists on Site2
 APIC, both registered against vCenter. Additionally on each APIC:
 `fi-static-vlan-pool` (static, 213 VLANs), `phys-fi-domain`, `fi-aaep`,
 `PC_FI_A` and `PC_FI_B` PC policy groups (LACP active), per-leaf interface
-profiles for the FI uplinks (leaf 152 eth1/6 and leaf 153 eth1/7 on AEDCG;
-leaf 119 eth1/6 and leaf 191 eth1/7 on AEDCK), and the legacy IPv4 objects:
+profiles for the FI uplinks (leaf 152 eth1/6 and leaf 153 eth1/7 on Site1;
+leaf 119 eth1/6 and leaf 191 eth1/7 on Site2), and the legacy IPv4 objects:
 `VLAN_All_Combined` static pool, `PhysDom_ACI_Nexus`, `L3_Dom_ND`, and
 `AAEP_ACI_Nexus`.
 
 > **Plan heads-up (first apply after lab YAML update):** The `vmm-host-ports`
-> interface selector in `leaf-152-153-intprof` and `leaf-119-191-intprof` will
-> show as a **modify** — port range changes from 1-48 to 8-48. This is expected;
+> interface selector in `leaf-101-102-intprof` (Site1 and Site2) will show as
+> a **modify** — port range changes from 1-48 to 8-48. This is expected;
 > ports 1-7 are now reserved for FI uplinks (eth1/6-7) and future use.
 
 Details: `aci-apic/README_LAB.md` (lab daily-driver),
@@ -361,11 +383,11 @@ Details: `aci-apic/README_LAB.md` (lab daily-driver),
 
 ## Phase 4 — V2 (consolidated) tenant tree (`aci-ndo/`)
 
-This is where the cross-schema reference to `AEDCE/VRF_Template/Any` (built
-in Phase 1, deployed in Phase 2) actually resolves. Schema `AEDCE-V2`
+This is where the cross-schema reference to `AFRICOM/VRF_Template/Any` (built
+in Phase 1, deployed in Phase 2) actually resolves. Schema `AFRICOM-V2`
 contains a **single template** `Tenant_EUR_V2` (2 VRFs, 39 BDs, 39 EPGs,
 2 ANPs, 2 contracts; all tenant-scoped objects suffixed `-V2` to coexist
-with the legacy `AEDCE` schema in tenant `EUR` — see
+with the legacy `AFRICOM` schema in tenant `EUR` — see
 [`docs/DESIGN.md` → Naming convention](docs/DESIGN.md#naming-convention);
 no static ports — those come in Phase 6).
 
@@ -382,21 +404,21 @@ source scripts/set-ndo-password.sh
 # 4.3 Sanity check, init, plan, apply
 make auth-check
 make init    # only first time
-make plan    # expect: 1 schema (AEDCE-V2), 1 template (Tenant_EUR_V2),
+make plan    # expect: 1 schema (AFRICOM-V2), 1 template (Tenant_EUR_V2),
              #         2 VRFs (-V2), 39 BDs (-V2), 2 ANPs (-V2),
              #         39 EPGs (-V2), 2 contracts (-V2).
              # NO mso_tenant create (manage_tenants=false; EUR is from Phase 1).
 make apply
 ```
 
-Then NDO UI → **Application Management → Schemas → AEDCE-V2 →
-`Tenant_EUR_V2` → Deploy to sites** → AEDCG and AEDCK. **One template here**,
+Then NDO UI → **Application Management → Schemas → AFRICOM-V2 →
+`Tenant_EUR_V2` → Deploy to sites** → Site1 and Site2. **One template here**,
 not three (any older docs that say `Tenant_Policy / Stretched_BDs /
 App_Profiles` reflect an abandoned design).
 
 After Phase 4: 2 VRFs (`VRF-EUR-V2`, `VRF-DMZ-V2`), 39 BDs, 39 EPGs are live on
-AEDCG and AEDCK; each EPG is bound to the per-fabric VMM domain from Phase 3
-(`APCG-VDS1` on AEDCG, `APCK-VDS1` on AEDCK), so 39 port-groups should now
+Site1 and Site2; each EPG is bound to the per-fabric VMM domain from Phase 3
+(`APCG-VDS1` on Site1, `APCK-VDS1` on Site2), so 39 port-groups should now
 exist on each VDS in vCenter.
 
 ### Phase 4b — ESG layer (re-apply `aci-apic/`)
@@ -421,7 +443,7 @@ Details: `aci-apic/data/nac-aci-shared/tenant-eur-esgs.nac.yaml` (the ESG YAML i
 Only do this phase if you need the IPv6 RCC EPGs (`EPG-NAC`, `EPG-CFG-MGMT`,
 `EPG-RCC-DNS`, … 39 in total) under a new ANP `AppProf-RCC` inside the
 existing `L2_Stretched` template, **and/or** you intend to use Phase 6
-Path A (`dump_bindings.py`) which reads from `AEDCE/AppProf-RCC` to seed
+Path A (`dump_bindings.py`) which reads from `AFRICOM/AppProf-RCC` to seed
 IPv4 bindings.
 
 ```bash
@@ -458,13 +480,13 @@ terraform plan -var-file=lab.tfvars -refresh=false -parallelism=3 -out=plan.tfpl
 terraform apply -parallelism=3 plan.tfplan
 ```
 
-Then NDO UI → schema `AEDCE` → template `L2_Stretched` → **Deploy to sites**
+Then NDO UI → schema `AFRICOM` → template `L2_Stretched` → **Deploy to sites**
 again (since this Terraform run added `AppProf-RCC` and 39 IPv6 EPGs into
 `L2_Stretched`).
 
 The "Deferred — re-enable after bindings" stages 6a/6b/6c documented in
 `aci-ndo-ipv6/README_LAB.md` happen **after** our Phase 6, not before.
-**Lab status:** stages 6a/6b/6c are already applied on AEDCG/AEDCK — the
+**Lab status:** stages 6a/6b/6c are already applied on Site1/Site2 — the
 `.disabled` files are kept as the replay procedure for production cutover
 and DR rebuilds (see that section's "Status" callout for details).
 
@@ -496,10 +518,11 @@ cd ~/DC/ACI/sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/scripts
 export NDO_HOST=198.18.133.100
 export NDO_USER=admin
 
-# Read AEDCE/AppProf-RCC, write a JSON for AEDCE-V2.
-./dump_bindings.py --leaves 152,153,119,191 \
+# Read AFRICOM/AppProf-RCC, write a JSON for AFRICOM-V2.
+# Both sites use nodes 101,102 — pass all four node IDs (Site1: 101,102; Site2: 101,102).
+./dump_bindings.py --leaves 101,102,101,102 \
                    --output current_bindings.json --dry-run     # preview
-./dump_bindings.py --leaves 152,153,119,191 \
+./dump_bindings.py --leaves 101,102,101,102 \
                    --output current_bindings.json               # write
 
 # Review current_bindings.json, decide your VLAN strategy (default strips VLAN
@@ -530,7 +553,7 @@ cd ~/DC/ACI/sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/scripts
 ./deploy_bindings.py fi_bindings.json --no-vault
 ```
 
-Whichever path: finish in **NDO UI → schema AEDCE-V2 → Tenant_EUR_V2 →
+Whichever path: finish in **NDO UI → schema AFRICOM-V2 → Tenant_EUR_V2 →
 Deploy to sites** (re-deploy) so the new `staticPorts[]` push to APIC.
 
 Details: `scripts/README.md` (CLI reference, vault flow, VLAN
@@ -542,13 +565,13 @@ strategy rationale).
 
 | Where | Check |
 |---|---|
-| AEDCG APIC GUI — FI uplinks | `Fabric → Access Policies → Pools → VLAN → fi-static-vlan-pool` exists (static, 213 VLANs). `fi-aaep` references both `phys-fi-domain` and `APCG-VDS1`. `Interfaces → Leaf Interfaces → Policy Groups → PC_FI_A` and `PC_FI_B` exist (type PC, LACP active). `Profiles → leaf-152-fi-intprof` and `leaf-153-fi-intprof` exist with `fi-a-uplink`/`fi-b-uplink` selectors on ports eth1/6 and eth1/7 respectively. |
-| AEDCK APIC GUI — FI uplinks | Same as AEDCG. `leaf-119-fi-intprof` (port 6) and `leaf-191-fi-intprof` (port 7). |
-| AEDCG APIC GUI — legacy objects | `Pools → VLAN → VLAN_All_Combined` exists (static, 5 ranges: 5-54, 66-67, 80-998, 1000-2176, 2205). `Domains → Physical → PhysDom_ACI_Nexus` references `VLAN_All_Combined`. `Domains → L3 → L3_Dom_ND` references `VLAN_All_Combined`. `Global Policies → AEP → AAEP_ACI_Nexus` references both `PhysDom_ACI_Nexus` and `L3_Dom_ND`. |
-| AEDCK APIC GUI — legacy objects | Same names and structure as AEDCG — `VLAN_All_Combined`, `PhysDom_ACI_Nexus`, `L3_Dom_ND`, `AAEP_ACI_Nexus`. |
-| AEDCG APIC GUI | `Tenants → EUR → Application Profiles → AppProf-NetCentric-V2 / AppProf-DMZ-V2` shows 39 EPGs (36 + 3) |
-| AEDCG APIC GUI (ESG layer) | `Tenants → EUR → Application Profiles → AppProf-AppCentric-V2 → Endpoint Security Groups` shows `ESG-All-Internal-V2` (in `VRF-EUR-V2`) and `ESG-All-DMZ-V2` (in `VRF-DMZ-V2`); each ESG's `Operational → Endpoints` lists the same endpoints as the corresponding EPGs sum |
-| AEDCK APIC GUI | Same as AEDCG — both NDO ANPs (39 EPGs) and the APIC-direct AppCentric ANP (2 ESGs) |
+| Site1 APIC GUI — FI uplinks | `Fabric → Access Policies → Pools → VLAN → fi-static-vlan-pool` exists (static, 213 VLANs). `fi-aaep` references both `phys-fi-domain` and `APCG-VDS1`. `Interfaces → Leaf Interfaces → Policy Groups → PC_FI_A` and `PC_FI_B` exist (type PC, LACP active). `Profiles → leaf-101-fi-intprof` and `leaf-102-fi-intprof` exist with `fi-a-uplink`/`fi-b-uplink` selectors on ports eth1/6 and eth1/7 respectively. |
+| Site2 APIC GUI — FI uplinks | Same as Site1. `leaf-101-fi-intprof` (port 6) and `leaf-102-fi-intprof` (port 7). |
+| Site1 APIC GUI — legacy objects | `Pools → VLAN → VLAN_All_Combined` exists (static, 5 ranges: 5-54, 66-67, 80-998, 1000-2176, 2205). `Domains → Physical → PhysDom_ACI_Nexus` references `VLAN_All_Combined`. `Domains → L3 → L3_Dom_ND` references `VLAN_All_Combined`. `Global Policies → AEP → AAEP_ACI_Nexus` references both `PhysDom_ACI_Nexus` and `L3_Dom_ND`. |
+| Site2 APIC GUI — legacy objects | Same names and structure as Site1 — `VLAN_All_Combined`, `PhysDom_ACI_Nexus`, `L3_Dom_ND`, `AAEP_ACI_Nexus`. |
+| Site1 APIC GUI | `Tenants → EUR → Application Profiles → AppProf-NetCentric-V2 / AppProf-DMZ-V2` shows 39 EPGs (36 + 3) |
+| Site1 APIC GUI (ESG layer) | `Tenants → EUR → Application Profiles → AppProf-AppCentric-V2 → Endpoint Security Groups` shows `ESG-All-Internal-V2` (in `VRF-EUR-V2`) and `ESG-All-DMZ-V2` (in `VRF-DMZ-V2`); each ESG's `Operational → Endpoints` lists the same endpoints as the corresponding EPGs sum |
+| Site2 APIC GUI | Same as Site1 — both NDO ANPs (39 EPGs) and the APIC-direct AppCentric ANP (2 ESGs) |
 | Each EPG's "Domains" tab | Per-fabric VMM domain (`APCG-VDS1` or `APCK-VDS1`) bound, `Resolution Immediacy = Immediate` |
 | Each EPG's "Static Ports" tab | Phase 6 bindings present with the right leaf/port/VLAN |
 | vCenter | 39 port-groups under each of `APCG-VDS1` / `APCK-VDS1` |
@@ -564,10 +587,10 @@ sites** after the relevant Terraform `apply`.
 | Component | Lab value (today; rotates) | Where to set it |
 |-----------|----------------------------|-----------------|
 | NDO | `https://198.18.133.100`, `admin`, dCloud password | `sac-johbarbe-AFRICOM-terraform-nac-ndo/.env`, `aci-ndo/terraform.tfvars`, `aci-ndo-ipv6/terraform.tfvars`, plus `TF_VAR_ndo_password` env var per shell |
-| AEDCG APIC | `https://198.18.134.252` | `aci-apic/terraform.tfvars` + `TF_VAR_aedcg_apic_password` |
-| AEDCK APIC | `https://198.18.134.253` | `aci-apic/terraform.tfvars` + `TF_VAR_aedck_apic_password` |
+| Site1 APIC | `https://198.18.134.252` | `aci-apic/terraform.tfvars` + `TF_VAR_site1_apic_password` |
+| Site2 APIC | `https://198.18.134.253` | `aci-apic/terraform.tfvars` + `TF_VAR_site2_apic_password` |
 | vCenter | `198.18.134.80`, `administrator`, `C1sco12345!` | `TF_VAR_vcenter_*` env vars only |
-| MCP key (per fabric) | generate fresh per session, ≥8 chars mixed | `eval "$(./scripts/generate-mcp-key.sh aedcg)"` etc. |
+| MCP key (per fabric) | generate fresh per session, ≥8 chars mixed | `eval "$(./scripts/generate-mcp-key.sh site1)"` etc. |
 
 Lab IPs change. If `auth-check` or `terraform plan` returns timeouts or 401s,
 the first thing to verify is whether the IPs in the tfvars files / `.env`
@@ -707,29 +730,75 @@ git -C ~/DC/nxos/sac-johbarbe-AFRICOM-nxos-n5k \
 
 ## Enabling the NDO Orchestrator App (single-node ND / dCloud)
 
-When using dCloud or any single-node Nexus Dashboard, the Orchestrator app is not licensed by default. You need to activate it via API before NDO is usable.
+**Skip this section if your lab NDO is already up and you can `curl /login` against it.** Do this once per fresh dCloud Topology Builder build, before Phase 1 or any Terraform that talks to NDO.
 
-### Step 1 — Get a token
+dCloud's "Nexus Dashboard 4.1" image installs **NDFC** and **Insights** automatically; it does **not** install NDO (Orchestration). On a single-node vND, the cluster UI's "Enable Orchestration" toggle hangs on `Enabling / Disabling Orchestration feature is in progress. This may take a while.` indefinitely (1+ hour observed) and never completes. The [Cisco ND 4.1 prerequisites guide](https://www.cisco.com/c/en/us/td/docs/dcn/nd/4x/deployment/cisco-nexus-dashboard-deployment-guide-41x/nd-prerequisites-41x.html) recommends the built-in **swagger** UI to enable Orchestration on single-node lab clusters, but in practice the path it tells you to search for (`/settings/general/actions/enableOrchestration`) is buried in a collapsed sub-menu — and on some 4.1 builds the explicit action endpoint isn't even surfaced in the in-product **swagger**. The reliable path is the underlying `licensetier` API directly.
+
+### Before you start
+
+- **Disable NDFC and Insights** from the ND cluster UI if dCloud auto-started them — NDO won't install while they're co-resident on a single-node vND.
+- Confirm the license tier is **Advantage** or **Premier**. Essentials does not include NDO.
+- Have an ND admin login (the same one you'll later put in `.env`, `terraform.tfvars`, or `TF_VAR_ndo_password`).
+
+### Enable Orchestration via the `licensetier` API (recommended)
+
+Substitute your real ND host and admin password (the dCloud default for a fresh 4.1 image is often `C1sco12345`):
 
 ```bash
-curl -k -X POST https://<ND-IP>/login \
+ND=https://198.18.133.100
+ND_USER=admin
+ND_PASS='<your-nd-admin-password>'
+
+# 1. Cluster login -> JWT
+TOKEN=$(curl -sk -X POST "$ND/login" \
+  -H 'Content-Type: application/json' \
+  -d "{\"userName\":\"$ND_USER\",\"userPasswd\":\"$ND_PASS\",\"domain\":\"local\"}" \
+  | python3 -c "import sys, json; print(json.load(sys.stdin)['token'])")
+
+[ -n "$TOKEN" ] && echo "JWT obtained: ${TOKEN:0:24}..." || { echo "login failed"; exit 1; }
+
+# 2. Set the tier and register cisco-mso (this is what enableOrchestration does internally)
+curl -sk -X POST "$ND/api/v1/licensetier" \
+  -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"userName":"admin","userPasswd":"<password>","domain":"local"}'
+  -d '{"licenseTier": "Premier", "apps": ["cisco-mso"]}'
+echo
 ```
 
-Copy the `token` value from the response.
+The `licensetier` POST returns either `{}`, `204 No Content`, or a small status payload. It does **not** return immediately-usable orchestration; enablement is asynchronous and takes 2–5 minutes on a single-node vND.
 
-### Step 2 — Enable the Premier license tier with the Orchestrator app
+### Verify NDO came up
+
+After waiting a couple of minutes, check the ND service list. The presence of `cisco-mso` (and its eventual transition to `Healthy`) is the green light:
 
 ```bash
-curl -k -X POST https://<ND-IP>/api/v1/licensetier \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <token>" \
-  -d '{
-    "licenseTier": "Premier",
-    "apps": ["cisco-mso"]
-  }'
+curl -sk -H "Authorization: Bearer $TOKEN" "$ND/api/v1/services" \
+  | python3 -m json.tool | grep -i mso
 ```
+
+If nothing comes back after 10 minutes, the most common culprits are NDFC/Insights still co-resident on the single-node vND, or `licensetier` was rejected (re-run the step 2 POST and check the response body).
+
+The same login probe you'll use from Terraform also doubles as a smoke test:
+
+```bash
+curl -sk -X POST "$ND/login" \
+  -H 'Content-Type: application/json' \
+  -d "{\"userName\":\"$ND_USER\",\"userPasswd\":\"$ND_PASS\",\"domain\":\"local\"}"
+```
+
+A valid response includes a `token` field. Once both the service list shows `cisco-mso` and `/login` returns a token, proceed to Phase 1.
+
+### Optional: enable from the in-product swagger UI
+
+The Cisco docs walk you through this via **swagger**; it's the same outcome via the same `licensetier` plumbing under the hood, just clickier and more menu-spelunky. Use only if you want to keep the runbook fully UI-driven, or if you need to verify the `licensetier` API call did what you expected.
+
+1. From the ND UI: top-right `?` → **Help Center** → **API reference: Swagger (In-product)**.
+2. Make sure you're on the **cluster-level swagger** (the URL bar should still be the ND host root, not a service tab like NDFC or Insights).
+3. Left nav → **Infra** group → **expand the `System Settings` sub-menu**. This is the gotcha: the sub-menu is collapsed by default and `Ctrl+F` won't find anything inside its body until you click to expand. The docs' "search for `/settings/general/actions/enableOrchestration`" instruction therefore returns no results until then.
+4. Find `POST /settings/general/actions/enableOrchestration`.
+5. Expand → **Try it Out** → **Execute**.
+
+If you still can't find the endpoint after expanding `System Settings`, the explicit action isn't exposed in your build's **swagger** — fall back to the `licensetier` recipe above.
 
 ### ND 4.x UI setup
 

@@ -14,7 +14,7 @@
 #       time. "unmanaged" both works and is the right semantic for adoption.
 #
 # vmm_domain_name (= VDS name in vCenter) is NOT an env var. It is fabric-
-# specific: AEDCG -> APCG-VDS1, AEDCK -> APCK-VDS1. The mapping lives in
+# specific: Site1 -> APCG-VDS1, Site2 -> APCK-VDS1. The mapping lives in
 # scripts/render-vmm-yaml.sh and is keyed off the fabric arg passed to it.
 # This is required because each fabric adopts its own pre-existing VDS in
 # the shared vCenter rather than creating a single shared "vmm-vcenter-rcc"

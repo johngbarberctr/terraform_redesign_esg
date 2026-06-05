@@ -9,8 +9,8 @@
 # `<fabric>_apic_insecure = true` in providers.tf for self-signed lab APICs.
 #
 # Usage:
-#   ./auth-check.sh aedcg     # check AEDCG only
-#   ./auth-check.sh aedck     # check AEDCK only
+#   ./auth-check.sh kelley    # check Kelley only
+#   ./auth-check.sh deldin    # check Del-Din only
 #   ./auth-check.sh           # check BOTH (default)
 #   ./auth-check.sh both      # check BOTH (explicit)
 #
@@ -89,25 +89,25 @@ check_one() {
 
 target="${1:-both}"
 case "$target" in
-  aedcg|aedck)
+  kelley|deldin)
     check_one "$target"
     ;;
   both)
     rc=0
-    check_one aedcg || rc=1
+    check_one kelley || rc=1
     echo
-    check_one aedck || rc=1
+    check_one deldin || rc=1
     exit "$rc"
     ;;
   "")
     rc=0
-    check_one aedcg || rc=1
+    check_one kelley || rc=1
     echo
-    check_one aedck || rc=1
+    check_one deldin || rc=1
     exit "$rc"
     ;;
   *)
-    echo "auth-check: unknown fabric '$target'. Use aedcg, aedck, both, or no arg." >&2
+    echo "auth-check: unknown fabric '$target'. Use kelley, deldin, both, or no arg." >&2
     exit 2
     ;;
 esac

@@ -18,15 +18,15 @@
 #           or PROJECT=apic-vmware-prod (prod)
 #
 # Required GitLab CI/CD variables:
-#   Lab:  AEDCG_APIC_URL, AEDCG_APIC_USERNAME, AEDCG_APIC_PASSWORD (Masked),
-#         AEDCG_MCP_KEY (Masked), AEDCK_APIC_URL, AEDCK_APIC_USERNAME,
-#         AEDCK_APIC_PASSWORD (Masked), AEDCK_MCP_KEY (Masked)
-#   Prod: AEDCG_APIC_URL_PROD, AEDCG_APIC_USERNAME_PROD,
-#         AEDCG_APIC_PASSWORD_PROD (Masked+Protected),
-#         AEDCG_MCP_KEY_PROD (Masked+Protected),
-#         AEDCK_APIC_URL_PROD, AEDCK_APIC_USERNAME_PROD,
-#         AEDCK_APIC_PASSWORD_PROD (Masked+Protected),
-#         AEDCK_MCP_KEY_PROD (Masked+Protected)
+#   Lab:  KELLEY_APIC_URL, KELLEY_APIC_USERNAME, KELLEY_APIC_PASSWORD (Masked),
+#         KELLEY_MCP_KEY (Masked), DELDIN_APIC_URL, DELDIN_APIC_USERNAME,
+#         DELDIN_APIC_PASSWORD (Masked), DELDIN_MCP_KEY (Masked)
+#   Prod: KELLEY_APIC_URL_PROD, KELLEY_APIC_USERNAME_PROD,
+#         KELLEY_APIC_PASSWORD_PROD (Masked+Protected),
+#         KELLEY_MCP_KEY_PROD (Masked+Protected),
+#         DELDIN_APIC_URL_PROD, DELDIN_APIC_USERNAME_PROD,
+#         DELDIN_APIC_PASSWORD_PROD (Masked+Protected),
+#         DELDIN_MCP_KEY_PROD (Masked+Protected)
 #   Both: VCENTER_HOSTNAME_IP, VCENTER_DATACENTER, VCENTER_DVS_VERSION,
 #         VCENTER_USERNAME, VCENTER_PASSWORD (Masked+Protected)
 #         GITLAB_API_URL (defaults to ${CI_API_V4_URL})
@@ -54,16 +54,16 @@
   TF_HTTP_UNLOCK_METHOD: DELETE
   TF_HTTP_USERNAME: "gitlab-ci-token"
   TF_HTTP_PASSWORD: "${CI_JOB_TOKEN}"
-  TF_VAR_aedcg_apic_url: "${AEDCG_APIC_URL}"
-  TF_VAR_aedcg_apic_username: "${AEDCG_APIC_USERNAME}"
-  TF_VAR_aedcg_apic_password: "${AEDCG_APIC_PASSWORD}"
-  TF_VAR_aedcg_apic_insecure: "true"
-  TF_VAR_aedcg_mcp_key: "${AEDCG_MCP_KEY}"
-  TF_VAR_aedck_apic_url: "${AEDCK_APIC_URL}"
-  TF_VAR_aedck_apic_username: "${AEDCK_APIC_USERNAME}"
-  TF_VAR_aedck_apic_password: "${AEDCK_APIC_PASSWORD}"
-  TF_VAR_aedck_apic_insecure: "true"
-  TF_VAR_aedck_mcp_key: "${AEDCK_MCP_KEY}"
+  TF_VAR_kelley_apic_url: "${KELLEY_APIC_URL}"
+  TF_VAR_kelley_apic_username: "${KELLEY_APIC_USERNAME}"
+  TF_VAR_kelley_apic_password: "${KELLEY_APIC_PASSWORD}"
+  TF_VAR_kelley_apic_insecure: "true"
+  TF_VAR_kelley_mcp_key: "${KELLEY_MCP_KEY}"
+  TF_VAR_deldin_apic_url: "${DELDIN_APIC_URL}"
+  TF_VAR_deldin_apic_username: "${DELDIN_APIC_USERNAME}"
+  TF_VAR_deldin_apic_password: "${DELDIN_APIC_PASSWORD}"
+  TF_VAR_deldin_apic_insecure: "true"
+  TF_VAR_deldin_mcp_key: "${DELDIN_MCP_KEY}"
   TF_VAR_vcenter_hostname_ip: "${VCENTER_HOSTNAME_IP}"
   TF_VAR_vcenter_datacenter: "${VCENTER_DATACENTER}"
   TF_VAR_vcenter_dvs_version: "${VCENTER_DVS_VERSION}"
@@ -83,8 +83,8 @@ validate-apic-vmware:
   script:
     - bash .gitlab/ci-secret-scan.sh
     - cd aci-apic
-    - ./scripts/render-vmm-yaml.sh aedcg
-    - ./scripts/render-vmm-yaml.sh aedck
+    - ./scripts/render-vmm-yaml.sh kelley
+    - ./scripts/render-vmm-yaml.sh deldin
     - terraform fmt -check -recursive
     - terraform init -backend=false -input=false
     - terraform validate
@@ -99,8 +99,8 @@ plan-apic-vmware:
     <<: *apic-vmware-vars
   script:
     - cd aci-apic
-    - ./scripts/render-vmm-yaml.sh aedcg
-    - ./scripts/render-vmm-yaml.sh aedck
+    - ./scripts/render-vmm-yaml.sh kelley
+    - ./scripts/render-vmm-yaml.sh deldin
     - terraform init -input=false
     - terraform plan -out=plan.tfplan -input=false -var-file=lab.tfvars
     - terraform show -no-color plan.tfplan > plan.txt
@@ -127,8 +127,8 @@ apply-apic-vmware:
     <<: *apic-vmware-vars
   script:
     - cd aci-apic
-    - ./scripts/render-vmm-yaml.sh aedcg
-    - ./scripts/render-vmm-yaml.sh aedck
+    - ./scripts/render-vmm-yaml.sh kelley
+    - ./scripts/render-vmm-yaml.sh deldin
     - terraform init -input=false
     - terraform apply -input=false -auto-approve plan.tfplan
   dependencies:
@@ -165,16 +165,16 @@ apply-apic-vmware:
   TF_HTTP_UNLOCK_METHOD: DELETE
   TF_HTTP_USERNAME: "gitlab-ci-token"
   TF_HTTP_PASSWORD: "${CI_JOB_TOKEN}"
-  TF_VAR_aedcg_apic_url: "${AEDCG_APIC_URL_PROD}"
-  TF_VAR_aedcg_apic_username: "${AEDCG_APIC_USERNAME_PROD}"
-  TF_VAR_aedcg_apic_password: "${AEDCG_APIC_PASSWORD_PROD}"
-  TF_VAR_aedcg_apic_insecure: "true"
-  TF_VAR_aedcg_mcp_key: "${AEDCG_MCP_KEY_PROD}"
-  TF_VAR_aedck_apic_url: "${AEDCK_APIC_URL_PROD}"
-  TF_VAR_aedck_apic_username: "${AEDCK_APIC_USERNAME_PROD}"
-  TF_VAR_aedck_apic_password: "${AEDCK_APIC_PASSWORD_PROD}"
-  TF_VAR_aedck_apic_insecure: "true"
-  TF_VAR_aedck_mcp_key: "${AEDCK_MCP_KEY_PROD}"
+  TF_VAR_kelley_apic_url: "${KELLEY_APIC_URL_PROD}"
+  TF_VAR_kelley_apic_username: "${KELLEY_APIC_USERNAME_PROD}"
+  TF_VAR_kelley_apic_password: "${KELLEY_APIC_PASSWORD_PROD}"
+  TF_VAR_kelley_apic_insecure: "true"
+  TF_VAR_kelley_mcp_key: "${KELLEY_MCP_KEY_PROD}"
+  TF_VAR_deldin_apic_url: "${DELDIN_APIC_URL_PROD}"
+  TF_VAR_deldin_apic_username: "${DELDIN_APIC_USERNAME_PROD}"
+  TF_VAR_deldin_apic_password: "${DELDIN_APIC_PASSWORD_PROD}"
+  TF_VAR_deldin_apic_insecure: "true"
+  TF_VAR_deldin_mcp_key: "${DELDIN_MCP_KEY_PROD}"
   TF_VAR_vcenter_hostname_ip: "${VCENTER_HOSTNAME_IP}"
   TF_VAR_vcenter_datacenter: "${VCENTER_DATACENTER}"
   TF_VAR_vcenter_dvs_version: "${VCENTER_DVS_VERSION}"
@@ -194,8 +194,8 @@ validate-apic-vmware-prod:
   script:
     - bash .gitlab/ci-secret-scan.sh
     - cd aci-apic
-    - ./scripts/render-vmm-yaml.sh aedcg
-    - ./scripts/render-vmm-yaml.sh aedck
+    - ./scripts/render-vmm-yaml.sh kelley
+    - ./scripts/render-vmm-yaml.sh deldin
     - terraform fmt -check -recursive
     - terraform init -backend=false -input=false
     - terraform validate
@@ -210,8 +210,8 @@ plan-apic-vmware-prod:
     <<: *apic-vmware-prod-vars
   script:
     - cd aci-apic
-    - ./scripts/render-vmm-yaml.sh aedcg
-    - ./scripts/render-vmm-yaml.sh aedck
+    - ./scripts/render-vmm-yaml.sh kelley
+    - ./scripts/render-vmm-yaml.sh deldin
     - terraform init -input=false
     - terraform plan -out=plan.tfplan -input=false -var-file=prod.tfvars
     - terraform show -no-color plan.tfplan > plan.txt
@@ -238,8 +238,8 @@ apply-apic-vmware-prod:
     <<: *apic-vmware-prod-vars
   script:
     - cd aci-apic
-    - ./scripts/render-vmm-yaml.sh aedcg
-    - ./scripts/render-vmm-yaml.sh aedck
+    - ./scripts/render-vmm-yaml.sh kelley
+    - ./scripts/render-vmm-yaml.sh deldin
     - terraform init -input=false
     - terraform apply -input=false -auto-approve plan.tfplan
   dependencies:

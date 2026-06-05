@@ -26,9 +26,9 @@
 | **Belete-Strategy** | `docs/ACI Network Design and Migration Strategy.md` |
 | **DESIGN** | `aci-redesign/DESIGN.md` |
 | **OVERVIEW** | `aci-redesign/REDESIGN_OVERVIEW.md` |
-| **Schema-V2** | `aci-redesign/data/nac-ndo/schema-aedce-v2.nac.yaml` |
+| **Schema-V2** | `aci-redesign/data/nac-ndo/schema-africom-v2.nac.yaml` |
 | **ESGs-V2** | `aci-redesign/data/nac-aci-shared/tenant-eur-esgs.nac.yaml` |
-| **AEDCE-legacy** | `sac-johbarbe-AFRICOM-terraform-nac-ndo/data/ndo/schema_AEDCE.nac.yaml` |
+| **AFRICOM-legacy** | `sac-johbarbe-AFRICOM-terraform-nac-ndo/data/ndo/schema_AFRICOM.nac.yaml` |
 
 **Status:** ✅ implemented · 🟡 in flight · ⚪ planned · 🔴 blocked · ❓ undecided
 
@@ -44,7 +44,7 @@
 
 ### A1. Tenant model
 
-**Today** ✅ — Single tenant `EUR` on both fabrics (AEDCG, AEDCK). Legacy AEDCE schema and new AEDCE-V2 schema both target this tenant. Coexistence is achieved via the `-V2` naming suffix.
+**Today** ✅ — Single tenant `EUR` on both fabrics (Site1, Site2). Legacy AFRICOM schema and new AFRICOM-V2 schema both target this tenant. Coexistence is achieved via the `-V2` naming suffix.
 
 **Recommendation:** Keep single tenant. Do not split into per-VRF or per-BU tenants. Multiple tenants give you only an RBAC boundary, which a single team does not need, and they multiply NDO templates.
 
@@ -62,7 +62,7 @@
 
 ### A2. VRF count and boundaries
 
-**Today** ✅ in V2, ✅ in legacy — Legacy AEDCE has **11 VRFs**. V2 has **2 VRFs**: `VRF-EUR-V2` (internal + L2 DMZ where the gateway is external) and `VRF-DMZ-V2` (routed proxy DMZ requiring true routing isolation).
+**Today** ✅ in V2, ✅ in legacy — Legacy AFRICOM has **11 VRFs**. V2 has **2 VRFs**: `VRF-EUR-V2` (internal + L2 DMZ where the gateway is external) and `VRF-DMZ-V2` (routed proxy DMZ requiring true routing isolation).
 
 **Recommendation:** Keep the 2-VRF V2 layout. Use `VRF-EUR-V2` for everything where ESGs and contracts are sufficient for segmentation. Reserve `VRF-DMZ-V2` for proxy segments that need a hard L3 boundary with the rest of the estate. Do not re-introduce per-zone or per-application VRFs in V2.
 
@@ -81,14 +81,14 @@
 
 ### A3. BD/EPG catalog (39 internal + 3 DMZ)
 
-**Today** ✅ in V2, ✅ in legacy — Legacy AEDCE has **215 BDs** (`BD-V0005` … `BD-V2205`, numeric/VLAN-derived) and **266 EPGs**. V2 schema has **39 BDs** and **39 EPGs** with descriptive names matched 1:1 to the IPv6 RCC catalog (`BD-AD-V2`, `BD-DB-SVR-V2`, `EPG-WEB-SVR-V2`, etc.) plus **3 DMZ EPGs** in `AppProf-DMZ-V2`.
+**Today** ✅ in V2, ✅ in legacy — Legacy AFRICOM has **215 BDs** (`BD-V0005` … `BD-V2205`, numeric/VLAN-derived) and **266 EPGs**. V2 schema has **39 BDs** and **39 EPGs** with descriptive names matched 1:1 to the IPv6 RCC catalog (`BD-AD-V2`, `BD-DB-SVR-V2`, `EPG-WEB-SVR-V2`, etc.) plus **3 DMZ EPGs** in `AppProf-DMZ-V2`.
 
 **Recommendation:** Keep the 39+3 catalog. Do not aim for a smaller number — every consolidation beyond 39 risks merging subnets that have different security or operational profiles. The 1:1 EPG-per-BD pattern preserves the network-centric layer cleanly while ESGs become the security overlay.
 
 **Source:** Schema-V2; DESIGN; OVERVIEW. Sharman recommended "199 BDs → ~30 over time"; you exceeded with 39 deliberately, mirroring the IPv6 RCC catalog. Belete-Strategy §3 endorses either service-based or app-based BDs — yours is a hybrid (functional like AD, infra like NTP/DNS, plus tier-based like WEB/APP/DB).
 
 **Open questions for the team:**
-- [ ] Confirm there are no IPv4 subnets in the legacy AEDCE that do not map cleanly to one of the 39 V2 BDs.
+- [ ] Confirm there are no IPv4 subnets in the legacy AFRICOM that do not map cleanly to one of the 39 V2 BDs.
 - [ ] Are the 3 DMZ EPGs (`EPG-D64-PROXY-V2`, `EPG-FWEB-PROXY-V2`, `EPG-RWEB-PROXY-V2`) the complete DMZ catalog, or should more proxy/edge segments be promoted into V2?
 - [ ] Any BDs that need anycast SVIs disabled (e.g., L2-only with external gateway)?
 
@@ -100,15 +100,15 @@
 
 ### A4. Naming convention (`-V2` suffix as generational marker)
 
-**Today** ✅ — All V2 tenant-scoped objects (VRFs, BDs, EPGs, ANPs, contracts, ESGs) carry the `-V2` suffix. Legacy AEDCE objects carry no suffix.
+**Today** ✅ — All V2 tenant-scoped objects (VRFs, BDs, EPGs, ANPs, contracts, ESGs) carry the `-V2` suffix. Legacy AFRICOM objects carry no suffix.
 
 **Recommendation:** Treat `-V2` as **generational, not address-family-specific**. The suffix exists to allow legacy and redesign to live in the same tenant during cutover, and to let a future `-V3` slot in beside V2 if a third generation is ever needed. Document this in `OVERVIEW` and `DESIGN` so nobody assumes "V2 = IPv6".
 
 **Source:** DESIGN ("naming convention is generational"); OVERVIEW; consistent with WWT-Long §4 ("clear naming conventions").
 
 **Open questions for the team:**
-- [ ] Confirm no objection to the `-V2` suffix being permanent (V2 objects will not be renamed back to non-suffixed once legacy AEDCE is decommissioned, because that would be another endpoint-impacting cutover).
-- [ ] Or alternatively: agree that after legacy AEDCE is fully retired, a separate maintenance window will drop the `-V2` suffix in a controlled rename.
+- [ ] Confirm no objection to the `-V2` suffix being permanent (V2 objects will not be renamed back to non-suffixed once legacy AFRICOM is decommissioned, because that would be another endpoint-impacting cutover).
+- [ ] Or alternatively: agree that after legacy AFRICOM is fully retired, a separate maintenance window will drop the `-V2` suffix in a controlled rename.
 
 **Risk if not decided:** Cosmetic only today; matters for the eventual decommissioning plan.
 
@@ -136,7 +136,7 @@
 
 ### A6. NDO orchestration model (single template, `deploy_templates=false`)
 
-**Today** ✅ — V2 schema is a single template (`Tenant_EUR_V2`) in schema `AEDCE-V2`. Legacy AEDCE has 5 templates with explicit `deploy_order`. Both Terraform roots set `deploy_templates = false`; deploys go through the NDO UI in a documented order.
+**Today** ✅ — V2 schema is a single template (`Tenant_EUR_V2`) in schema `AFRICOM-V2`. Legacy AFRICOM has 5 templates with explicit `deploy_order`. Both Terraform roots set `deploy_templates = false`; deploys go through the NDO UI in a documented order.
 
 **Recommendation:** Keep `deploy_templates = false`. NDO 4.x has known behavior where Terraform-driven deployments of cross-template references can cycle. Manual NDO-UI deploys with a fixed order are slower per change but eliminate that class of failure. The single-template V2 schema reduces this risk further by having no cross-template dependencies inside V2.
 
@@ -154,7 +154,7 @@
 
 ### A7. VMware VMM domain integration
 
-**Today** ✅ — VMM domains `APCG-VDS1` (AEDCG) and `APCK-VDS1` (AEDCK) exist. Dynamic VLAN pool `vmm-vlan-pool` covers 3501-3967. AAEP `vmm-aaep` binds the VMM domain plus the physical domain. V2 EPGs declare `vmware_vmm_domains` per site with `deployment_immediacy: immediate` and `resolution_immediacy: immediate` (Schema-V2).
+**Today** ✅ — VMM domains `APCG-VDS1` (Site1) and `APCK-VDS1` (Site2) exist. Dynamic VLAN pool `vmm-vlan-pool` covers 3501-3967. AAEP `vmm-aaep` binds the VMM domain plus the physical domain. V2 EPGs declare `vmware_vmm_domains` per site with `deployment_immediacy: immediate` and `resolution_immediacy: immediate` (Schema-V2).
 
 **Recommendation:** Keep the integration. Confirm `immediate/immediate` resolution is intentional (it forces VLAN programming on all leaves in the AAEP regardless of whether a VM is currently present — useful for vMotion/DRS, expensive on hardware resources). Consider `on-demand` resolution if VLAN consumption becomes a concern.
 
@@ -177,7 +177,7 @@
 
 **Recommendation:** Keep the classic model for the brownfield V2 work. Only consider the new interface configuration model (`apic.new_interface_configuration: true`, BRKDCN slides 41-54) for greenfield fabrics. Switching mid-life would require re-platforming all interface objects with no functional benefit.
 
-**Source:** BRKDCN slides 41-54; `aci-redesign/data/nac-aci-aedcg/access-policies.nac.yaml`; `…aedck/…`.
+**Source:** BRKDCN slides 41-54; `aci-redesign/data/nac-aci-site1/access-policies.nac.yaml`; `…site2/…`.
 
 **Open questions for the team:**
 - [ ] Document the "stay classic" decision in `DESIGN` so a future maintainer doesn't try to "modernize" without understanding the trade-off.
@@ -233,7 +233,7 @@
 
 ### B1. vzAny scope and the `Any_VRF-*-V2` contracts
 
-**Today** ✅ — Both V2 VRFs set `vzany: true`. Both VRFs provide and consume their own `Any_VRF-*-V2` contract (Schema-V2, around lines 113-122 of the schema YAML). The contracts reference the cross-schema filter `AEDCE/VRF_Template/Any` for a single source of truth.
+**Today** ✅ — Both V2 VRFs set `vzany: true`. Both VRFs provide and consume their own `Any_VRF-*-V2` contract (Schema-V2, around lines 113-122 of the schema YAML). The contracts reference the cross-schema filter `AFRICOM/VRF_Template/Any` for a single source of truth.
 
 **Recommendation:** Keep this exactly through Phase 2 and Phase 3. The vzAny+permit-all scaffolding is the safety net that lets ESGs go in without breaking endpoint-to-endpoint reachability. Removing vzAny is **only** a Phase 4 step, after explicit ESG-to-ESG contracts cover all flows that need to exist.
 
@@ -251,7 +251,7 @@
 
 ### B2. Filter `Any` and the `log` directive
 
-**Today** ✅ — The `Any` filter (defined in `AEDCE/VRF_Template`) has a single entry with `directives: [log, none]`. Every flow that hits vzAny+permit-all generates a contract-hit log line on the leaf.
+**Today** ✅ — The `Any` filter (defined in `AFRICOM/VRF_Template`) has a single entry with `directives: [log, none]`. Every flow that hits vzAny+permit-all generates a contract-hit log line on the leaf.
 
 **Recommendation:** Consider toggling the `log` directive **off** on the bulk vzAny `Any` filter once ESG visibility (per-ESG endpoint listing in APIC, Endpoint Tracker, NDI flow analysis) is verified to give equivalent forensic value. Per-flow logging on a vzAny+permit-all VRF can pressure leaf CPU and policy-CAM.
 
@@ -625,7 +625,7 @@ Suggested pilot candidates (you'll need to confirm based on what fits): an inter
    - Maintenance window scheduled.
    - Stakeholders notified.
 
-2. **The change itself**: edit `schema-aedce-v2.nac.yaml` to set `vzany: false` (or remove the block) on `VRF-EUR-V2`. Deploy through NDO. **Do NOT do both VRFs in the same window.** Do `VRF-DMZ-V2` first (smaller blast radius), then `VRF-EUR-V2` after a stabilization period.
+2. **The change itself**: edit `schema-africom-v2.nac.yaml` to set `vzany: false` (or remove the block) on `VRF-EUR-V2`. Deploy through NDO. **Do NOT do both VRFs in the same window.** Do `VRF-DMZ-V2` first (smaller blast radius), then `VRF-EUR-V2` after a stabilization period.
 
 3. **Post-change observation**: monitor NDI for unexpected denies for at least 7 days.
 
@@ -648,14 +648,14 @@ This section is grouped because L3Outs are an undecided cross-phase topic. Most 
 
 ### F1. L3Out ownership in V2
 
-**Today** ⚪ — V2 schema declares **zero L3Outs**. North-south routing for `VRF-EUR-V2` and `VRF-DMZ-V2` is currently provided by the L3Outs that already exist in the legacy AEDCE schema (13 L3Outs total: per-VRF, per-site `L3Out-G_*` and `L3Out-K_*`).
+**Today** ⚪ — V2 schema declares **zero L3Outs**. North-south routing for `VRF-EUR-V2` and `VRF-DMZ-V2` is currently provided by the L3Outs that already exist in the legacy AFRICOM schema (13 L3Outs total: per-VRF, per-site `L3Out-G_*` and `L3Out-K_*`).
 
-**Recommendation:** Decide **now** whether V2 will own its own L3Outs or continue inheriting from legacy AEDCE. Two options:
+**Recommendation:** Decide **now** whether V2 will own its own L3Outs or continue inheriting from legacy AFRICOM. Two options:
 
-- **Option A — V2 owns L3Outs.** Add `l3outs:` and `external_endpoint_groups:` blocks to `schema-aedce-v2.nac.yaml`. New L3Outs are created in `EUR` tenant, scoped to `VRF-EUR-V2` and `VRF-DMZ-V2`. Eventually the legacy AEDCE L3Outs are decommissioned.
-- **Option B — V2 inherits indefinitely.** Keep using the legacy L3Outs. AEDCE schema stays partially live forever, just for L3Outs.
+- **Option A — V2 owns L3Outs.** Add `l3outs:` and `external_endpoint_groups:` blocks to `schema-africom-v2.nac.yaml`. New L3Outs are created in `EUR` tenant, scoped to `VRF-EUR-V2` and `VRF-DMZ-V2`. Eventually the legacy AFRICOM L3Outs are decommissioned.
+- **Option B — V2 inherits indefinitely.** Keep using the legacy L3Outs. AFRICOM schema stays partially live forever, just for L3Outs.
 
-**Recommended: Option A** with phased migration. Continuing to depend on AEDCE for L3Outs prevents you from ever fully retiring the legacy schema, and creates a confusing two-headed ownership model.
+**Recommended: Option A** with phased migration. Continuing to depend on AFRICOM for L3Outs prevents you from ever fully retiring the legacy schema, and creates a confusing two-headed ownership model.
 
 **Source:** DESIGN ("L3Outs and External EPGs are NOT declared in this schema… provided by the L3Outs that already exist in the legacy IPv6 schema"); BRKDCN slides 70-71; Belete-Strategy §6 ("Consolidate L3Outs where possible").
 
@@ -663,7 +663,7 @@ This section is grouped because L3Outs are an undecided cross-phase topic. Most 
 - [ ] Pick A or B.
 - [ ] If A: what is the cutover sequence? (Suggestion: build new V2 L3Outs, peer them in parallel with legacy, drain traffic, decommission legacy.)
 - [ ] If A: are there any FW/upstream router config dependencies that would block creating new V2 L3Outs?
-- [ ] If B: what is the long-term plan for fully retiring AEDCE? (B is incompatible with full retirement.)
+- [ ] If B: what is the long-term plan for fully retiring AFRICOM? (B is incompatible with full retirement.)
 
 **Risk if not decided:** OVERVIEW currently says "later"; "later" needs a date.
 
@@ -673,19 +673,19 @@ This section is grouped because L3Outs are an undecided cross-phase topic. Most 
 
 ### F2. L3Out pattern — dedicated per-VRF or shared?
 
-**Today** ✅ in legacy — Legacy AEDCE follows the **dedicated per-VRF** pattern (each of the 9-10 VRFs has its own per-site L3Out, no sharing).
+**Today** ✅ in legacy — Legacy AFRICOM follows the **dedicated per-VRF** pattern (each of the 9-10 VRFs has its own per-site L3Out, no sharing).
 
 **Recommendation:** For V2, adopt **Option 1: dedicated L3Out per VRF** in tenant `EUR`. Two reasons:
 1. You only have 2 VRFs in V2, so the "shared L3Out in a `shared-services` tenant" pattern (BRKDCN slide 71) gives you nothing — there is no second tenant to share with.
 2. Dedicated L3Outs avoid all the route-leaking complexity that BRKDCN slides 64-68 warn about.
 
 Concretely, four L3Outs in V2:
-- `L3Out-EUR-V2-G_to_core` (VRF-EUR-V2, AEDCG)
-- `L3Out-EUR-V2-K_to_core` (VRF-EUR-V2, AEDCK)
-- `L3Out-DMZ-V2-G_to_core` (VRF-DMZ-V2, AEDCG)
-- `L3Out-DMZ-V2-K_to_core` (VRF-DMZ-V2, AEDCK)
+- `L3Out-EUR-V2-G_to_core` (VRF-EUR-V2, Site1)
+- `L3Out-EUR-V2-K_to_core` (VRF-EUR-V2, Site2)
+- `L3Out-DMZ-V2-G_to_core` (VRF-DMZ-V2, Site1)
+- `L3Out-DMZ-V2-K_to_core` (VRF-DMZ-V2, Site2)
 
-**Source:** BRKDCN slides 70-71; consistent with current AEDCE topology.
+**Source:** BRKDCN slides 70-71; consistent with current AFRICOM topology.
 
 **Open questions for the team:**
 - [ ] Approve the dedicated-per-VRF pattern.
@@ -700,7 +700,7 @@ Concretely, four L3Outs in V2:
 
 ### F3. External classification — extEPG vs ESG (post-6.1(4))
 
-**Today** ⚪ — Legacy AEDCE uses the classic pattern: external IPs are classified into `External Endpoint Groups` (extEPGs) like `ExtEPG-AIM`, `ExtEPG-AIS`, with subnets `0.0.0.0/1` and `128.0.0.0/1` covering "everything external". Contracts attach to the extEPG.
+**Today** ⚪ — Legacy AFRICOM uses the classic pattern: external IPs are classified into `External Endpoint Groups` (extEPGs) like `ExtEPG-AIM`, `ExtEPG-AIS`, with subnets `0.0.0.0/1` and `128.0.0.0/1` covering "everything external". Contracts attach to the extEPG.
 
 **Recommendation:** For V2, use the post-6.1(4) decoupled model where external IPs are classified directly into ESGs via **External EPG Selectors**. This gives a single classification model (ESG) for both internal and external endpoints. Your contracts become uniformly ESG↔ESG.
 
@@ -711,7 +711,7 @@ Concretely, add a per-VRF `ESG-Outside-V2` ESG that uses an External EPG Selecto
 **Open questions for the team:**
 - [ ] Approve the ESG-based external classification pattern for V2.
 - [ ] Confirm the ACI version in production supports External EPG Selectors (requires 6.1(4) or later).
-- [ ] Decide if the legacy extEPGs in AEDCE also get retrofit with this pattern, or stay classic until the schema is decommissioned.
+- [ ] Decide if the legacy extEPGs in AFRICOM also get retrofit with this pattern, or stay classic until the schema is decommissioned.
 
 **Risk if not decided:** If V2 L3Outs are built with classic extEPG-only classification, you'll later need to refactor every external-facing contract.
 
@@ -744,7 +744,7 @@ This is a documentation-only item: write it down so it's not relearned the hard 
 
 ### F5. BGP hardening checklist for V2 L3Outs
 
-**Today** ⚪ — Legacy AEDCE L3Out BGP hardening posture is unverified in YAML; may be set on APIC manually.
+**Today** ⚪ — Legacy AFRICOM L3Out BGP hardening posture is unverified in YAML; may be set on APIC manually.
 
 **Recommendation:** When V2 L3Outs are built (F1 Option A), apply the BRKDCN BGP hardening checklist to each peer:
 
@@ -763,7 +763,7 @@ These map to NAC YAML primitives: `bgp_timer_policies`, `bgp_address_family_cont
 **Source:** BRKDCN slides 154-160.
 
 **Open questions for the team:**
-- [ ] Audit the existing legacy AEDCE L3Outs against this checklist (snapshot APIC, compare to YAML, codify any gaps in YAML so they survive a rebuild).
+- [ ] Audit the existing legacy AFRICOM L3Outs against this checklist (snapshot APIC, compare to YAML, codify any gaps in YAML so they survive a rebuild).
 - [ ] Apply the checklist to new V2 L3Outs from day 1.
 - [ ] Are there upstream device constraints (e.g., FW doesn't support BFD) that force some items off?
 
@@ -845,14 +845,14 @@ None of these are true today. Document this as "no plan; revisit only if a trigg
 
 ---
 
-### G4. Decommissioning legacy AEDCE schema
+### G4. Decommissioning legacy AFRICOM schema
 
 **Today** ❓ — No decommissioning plan exists.
 
 **Recommendation:** Sketch the decommissioning sequence now so each Phase 2/3/4 step understands its role in the eventual cleanup:
 1. **After Phase 2** stabilizes: legacy EPGs are still bound to ports (static bindings). V2 EPGs exist but have no endpoints. Begin port-binding migration: move port bindings from legacy EPGs to V2 EPGs in batches (this is what the `scripts/` Python tooling does).
-2. **After Phase 3** stabilizes: all endpoints are in V2 EPGs and classified into V2 ESGs. Legacy EPGs in AEDCE are empty.
-3. **After F1 Option A** is done: V2 L3Outs are live, legacy AEDCE L3Outs are no longer in path.
+2. **After Phase 3** stabilizes: all endpoints are in V2 EPGs and classified into V2 ESGs. Legacy EPGs in AFRICOM are empty.
+3. **After F1 Option A** is done: V2 L3Outs are live, legacy AFRICOM L3Outs are no longer in path.
 4. **Decommission**: empty legacy EPGs are deleted. Legacy BDs are deleted. Legacy VRFs are deleted. Legacy schema templates are deleted. Tenant `EUR` ends up containing only V2 objects.
 5. **(Optional) Rename**: drop the `-V2` suffix in a final maintenance window (or keep it, per A4).
 
@@ -863,7 +863,7 @@ None of these are true today. Document this as "no plan; revisit only if a trigg
 - [ ] Set rough target dates so each Phase has a downstream deadline.
 - [ ] Decide A4: keep `-V2` suffix forever, or rename in a post-decom window.
 
-**Risk if not decided:** Legacy AEDCE lives forever and the redesign never "finishes". A floating end state is harder to defend in audits than a documented one.
+**Risk if not decided:** Legacy AFRICOM lives forever and the redesign never "finishes". A floating end state is harder to defend in audits than a documented one.
 
 **Decision:** _________________________________________  **Re-visit:** _________
 
@@ -910,7 +910,7 @@ Use this section to capture decisions in summary form once the team meets. One r
 | G1 | nac-ndo ESG consolidation | | | | |
 | G2 | IPv6 absorption | | | | |
 | G3 | Phase 5 (tenant split) | | | | |
-| G4 | AEDCE decommissioning plan | | | | |
+| G4 | AFRICOM decommissioning plan | | | | |
 
 ---
 

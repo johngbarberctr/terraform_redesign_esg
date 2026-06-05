@@ -152,7 +152,7 @@ resource "aci_vlan_pool" "ipv6_pool_k" {
 }
 
 # ============================================================================
-# SITE G (AEDCG) - VLAN ENTRIES
+# SITE G (Site1) - VLAN ENTRIES
 # ============================================================================
 
 resource "aci_rest_managed" "ipv6_vlan_g" {
@@ -170,7 +170,7 @@ resource "aci_rest_managed" "ipv6_vlan_g" {
 }
 
 # ============================================================================
-# SITE K (AEDCK) - VLAN ENTRIES
+# SITE K (Site2) - VLAN ENTRIES
 # ============================================================================
 
 resource "aci_rest_managed" "ipv6_vlan_k" {

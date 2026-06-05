@@ -1,7 +1,7 @@
 # Tenant EUR -- V2 (consolidated) tenant redesign.
 #
 # Tenant EUR already exists in NDO (created out of band) and the ndo/ root
-# runs with manage_tenants=false. The templates in schema-aedce-v2.nac.yaml
+# runs with manage_tenants=false. The templates in schema-africom-v2.nac.yaml
 # reference the tenant by name (`tenant: EUR`); that lookup does NOT require
 # this root to own the mso_tenant resource, so this file is intentionally a
 # stub.
@@ -20,7 +20,7 @@
 #     - name: EUR
 #       description: "V2 redesign tenant -- 2 VRFs (VRF-EUR-V2 / VRF-DMZ-V2), 39 stretched BDs"
 #       sites:
-#         - name: AEDCG
-#         - name: AEDCK
+#         - name: Kelley
+#         - name: Del-Din
 ---
 ndo: {}

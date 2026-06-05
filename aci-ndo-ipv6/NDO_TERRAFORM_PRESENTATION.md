@@ -8,11 +8,11 @@
 
 ### What It Does
 
-This project uses **Terraform** to automate the provisioning of Cisco ACI network infrastructure across two data center sites through **Nexus Dashboard Orchestrator (NDO)**. It manages the full lifecycle of Bridge Domains (BDs), End Point Groups (EPGs), VRFs, contracts, and site-level deployments for the **EUR tenant** under the **AEDCE schema**.
+This project uses **Terraform** to automate the provisioning of Cisco ACI network infrastructure across two data center sites through **Nexus Dashboard Orchestrator (NDO)**. It manages the full lifecycle of Bridge Domains (BDs), End Point Groups (EPGs), VRFs, contracts, and site-level deployments for the **EUR tenant** under the **AFRICOM schema**.
 
 ### Why Automation
 
-- **Consistency**: Identical configurations deployed to both sites (AEDCG and AEDCK) from a single source of truth
+- **Consistency**: Identical configurations deployed to both sites (Site1 and Site2) from a single source of truth
 - **Repeatability**: Every deployment is deterministic -- the same code produces the same result
 - **Auditability**: All changes are tracked in Git with full commit history
 - **Speed**: 35+ BDs and their associated EPGs, subnets, and site bindings deployed in minutes instead of hours of manual GUI work
@@ -25,7 +25,7 @@ This project uses **Terraform** to automate the provisioning of Cisco ACI networ
 | Bridge Domains | 35+ |
 | EPGs | 35+ |
 | IPv6 Subnets | 35+ |
-| Site Deployments | 2 (AEDCG, AEDCK) |
+| Site Deployments | 2 (Site1, Site2) |
 | Terraform Resources | ~200+ |
 | Lines of Terraform Code | ~4,200 (bds_epgs.tf) |
 
@@ -54,7 +54,7 @@ This project uses **Terraform** to automate the provisioning of Cisco ACI networ
                       ┌────┴────┐
                       │         │
                  ┌────▼───┐ ┌──▼─────┐
-                 │ AEDCG  │ │ AEDCK  │
+                 │ Site1  │ │ Site2  │
                  │ (APIC) │ │ (APIC) │
                  └────────┘ └────────┘
 ```
@@ -76,7 +76,7 @@ This project uses **Terraform** to automate the provisioning of Cisco ACI networ
 ```
 NDO
 └── Tenant: EUR
-    └── Schema: AEDCE
+    └── Schema: AFRICOM
         ├── Template: UpgradeTemplate1 (VRF template)
         │   ├── VRF: VRF-RCC (vzAny enabled)
         │   ├── Contract: Any_VRF-RCC (scope: context, bidirectional)
@@ -89,17 +89,17 @@ NDO
         │   │   ├── EPG-DNS-MGMT → BD-DNS-MGMT (2609:efff:b33b:5300::1/64)
         │   │   ├── ... (30+ more EPG/BD pairs)
         │   │   └── EPG-GEF-MGMT → BD-GEF-MGMT (2609:efff:b33b:ef00::1/64)
-        │   └── Site Deployments: AEDCG + AEDCK
+        │   └── Site Deployments: Site1 + Site2
         │
         ├── Template: L2_Non-Stretched
         │   ├── EPG-DB-SVR → BD-DB-SVR
         │   └── EPG-SYSLOG → BD-SYSLOG
         │
-        ├── Template: G-Specific_Only
-        │   └── EPG-GEF-MGMT → BD-GEF-MGMT (AEDCG only)
+        ├── Template: Site1-Specific_Only
+        │   └── EPG-GEF-MGMT → BD-GEF-MGMT (Site1 only)
         │
-        └── Template: K-Specific_Only
-            └── EPG-BACKUP-SVR → BD-BACKUP-SVR (AEDCK only)
+        └── Template: Site2-Specific_Only
+            └── EPG-BACKUP-SVR → BD-BACKUP-SVR (Site2 only)
 ```
 
 ---
@@ -123,13 +123,13 @@ Multiple data sources were collected to understand what each VLAN actually carri
 - `schemas/Networking - Bridge Domains-Table-tn-EUR.json` -- Full dump of all 215 BDs from APIC with attributes (dn, name, unicast routing, flood settings)
 - `schemas/bd_dump.json` -- Same BD inventory (215 BDs)
 - `schemas/bd_epg_configs.json` -- BD configurations with flood/stretch/multicast settings for BDs like BD-V0479, BD-V0091, BD-V2150, etc.
-- `schemas/aedce_schema_full.json` (1.37 MB) -- Complete NDO schema export showing all templates, contracts, filters, ANPs, BDs, and VRFs
+- `schemas/africom_schema_full.json` (1.37 MB) -- Complete NDO schema export showing all templates, contracts, filters, ANPs, BDs, and VRFs
 
 **b) APIC Endpoint Queries (live learned endpoints per EPG)**
 
 A custom Python script (`APIC_ENDPOINT_QUERY_PACKAGE/get_epg_endpoints.json`) was run against **both APICs** to query every EPG for its learned endpoints:
-- `apic_endpoints_155_155_32_20.json` -- 217 EPG records from APIC at Site G (AEDCG)
-- `apic_endpoints_155_155_33_20.json` -- 216 EPG records from APIC at Site K (AEDCK)
+- `apic_endpoints_155_155_32_20.json` -- 217 EPG records from APIC at Site G (Site1)
+- `apic_endpoints_155_155_33_20.json` -- 216 EPG records from APIC at Site K (Site2)
 
 Each record contains: EPG name, VLAN, endpoint count, port count, and a list of endpoints with MAC, IP, encap, and learning source. This data revealed **which VMs and physical endpoints were actually on each VLAN** -- for example, EPG-V0015 (VLAN 15) had NAC/ISE appliances, EPG-V0216 had DNS servers, etc.
 
@@ -260,13 +260,13 @@ Each BD/EPG was assigned to one of four NDO templates based on its site deployme
 |----------|----------|-----------|
 | **L2_Stretched** | Service runs at BOTH sites with L2 extension between them | ~30 (majority) |
 | **L2_Non-Stretched** | Service runs at both sites but each site is independent (no L2 stretch) | 2 (DB-SVR, SYSLOG) |
-| **G-Specific_Only** | Service runs ONLY at site AEDCG | 1 (GEF-MGMT) |
-| **K-Specific_Only** | Service runs ONLY at site AEDCK | 1 (BACKUP-SVR) |
+| **Site1-Specific_Only** | Service runs ONLY at site Site1 | 1 (GEF-MGMT) |
+| **Site2-Specific_Only** | Service runs ONLY at site Site2 | 1 (BACKUP-SVR) |
 
 The template decisions were based on operational requirements:
 - **Databases and logs** (DB-SVR, SYSLOG) are site-local for data sovereignty and latency -- no L2 stretch needed
-- **Backup** is K-site only because the backup infrastructure resides at AEDCK
-- **GEF management** is G-site only because the GEF equipment is at AEDCG
+- **Backup** is K-site only because the backup infrastructure resides at Site2
+- **GEF management** is G-site only because the GEF equipment is at Site1
 - **Everything else** is L2-stretched for high availability across both sites
 
 ### Step 6: Port Binding Inheritance from VLAN EPGs
@@ -276,7 +276,7 @@ The critical link between old and new: each IPv6 EPG needs to be deployed on the
 1. **Query NDO** for all existing static port bindings on every `EPG-Vxxxx` (the VLAN-named IPv4 EPGs)
 2. **Match** each new IPv6 EPG to its source VLAN EPG (e.g., EPG-NAC gets its ports from EPG-V0015, because V0015 is the VLAN that carries NAC traffic)
 3. **Clone** the port bindings (VPC paths, leaf pairs, deployment immediacy) from the VLAN EPG, substituting the new IPv6 VLAN encapsulation
-4. **Filter** by site/template (G-Specific only gets AEDCG ports, K-Specific only gets AEDCK ports)
+4. **Filter** by site/template (G-Specific only gets Site1 ports, K-Specific only gets Site2 ports)
 5. **Default** to standard VPC paths on leaves 101/102 if a reference VLAN EPG had no existing bindings
 
 This inheritance approach means the IPv6 services land on exactly the same physical leaf ports and server connections as their IPv4 predecessors -- the same racks, same VPCs, same hosts -- just with IPv6 addressing and new VLAN encapsulation.
@@ -290,7 +290,7 @@ A cleanup script (`backups/remove_all_rcc_bindings.json`) was also created to re
 Two types of EPG domain bindings were applied:
 
 - **PhysDom_ACI_IPv6** (Physical Domain): Applied to ALL EPGs at both sites -- required for bare-metal and physical server connectivity
-- **VMware VMM Domain** (variable `vmm_domain_name`): Applied only to **EPG-NAC at AEDCK** -- the only service that required VMware virtual machine connectivity at the K site
+- **VMware VMM Domain** (variable `vmm_domain_name`): Applied only to **EPG-NAC at Site2** -- the only service that required VMware virtual machine connectivity at the K site
 
 ### Consolidated EUR Tenant (Future)
 
@@ -343,14 +343,14 @@ Where `[function_code]` is a 2-digit hex value unique to each service function.
 | d8 | BD-FWEB-PROXY | 2609:efff:b33b:d800::1/64 | 3059 | L2_Stretched | Proxy (Public) |
 | d9 | BD-SYSLOG | 2609:efff:b33b:d900::1/64 | 3217 | L2_Non-Stretched | Database/Logging |
 | db | BD-DB-SVR | 2609:efff:b33b:db00::1/64 | 3219 | L2_Non-Stretched | Database/Logging |
-| dd | BD-BACKUP-SVR | 2609:efff:b33b:dd00::1/64 | 3221 | K-Specific_Only | Storage |
+| dd | BD-BACKUP-SVR | 2609:efff:b33b:dd00::1/64 | 3221 | Site2-Specific_Only | Storage |
 | e0 | BD-APP-SVR | 2609:efff:b33b:e000::1/64 | 3224 | L2_Stretched | App/Web |
 | e3 | BD-FMWR-SVR | 2609:efff:b33b:e300::1/64 | 3060 | L2_Stretched | App/Web |
 | e4 | BD-WEB-SVR | 2609:efff:b33b:e400::1/64 | 3228 | L2_Stretched | App/Web (Public) |
 | e6 | BD-PATCH | 2609:efff:b33b:e600::1/64 | 3230 | L2_Stretched | Infrastructure |
 | e9 | BD-E911-SVR | 2609:efff:b33b:e900::1/64 | 3061 | L2_Stretched | Voice/Comms |
 | ec | BD-MECM | 2609:efff:b33b:ec00::1/64 | 3236 | L2_Stretched | Infrastructure |
-| ef | BD-GEF-MGMT | 2609:efff:b33b:ef00::1/64 | 3062 | G-Specific_Only | Infrastructure |
+| ef | BD-GEF-MGMT | 2609:efff:b33b:ef00::1/64 | 3062 | Site1-Specific_Only | Infrastructure |
 
 **Public-facing services**: BD-RWEB-PROXY, BD-FWEB-PROXY, BD-WEB-SVR
 
@@ -383,12 +383,12 @@ After template-level definitions, each BD/EPG is deployed to sites:
 ```
 ┌───────────────────────────┐     ┌───────────────────────────┐
 │  mso_schema_site_bd       │     │  mso_schema_site_anp_epg  │
-│  (AEDCG)                  │     │  (AEDCG)                  │
+│  (Site1)                  │     │  (Site1)                  │
 └───────────────────────────┘     └─────────────┬─────────────┘
                                                 │
 ┌───────────────────────────┐     ┌─────────────▼─────────────────────┐
 │  mso_schema_site_bd       │     │  mso_schema_site_anp_epg_domain   │
-│  (AEDCK)                  │     │  (PhysDom_ACI_IPv6 + VMM domain)  │
+│  (Site2)                  │     │  (PhysDom_ACI_IPv6 + VMM domain)  │
 └───────────────────────────┘     └───────────────────────────────────┘
 ```
 
@@ -635,7 +635,7 @@ root object was present, but now absent
 - Schema backup before deployment
 - Environment variable or interactive credential input
 - Dry-run mode for testing
-- Auto-discovers RCC EPGs from the AEDCE schema
+- Auto-discovers RCC EPGs from the AFRICOM schema
 - Clones port bindings from existing IPv4 reference EPGs
 - Deploys in batches of 50 patches to NDO API
 - Supports leaves 101/102 (111/112 deferred)
@@ -808,10 +808,10 @@ nohup ~/gitlab-runner/gitlab-runner run &
 
 | Template | Site(s) | EPG Count | Description |
 |----------|---------|-----------|-------------|
-| L2_Stretched | AEDCG + AEDCK | ~30 | Majority of services; L2 stretched across both sites |
-| L2_Non-Stretched | AEDCG + AEDCK | 2 | DB-SVR, SYSLOG; not L2 stretched |
-| G-Specific_Only | AEDCG only | 1 | GEF-MGMT; Site G specific |
-| K-Specific_Only | AEDCK only | 1 | BACKUP-SVR; Site K specific |
+| L2_Stretched | Site1 + Site2 | ~30 | Majority of services; L2 stretched across both sites |
+| L2_Non-Stretched | Site1 + Site2 | 2 | DB-SVR, SYSLOG; not L2 stretched |
+| Site1-Specific_Only | Site1 only | 1 | GEF-MGMT; Site G specific |
+| Site2-Specific_Only | Site2 only | 1 | BACKUP-SVR; Site K specific |
 
 ## Appendix B: Service Categories
 
@@ -833,4 +833,4 @@ nohup ~/gitlab-runner/gitlab-runner run &
 | Domain Type | Name | Applies To |
 |-------------|------|-----------|
 | Physical | PhysDom_ACI_IPv6 | All EPGs at both sites |
-| VMware VMM | (var.vmm_domain_name) | EPG-NAC at AEDCK site |
+| VMware VMM | (var.vmm_domain_name) | EPG-NAC at Site2 site |

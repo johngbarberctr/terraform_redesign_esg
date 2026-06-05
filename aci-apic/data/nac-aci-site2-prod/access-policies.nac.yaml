@@ -1,23 +1,21 @@
-# Access policies for VMM host connectivity and direct UCS-FI uplinks (AEDCK, PROD).
+# Access policies for VMM host connectivity and direct UCS-FI uplinks (Site2, PROD).
 #
 # This directory targets the PRODUCTION fabric (Design A: UCS-FI direct attach
 # without vPC). It is NOT consumed by the lab Terraform root in
-# ../../apic-vmware/ -- the lab continues to read ../nac-aci-aedck/, which
-# describes the simulator topology shown in
-# aci-redesign/Screenshot 2026-04-29 at 14.55.40.png.
+# ../../apic-vmware/ -- the lab continues to read ../nac-aci-site2/, which
+# describes the simulator topology.
 #
-# Mirrors data/nac-aci-aedcg-prod/access-policies.nac.yaml. Names are scoped
+# Mirrors data/nac-aci-site1-prod/access-policies.nac.yaml. Names are scoped
 # per-APIC, so reusing them across fabrics is safe and intentional.
 #
 # Production topology after the N5K -> ACI cutover:
-#   FI-A is single-homed to Leaf-119 via PC_FI_A (eth1/6).
-#   FI-B is single-homed to Leaf-191 via PC_FI_B (eth1/7).
-#   Same port numbers as AEDCG for symmetry.
+#   FI-A is single-homed to Leaf-101 via PC_FI_A (eth1/6).
+#   FI-B is single-homed to Leaf-102 via PC_FI_B (eth1/7).
+#   Same port numbers as Site1 for symmetry.
 #   No vPC explicit protection group: FIs are not peered with each other.
 #
-# AEDCK leaf nodes are 119 and 191 (non-contiguous). The combined VMM
-# switch profile uses two single-node node_blocks rather than a from/to
-# range; the new per-leaf FI switch profiles each use a single-node block.
+# Site2 leaf nodes are 101 and 102 (contiguous). The combined VMM switch
+# profile uses a single contiguous from/to range.
 ---
 apic:
   access_policies:
@@ -28,7 +26,7 @@ apic:
           - from: 3501
             to: 3967
 
-      # Identical to AEDCG prod (213 VLANs, 93 contiguous ranges).
+      # Identical to Site1 prod (213 VLANs, 93 contiguous ranges).
       - name: fi-static-vlan-pool
         allocation: static
         ranges:
@@ -202,7 +200,7 @@ apic:
     # VMM port range trimmed from 1-48 to 8-48 to reserve eth1/6 and eth1/7
     # for the FI uplink profiles below.
     leaf_interface_profiles:
-      - name: leaf-119-191-intprof
+      - name: leaf-101-102-intprof
         interface_selectors:
           - name: vmm-host-ports
             policy_group: vpc-vmm-hosts
@@ -211,7 +209,7 @@ apic:
                 from_port: 8
                 to_port: 48
 
-      - name: leaf-119-fi-intprof
+      - name: leaf-101-fi-intprof
         interface_selectors:
           - name: fi-a-uplink
             policy_group: PC_FI_A
@@ -220,7 +218,7 @@ apic:
                 from_port: 6
                 to_port: 6
 
-      - name: leaf-191-fi-intprof
+      - name: leaf-102-fi-intprof
         interface_selectors:
           - name: fi-b-uplink
             policy_group: PC_FI_B
@@ -229,38 +227,34 @@ apic:
                 from_port: 7
                 to_port: 7
 
-    # Two non-contiguous node_blocks preserved on the existing combined profile.
-    # Two new per-leaf profiles added for FI uplinks (one node_block each).
+    # Contiguous node range now that both leaves are 101-102.
     leaf_switch_profiles:
-      - name: leaf-119-191-prof
+      - name: leaf-101-102-prof
         selectors:
-          - name: leaf-119-191-sel
+          - name: leaf-101-102-sel
             node_blocks:
               - name: block1
-                from: 119
-                to: 119
-              - name: block2
-                from: 191
-                to: 191
+                from: 101
+                to: 102
         interface_profiles:
-          - leaf-119-191-intprof
+          - leaf-101-102-intprof
 
-      - name: leaf-119-prof
+      - name: leaf-101-prof
         selectors:
-          - name: leaf-119-sel
+          - name: leaf-101-sel
             node_blocks:
               - name: block1
-                from: 119
-                to: 119
+                from: 101
+                to: 101
         interface_profiles:
-          - leaf-119-fi-intprof
+          - leaf-101-fi-intprof
 
-      - name: leaf-191-prof
+      - name: leaf-102-prof
         selectors:
-          - name: leaf-191-sel
+          - name: leaf-102-sel
             node_blocks:
               - name: block1
-                from: 191
-                to: 191
+                from: 102
+                to: 102
         interface_profiles:
-          - leaf-191-fi-intprof
+          - leaf-102-fi-intprof

@@ -226,7 +226,7 @@ def title_slide():
              "Consolidate routing · Adopt descriptive naming · Introduce ESGs · Preserve every IP",
              size=16, color=WHITE)
     add_text(s, Inches(0.8), Inches(6.3), Inches(11.8), Inches(0.4),
-             "Project: terraform-esg / aci-redesign   |   Tenant: EUR   |   Schema: AEDCE",
+             "Project: terraform-esg / aci-redesign   |   Tenant: EUR   |   Schema: AFRICOM",
              size=12, color=RGBColor(0xCC, 0xD8, 0xEA))
     add_text(s, Inches(0.8), Inches(6.8), Inches(11.8), Inches(0.3),
              "Prepared from REDESIGN_OVERVIEW.md and aci-redesign/README.md",
@@ -341,11 +341,11 @@ def executive_summary_slide():
 def current_state_slide():
     s = prs.slides.add_slide(BLANK)
     page_header(s, "Current State - What's Deployed Today",
-                "EUR tenant / AEDCE schema in production APIC")
+                "EUR tenant / AFRICOM schema in production APIC")
     headers = ["Attribute", "Value"]
     rows = [
         ["Tenant", "EUR"],
-        ["Schema", "AEDCE"],
+        ["Schema", "AFRICOM"],
         ["VRFs (11)",
          "EUR-E, EUR-AIS, EUR-AIM, EUR-AIV, EUR-AIZ, EUR-AIG, EUR-AIP, "
          "EUR-AOV-UC-DMZ, EUR-ARMY-ENT-SVR-DMZ, EUR-GSN-Test, EUR-E catch-all"],
@@ -387,7 +387,7 @@ def target_state_slide():
     headers = ["Attribute", "Target"]
     rows = [
         ["Tenant", "EUR (unchanged)"],
-        ["Schema / Template", "AEDCE-V2 / Tenant_EUR_V2"],
+        ["Schema / Template", "AFRICOM-V2 / Tenant_EUR_V2"],
         ["VRFs", "2  -  VRF-EUR-V2 (internal) + VRF-DMZ-V2 (proxy segments)"],
         ["Bridge Domains",
          "39 descriptive  -  BD-AD-V2, BD-APP-SVR-V2, BD-CFG-MGMT-V2, ..."],
@@ -412,7 +412,7 @@ def target_state_slide():
         [
             "VRF-EUR-V2 consolidates all internal traffic into a single routing domain.",
             "VRF-DMZ-V2 keeps proxy segments (139.139.x.x) routing-isolated from internal.",
-            "-V2 suffix lets AEDCE-V2 coexist with the legacy AEDCE schema in tenant EUR (ACI requires unique names per tenant).",
+            "-V2 suffix lets AFRICOM-V2 coexist with the legacy AFRICOM schema in tenant EUR (ACI requires unique names per tenant).",
             "-V2 is generational, not address-family - same BDs will carry IPv4 + IPv6 once dual-stack wave lands.",
             "vzAny makes initial cut-over safe and reversible.",
             "ESGs give a classification layer today and a policy layer tomorrow.",
@@ -462,9 +462,9 @@ def architecture_diagram_slide():
              "Tenant: EUR", size=14, bold=True, color=WHITE,
              anchor=MSO_ANCHOR.MIDDLE)
     add_text(s, tx + Inches(4), ty, tw - Inches(4.2), Inches(0.4),
-             "Filter: Any (cross-ref AEDCE/VRF_Template/Any)  "
+             "Filter: Any (cross-ref AFRICOM/VRF_Template/Any)  "
              "|  Contracts: Any_VRF-EUR-V2, Any_VRF-DMZ-V2  "
-             "|  Schema: AEDCE-V2 / Tenant_EUR_V2",
+             "|  Schema: AFRICOM-V2 / Tenant_EUR_V2",
              size=10, color=RGBColor(0xCF, 0xDA, 0xEA),
              anchor=MSO_ANCHOR.MIDDLE, align=PP_ALIGN.RIGHT)
 
@@ -727,13 +727,13 @@ def bd_consolidation_slide():
 def naming_conventions_slide():
     s = prs.slides.add_slide(BLANK)
     page_header(s, "Naming & Object Model",
-                "V2 redesign: -V2 suffix coexists with legacy AEDCE in the same tenant EUR")
+                "V2 redesign: -V2 suffix coexists with legacy AFRICOM in the same tenant EUR")
     rows = [
         ["VRF (internal)", "VRF-<scope>-V2", "VRF-EUR-V2"],
         ["VRF (DMZ)", "VRF-<scope>-V2", "VRF-DMZ-V2"],
         ["VRF (IPv6, legacy)", "VRF-RCC (unchanged)", "VRF-RCC"],
         ["Contract", "Any_<VRF>-V2", "Any_VRF-EUR-V2, Any_VRF-DMZ-V2"],
-        ["Filter", "Any (cross-ref to AEDCE/VRF_Template/Any)", "Any"],
+        ["Filter", "Any (cross-ref to AFRICOM/VRF_Template/Any)", "Any"],
         ["Bridge Domain", "BD-<function>-V2", "BD-DNS-MGMT-V2, BD-DB-SVR-V2"],
         ["EPG", "EPG-<function>-V2", "EPG-DNS-MGMT-V2, EPG-DB-SVR-V2"],
         ["App Profile (internal EPGs, NDO)", "AppProf-NetCentric-V2",
@@ -746,7 +746,7 @@ def naming_conventions_slide():
         ["ESG (DMZ, Phase 2)", "ESG-All-<scope>-V2", "ESG-All-DMZ-V2"],
         ["ESG (Phase 3, per-zone)", "ESG-<zone>-V2", "ESG-AIM-V2, ESG-DMZ-Web-V2"],
         ["Tenant", "<unchanged>", "EUR"],
-        ["Schema", "AEDCE-V2", "AEDCE-V2"],
+        ["Schema", "AFRICOM-V2", "AFRICOM-V2"],
         ["Template", "Tenant_EUR_V2", "Tenant_EUR_V2"],
     ]
     add_table(s, Inches(0.5), Inches(1.15), Inches(8.5), Inches(5.4),
@@ -757,11 +757,11 @@ def naming_conventions_slide():
         s, Inches(9.2), Inches(1.15), Inches(3.7), Inches(5.4),
         "Why the -V2 suffix",
         [
-            "Legacy AEDCE schema (production today) and new AEDCE-V2 schema both deploy into tenant EUR.",
+            "Legacy AFRICOM schema (production today) and new AFRICOM-V2 schema both deploy into tenant EUR.",
             "ACI requires unique object names per tenant - two NDO templates cannot both own uni/tn-EUR/BD-DB-SVR.",
             "-V2 is GENERATIONAL, not address-family - the same BDs will carry IPv4 + IPv6 (dual-stack) once IPv6 RCC is folded in.",
-            "After cutover (AEDCE retired), the suffix can stay (cosmetic) or be dropped per-object in maintenance windows.",
-            "Filter 'Any' is intentionally un-suffixed - cross-referenced from AEDCE/VRF_Template/Any, not redefined.",
+            "After cutover (AFRICOM retired), the suffix can stay (cosmetic) or be dropped per-object in maintenance windows.",
+            "Filter 'Any' is intentionally un-suffixed - cross-referenced from AFRICOM/VRF_Template/Any, not redefined.",
         ],
         accent=ACCENT,
     )
@@ -870,7 +870,7 @@ def lab_phases_slide():
         "How the lab runs",
         [
             "make init / plan / apply from aci-redesign/apic-vmware/.",
-            "nac-aci module (v0.7.0) consumes YAML in data/nac-aci-shared/ + data/nac-aci-aedcg/.",
+            "nac-aci module (v0.7.0) consumes YAML in data/nac-aci-shared/ + data/nac-aci-site1/.",
             "Local state file; first apply creates ~200+ ACI objects.",
             "Validation: APIC GUI + vCenter port group presence.",
         ],
@@ -881,8 +881,8 @@ def lab_phases_slide():
         "Lab tooling",
         [
             "apic-vmware/main.tf - nac-aci module wiring",
-            "data/nac-aci-aedcg/access-policies.nac.yaml - VLAN pool + AAEP (per-fabric)",
-            "data/nac-aci-aedcg-rendered/vmm-domain.nac.yaml - rendered from TF_VAR_vcenter_* (gitignored)",
+            "data/nac-aci-site1/access-policies.nac.yaml - VLAN pool + AAEP (per-fabric)",
+            "data/nac-aci-site1-rendered/vmm-domain.nac.yaml - rendered from TF_VAR_vcenter_* (gitignored)",
             "data/nac-aci-shared/tenant-epg-nac.nac.yaml - 2 VRFs, 39 BDs/EPGs, ESGs (cross-fabric)",
         ],
         accent=ACCENT,
@@ -907,7 +907,7 @@ def production_phases_slide():
          "Routing re-convergence - coordinate with FW/WAN teams"],
         ["6", "Rename EPGs/BDs from numeric to descriptive (-V2)",
          "Cosmetic only - can be done during or after"],
-        ["7", "Decommission legacy AEDCE schema (VRFs, contracts, L3Outs) once empty",
+        ["7", "Decommission legacy AFRICOM schema (VRFs, contracts, L3Outs) once empty",
          "None (once all EPGs migrated and validated)"],
     ]
     add_table(s, Inches(0.5), Inches(1.15), Inches(12.3), Inches(4.5),
@@ -1004,7 +1004,7 @@ def vmm_vlan_slide():
 
     # Detail tables
     rows = [
-        ["VMM domain", "Per-fabric: APCG-VDS1 (AEDCG), APCK-VDS1 (AEDCK)"],
+        ["VMM domain", "Per-fabric: APCG-VDS1 (Site1), APCK-VDS1 (Site2)"],
         ["vCenter controller", "vcenter01 with credential policy (shared vCenter)"],
         ["Virtual Distributed Switch",
          "Adopted from existing per-fabric VDS (dvs_version='unmanaged')"],
@@ -1012,7 +1012,7 @@ def vmm_vlan_slide():
         ["Port channel policy", "mac-pin"],
         ["Uplinks", "uplink1, uplink2"],
         ["Leaf interface profile",
-         "leaf-152-153-intprof (ports 1-48, AEDCG nodes 152-153)"],
+         "leaf-152-153-intprof (ports 1-48, Site1 nodes 152-153)"],
     ]
     add_table(s, Inches(0.5), Inches(3.3), Inches(7.8), Inches(3.6),
               ["Component", "Configuration"], rows,
@@ -1022,9 +1022,9 @@ def vmm_vlan_slide():
         s, Inches(8.6), Inches(3.3), Inches(4.3), Inches(3.6),
         "Production config touch-points (Design A: UCS-FI direct attach)",
         [
-            "data/nac-aci-{aedcg,aedck}-prod/access-policies.nac.yaml - fi-static-vlan-pool (213 VLANs), fi-aaep, PC_FI_A/PC_FI_B policy groups, leaf 152/153 (AEDCG) and 119/191 (AEDCK) split between VMM ports (8-48) and FI uplinks (eth1/6, eth1/7).",
+            "data/nac-aci-{site1,site2}-prod/access-policies.nac.yaml - fi-static-vlan-pool (213 VLANs), fi-aaep, PC_FI_A/PC_FI_B policy groups, leaf 152/153 (Site1) and 119/191 (Site2) split between VMM ports (8-48) and FI uplinks (eth1/6, eth1/7).",
             "data/nac-aci-shared/modules.nac.yaml - aci_mcp sub-module disabled so MCP InstP is managed inline in apic-vmware-prod/main.tf.",
-            "data/nac-ndo/schema-aedce-v2.nac.yaml - 39 EPG site entries bound to APCG-VDS1 (AEDCG) and APCK-VDS1 (AEDCK).",
+            "data/nac-ndo/schema-africom-v2.nac.yaml - 39 EPG site entries bound to APCG-VDS1 (Site1) and APCK-VDS1 (Site2).",
             "vCenter creds flow in via TF_VAR_vcenter_* env vars (no CHANGE_ME placeholders in tracked YAML).",
         ],
         accent=ACCENT,
@@ -1047,15 +1047,15 @@ def deployed_objects_slide():
         ["Port channel", "mac-pin (created from port_channel_policies)"],
         ["Link level", "10G"],
         ["VMware VMM domain",
-         "Per-fabric: APCG-VDS1 (AEDCG), APCK-VDS1 (AEDCK) - adopt existing VDS"],
+         "Per-fabric: APCG-VDS1 (Site1), APCK-VDS1 (Site2) - adopt existing VDS"],
         ["vCenter controller", "vcenter01 with credential policy (shared vCenter)"],
         ["VDS uplinks", "uplink1, uplink2"],
         ["AAEP", "vmm-aaep - linked to VMM domain"],
         ["VPC interface policy group", "vpc-vmm-hosts"],
         ["Leaf interface profile",
-         "AEDCG: leaf-152-153-intprof / AEDCK: leaf-119-191-intprof"],
+         "Site1: leaf-152-153-intprof / Site2: leaf-119-191-intprof"],
         ["Leaf switch profile",
-         "AEDCG: leaf-152-153-prof (152-153) / AEDCK: leaf-119-191-prof (119, 191)"],
+         "Site1: leaf-152-153-prof (152-153) / Site2: leaf-119-191-prof (119, 191)"],
     ]
     add_table(s, Inches(0.5), Inches(1.6), Inches(6.1), Inches(5.3),
               ["Object", "Detail"], rows_af,
@@ -1065,7 +1065,7 @@ def deployed_objects_slide():
     add_text(s, Inches(6.9), Inches(1.15), Inches(6.0), Inches(0.4),
              "Tenant EUR", size=16, bold=True, color=NAVY)
     rows_tenant = [
-        ["Filter", "Any (cross-ref AEDCE/VRF_Template/Any, not redefined)"],
+        ["Filter", "Any (cross-ref AFRICOM/VRF_Template/Any, not redefined)"],
         ["Contract", "Any_VRF-EUR-V2 (scope: context)"],
         ["Contract", "Any_VRF-DMZ-V2 (scope: context)"],
         ["VRF-EUR-V2", "vzAny provider + consumer of Any_VRF-EUR-V2"],
@@ -1187,8 +1187,8 @@ def deployment_architecture_slide():
     bodies = [
         [
             "data/nac-aci-shared/ - cross-fabric tenant (VRFs, BDs, EPGs, ESGs, contracts)",
-            "data/nac-aci-aedcg/ - per-fabric access policies (AEDCG)",
-            "data/nac-aci-aedcg-rendered/ - vmm-domain YAML (gitignored)",
+            "data/nac-aci-site1/ - per-fabric access policies (Site1)",
+            "data/nac-aci-site1-rendered/ - vmm-domain YAML (gitignored)",
             "templates/vmm-domain.nac.yaml.tftpl - template for the above",
             "terraform.tfvars - non-sensitive only (apic_url, username)",
         ],
@@ -1239,7 +1239,7 @@ def deployment_architecture_slide():
              size=13, bold=True, color=NAVY)
     add_text(s, Inches(0.8), Inches(6.15), Inches(12.0), Inches(0.8),
              "Substitutes TF_VAR_vcenter_* env vars into the template and writes the rendered VMM YAML "
-             "into the gitignored data/nac-aci-aedcg-rendered/ directory BEFORE terraform plan runs. "
+             "into the gitignored data/nac-aci-site1-rendered/ directory BEFORE terraform plan runs. "
              "Decoupling the render from Terraform is what lets nac-aci evaluate its for_each/count at plan time.",
              size=11, color=DARK)
     slides.append(s)
@@ -1619,7 +1619,7 @@ def ndo_split_architecture_slide():
     add_bullets(s, xs[0] + Inches(0.25), y + Inches(0.7),
                 col_w - Inches(0.5), col_h - Inches(0.85),
                 [
-                    "Two providers via aliases: aci (AEDCG) + aci.aedck (AEDCK).",
+                    "Two providers via aliases: aci (Site1) + aci.site2 (Site2).",
                     "Owns access/fabric policies (leaf profiles, AAEP, VPC).",
                     "Owns MCP Instance Policy per fabric (sensitive key).",
                     "Owns VMware VMM domain (vmmDomP) per fabric.",
@@ -1642,9 +1642,9 @@ def ndo_split_architecture_slide():
                 col_w - Inches(0.5), col_h - Inches(0.85),
                 [
                     "Single mso provider (platform=nd, login_domain=local).",
-                    "Owns schema AEDCE-V2 + template Tenant_EUR_V2.",
+                    "Owns schema AFRICOM-V2 + template Tenant_EUR_V2.",
                     "Owns 2 VRFs (vzAny), 2 contracts, 39 BDs, 2 ANPs, 39 EPGs.",
-                    "EPGs bind to APCG-VDS1 (AEDCG) and APCK-VDS1 (AEDCK).",
+                    "EPGs bind to APCG-VDS1 (Site1) and APCK-VDS1 (Site2).",
                     "manage_tenants = false  -  EUR pre-exists in NDO.",
                     "deploy_templates = false  -  operator clicks Deploy.",
                     ("Why NDO: only NDO does cross-site policy stitching "
@@ -1677,13 +1677,13 @@ def ndo_operator_workflow_slide():
          "make auth-check     # must return token"),
         ("2", "Apply schema (NDO only, no APIC push)",
          "make plan && make apply\n"
-         "# Creates schema AEDCE-V2 / template Tenant_EUR_V2\n"
+         "# Creates schema AFRICOM-V2 / template Tenant_EUR_V2\n"
          "# 2 VRFs, 2 contracts, 39 BDs, 2 ANPs, 39 EPGs in NDO (all -V2)\n"
          "# deploy_templates=false -> nothing on APICs yet"),
         ("3", "Deploy from NDO UI (manual click)",
-         "Schemas -> AEDCE-V2 -> Tenant_EUR_V2 -> Deploy to sites\n"
+         "Schemas -> AFRICOM-V2 -> Tenant_EUR_V2 -> Deploy to sites\n"
          "Review per-site preview -> Confirm\n"
-         "After this: tenant content lives on AEDCG + AEDCK"),
+         "After this: tenant content lives on Site1 + Site2"),
         ("4", "Push static port bindings",
          "cd aci-redesign/scripts\n"
          "cp bindings.example.json bindings.json && $EDITOR bindings.json\n"
@@ -1739,7 +1739,7 @@ def next_steps_slide():
     columns = [
         ("Lab", GREEN,
          [
-             "Phase 1 complete: NDO schema AEDCE-V2 / single template "
+             "Phase 1 complete: NDO schema AFRICOM-V2 / single template "
              "Tenant_EUR_V2 deployed via apic-vmware/ + ndo/.",
              "Push static port bindings via scripts/deploy_bindings.py "
              "and re-deploy from NDO UI.",

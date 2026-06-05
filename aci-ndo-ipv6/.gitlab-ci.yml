@@ -1,19 +1,19 @@
 # aci-ndo-ipv6 (IPv6 RCC LAYER, NDO-managed) CI
 #
 # Per-project pipeline for the IPv6 RCC layer. Adds a new ANP (AppProf-RCC)
-# and 39 IPv6 EPGs INTO the existing AEDCE / L2_Stretched template that
+# and 39 IPv6 EPGs INTO the existing AFRICOM / L2_Stretched template that
 # Phase 1 (~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/) created. Also manages a few
 # IPv6 BD subnets and the NDO bootstrap on a fresh dCloud ND 4.1.
 #
 # Pipeline shape: validate -> plan -> apply (manual)
 #
-# >>> After `apply` succeeds, AEDCE/L2_Stretched is UPDATED in NDO but the
-# >>> changes are NOT YET deployed to AEDCG/AEDCK. YOU MANUALLY click in
+# >>> After `apply` succeeds, AFRICOM/L2_Stretched is UPDATED in NDO but the
+# >>> changes are NOT YET deployed to Site1/Site2. YOU MANUALLY click in
 # >>> the NDO UI:
-# >>>     Application Management -> Schemas -> AEDCE -> L2_Stretched
-# >>>     -> Deploy to sites -> [AEDCG, AEDCK]
+# >>>     Application Management -> Schemas -> AFRICOM -> L2_Stretched
+# >>>     -> Deploy to sites -> [Site1, Site2]
 #
-# Phase-1 prerequisite: schema AEDCE with template L2_Stretched MUST
+# Phase-1 prerequisite: schema AFRICOM with template L2_Stretched MUST
 # already exist in NDO (created by ~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/).
 #
 # Trigger:
@@ -139,12 +139,12 @@ apply-aci-ndo-ipv6:
     - terraform apply -input=false -auto-approve -parallelism=3 plan.tfplan
     - echo
     - echo '============================================================'
-    - echo 'NDO schema AEDCE / L2_Stretched has been UPDATED in NDO.'
+    - echo 'NDO schema AFRICOM / L2_Stretched has been UPDATED in NDO.'
     - echo 'The change is NOT YET DEPLOYED to APIC.'
     - echo
     - echo 'Manual NDO UI step required:'
-    - echo '  Application Management -> Schemas -> AEDCE ->'
-    - echo '  L2_Stretched -> Deploy to sites -> [AEDCG, AEDCK]'
+    - echo '  Application Management -> Schemas -> AFRICOM ->'
+    - echo '  L2_Stretched -> Deploy to sites -> [Site1, Site2]'
     - echo '============================================================'
   dependencies:
     - plan-aci-ndo-ipv6

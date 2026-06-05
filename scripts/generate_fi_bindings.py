@@ -9,11 +9,11 @@ Design A redesign, ready to be PATCHed into NDO via ``deploy_bindings.py``.
 
 Source of truth for the FI topology (Design A, single-homed PCs):
 
-    aci-redesign/data/nac-aci-aedcg-prod/access-policies.nac.yaml lines 11-14, 202-243
-        AEDCG: PC_FI_A on Leaf-152 eth1/6, PC_FI_B on Leaf-153 eth1/7
+    aci-redesign/data/nac-aci-site1-prod/access-policies.nac.yaml lines 11-14, 202-243
+        Site1: PC_FI_A on Leaf-152 eth1/6, PC_FI_B on Leaf-153 eth1/7
 
-    aci-redesign/data/nac-aci-aedck-prod/access-policies.nac.yaml lines 13-14, 186-226
-        AEDCK: PC_FI_A on Leaf-119 eth1/6, PC_FI_B on Leaf-191 eth1/7
+    aci-redesign/data/nac-aci-site2-prod/access-policies.nac.yaml lines 13-14, 186-226
+        Site2: PC_FI_A on Leaf-119 eth1/6, PC_FI_B on Leaf-191 eth1/7
 
 These four port-channels are single-homed (one leaf each), so the binding
 topology path is ``topology/pod-1/paths-<leaf>/pathep-[PC_FI_<X>]`` and the
@@ -24,13 +24,13 @@ Why this script exists
 
 The ``netascode/nac-ndo`` Terraform module does not model ``staticPorts[]``
 on EPGs (see the inline note near the top of
-``aci-redesign/data/nac-ndo/schema-aedce-v2.nac.yaml``). So the EPG shells
+``aci-redesign/data/nac-ndo/schema-africom-v2.nac.yaml``). So the EPG shells
 get created by Terraform but the per-port bindings have to be PATCHed in
 afterwards via the REST API.
 
 There was no FI-aware generator anywhere in the tree -- every existing
 ``deploy_bindings_python_v2*.py`` / ``generate_ipv6_bindings*.py`` was
-written for legacy Design B (`VPC_D*A-B` / `protpaths-152-153`). This
+written for legacy Design B (`VPC_D*A-B` / `protpaths-101-102`). This
 script fills that gap for Design A.
 
 Pipeline
@@ -50,7 +50,7 @@ CLI
 ::
 
     ./generate_fi_bindings.py \
-        --schema-yaml ../data/nac-ndo/schema-aedce-v2.nac.yaml \
+        --schema-yaml ../data/nac-ndo/schema-africom-v2.nac.yaml \
         --output      fi_bindings.json \
         --vlan-map    fi_vlan_map.json
 """
@@ -69,12 +69,12 @@ from typing import Any
 # Design A FI topology -- hardcoded with citations.
 #
 # Cross-reference any change here with:
-#   aci-redesign/data/nac-aci-aedcg-prod/access-policies.nac.yaml
-#   aci-redesign/data/nac-aci-aedck-prod/access-policies.nac.yaml
+#   aci-redesign/data/nac-aci-site1-prod/access-policies.nac.yaml
+#   aci-redesign/data/nac-aci-site2-prod/access-policies.nac.yaml
 # -----------------------------------------------------------------------------
 FI_TOPOLOGY: dict[str, dict[str, int]] = {
-    "AEDCG": {"PC_FI_A": 152, "PC_FI_B": 153},
-    "AEDCK": {"PC_FI_A": 119, "PC_FI_B": 191},
+    "Site1": {"PC_FI_A": 152, "PC_FI_B": 153},
+    "Site2": {"PC_FI_A": 119, "PC_FI_B": 191},
 }
 
 POD = "pod-1"
@@ -119,12 +119,12 @@ def parse_epgs(schema_yaml_path: str) -> list[dict[str, Any]]:
 
     `has_vmm` is True when the EPG block contains either an inline
     ``vmware_vmm_domains:`` line or an anchor reference like
-    ``sites: *epg_sites_internal`` (the schema-aedce-v2 convention for
+    ``sites: *epg_sites_internal`` (the schema-africom-v2 convention for
     VMM-bound sites). False for the three physical EPGs (EPG-LB-V2,
     EPG-LMR-V2, EPG-VHOST-MGMT-V2) whose ``sites:`` is spelled out without
     a VMM block.
 
-    Works on the AEDCE-V2 schema layout (one template, two NDO-managed
+    Works on the AFRICOM-V2 schema layout (one template, two NDO-managed
     AppProfs: AppProf-NetCentric-V2 and AppProf-DMZ-V2). The third ANP,
     AppProf-AppCentric-V2, lives APIC-direct in
     ../data/nac-aci-shared/tenant-eur-esgs.nac.yaml and contains only
@@ -310,7 +310,7 @@ def generate_bindings(
 def main() -> int:
     here = os.path.dirname(os.path.abspath(__file__))
     default_schema = os.path.normpath(
-        os.path.join(here, "..", "data", "nac-ndo", "schema-aedce-v2.nac.yaml")
+        os.path.join(here, "..", "data", "nac-ndo", "schema-africom-v2.nac.yaml")
     )
 
     p = argparse.ArgumentParser(
@@ -334,7 +334,7 @@ def main() -> int:
     )
     p.add_argument(
         "--site",
-        choices=["AEDCG", "AEDCK", "both"],
+        choices=["Site1", "Site2", "both"],
         default="both",
         help="Restrict to one site (default: both -> 4 bindings/EPG)",
     )
@@ -359,8 +359,8 @@ def main() -> int:
     )
     p.add_argument(
         "--schema-name",
-        default="AEDCE-V2",
-        help="Schema name written into the output JSON (default: AEDCE-V2)",
+        default="AFRICOM-V2",
+        help="Schema name written into the output JSON (default: AFRICOM-V2)",
     )
     p.add_argument(
         "--deployment-immediacy",
@@ -386,7 +386,7 @@ def main() -> int:
         action="store_true",
         help=(
             "Only emit bindings for EPGs that DO NOT have a VMware VMM "
-            "domain in the schema. For schema-aedce-v2.nac.yaml today "
+            "domain in the schema. For schema-africom-v2.nac.yaml today "
             "that's EPG-LB-V2, EPG-LMR-V2, EPG-VHOST-MGMT-V2 (F5 / LMR "
             "gateways / ESXi vmkernel -- physical endpoints that cannot "
             "ride a VDS port-group). Implements Approach 1 in "
@@ -429,7 +429,7 @@ def main() -> int:
         )
         return 2
 
-    sites_filter = ["AEDCG", "AEDCK"] if args.site == "both" else [args.site]
+    sites_filter = ["Site1", "Site2"] if args.site == "both" else [args.site]
     vlan_map = load_vlan_map(args.vlan_map)
 
     bindings, missing_vlans, skipped_vmm = generate_bindings(

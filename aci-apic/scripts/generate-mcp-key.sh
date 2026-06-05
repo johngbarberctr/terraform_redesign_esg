@@ -7,8 +7,8 @@
 # Each fabric has its own MCP key so a leak of one fabric's key does NOT
 # compromise the other. Run the script twice in a fresh shell:
 #
-#   eval "$(./generate-mcp-key.sh aedcg)"      # sets TF_VAR_aedcg_mcp_key
-#   eval "$(./generate-mcp-key.sh aedck)"      # sets TF_VAR_aedck_mcp_key
+#   eval "$(./generate-mcp-key.sh kelley)"     # sets TF_VAR_kelley_mcp_key
+#   eval "$(./generate-mcp-key.sh deldin)"     # sets TF_VAR_deldin_mcp_key
 #
 # APIC MCP password requirements (default strength profile):
 #   - length >= 8 (we default to 16 for safety)
@@ -17,9 +17,9 @@
 #   - must NOT contain spaces or APIC-reserved chars: \ " ' ` $
 #
 # Usage:
-#   ./generate-mcp-key.sh aedcg            # default 16 chars
-#   ./generate-mcp-key.sh aedck 20         # custom length (>=8)
-#   eval "$(./generate-mcp-key.sh aedcg)"  # set in current shell
+#   ./generate-mcp-key.sh kelley           # default 16 chars
+#   ./generate-mcp-key.sh deldin 20        # custom length (>=8)
+#   eval "$(./generate-mcp-key.sh kelley)" # set in current shell
 #
 # The script does NOT write the key to disk. Capture it only in environment
 # variables, CI masked variables, or a secrets manager.
@@ -28,16 +28,16 @@ set -euo pipefail
 
 if [ "$#" -lt 1 ]; then
   echo "Usage: $0 <fabric> [length]" >&2
-  echo "  fabric: aedcg | aedck" >&2
+  echo "  fabric: kelley | deldin" >&2
   echo "  length: integer >= 8 (default 16)" >&2
   exit 2
 fi
 
 FABRIC="$1"
 case "$FABRIC" in
-  aedcg|aedck) ;;
+  kelley|deldin) ;;
   *)
-    echo "Error: unknown fabric '$FABRIC'. Use one of: aedcg, aedck." >&2
+    echo "Error: unknown fabric '$FABRIC'. Use one of: kelley, deldin." >&2
     exit 2
     ;;
 esac

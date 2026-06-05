@@ -15,7 +15,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 NDO_HOST = "198.18.1.12"
 NDO_USER = "admin"
 NDO_PASSWORD = "IRanthehoodtocoast2021@"
-SCHEMA_NAME = "AEDCE"
+SCHEMA_NAME = "AFRICOM"
 
 # Authenticate
 session = requests.Session()
@@ -34,26 +34,26 @@ print(f"Authenticated to NDO: {NDO_HOST}")
 schemas_response = session.get(f"https://{NDO_HOST}/api/v1/schemas")
 schemas = schemas_response.json()['schemas']
 
-# Find AEDCE schema
-aedce_schema = None
+# Find AFRICOM schema
+africom_schema = None
 for schema in schemas:
     if schema['displayName'] == SCHEMA_NAME:
-        aedce_schema = schema
+        africom_schema = schema
         break
 
-if not aedce_schema:
+if not africom_schema:
     print(f"Schema {SCHEMA_NAME} not found!")
     exit(1)
 
 print(f"\nFound schema: {SCHEMA_NAME}")
-print(f"Schema ID: {aedce_schema['id']}")
+print(f"Schema ID: {africom_schema['id']}")
 
 # Parse templates
 print("\n" + "="*80)
 print("TEMPLATE STRUCTURE")
 print("="*80)
 
-for template in aedce_schema.get('templates', []):
+for template in africom_schema.get('templates', []):
     template_name = template.get('name', 'Unknown')
     display_name = template.get('displayName', template_name)
     
@@ -119,8 +119,8 @@ print("EXPORT COMPLETE")
 print("="*80)
 
 # Also save full schema to file
-with open('aedce_schema_full.json', 'w') as f:
-    json.dump(aedce_schema, f, indent=2)
+with open('africom_schema_full.json', 'w') as f:
+    json.dump(africom_schema, f, indent=2)
 
-print(f"\nFull schema saved to: aedce_schema_full.json")
+print(f"\nFull schema saved to: africom_schema_full.json")
 print("\nYou can now share this file or copy the output above.")

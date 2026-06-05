@@ -1,8 +1,8 @@
 # aci-ndo — V2 consolidated tenant redesign (NDO-managed)
 
-Manages the AEDCE-V2 schema in Nexus Dashboard Orchestrator: 2 VRFs, 39 BDs,
+Manages the AFRICOM-V2 schema in Nexus Dashboard Orchestrator: 2 VRFs, 39 BDs,
 2 ANPs, 39 EPGs, 2 vzAny contracts. All tenant-scoped objects carry a `-V2`
-suffix to coexist with the legacy `AEDCE` schema in tenant `EUR`.
+suffix to coexist with the legacy `AFRICOM` schema in tenant `EUR`.
 
 See `docs/DESIGN.md` for naming-convention rationale.
 
@@ -10,14 +10,14 @@ See `docs/DESIGN.md` for naming-convention rationale.
 
 Phase 1 (sibling repo `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/`) must have been
 applied and its templates manually deployed before running `plan` here.
-This root references the `Any` filter under `AEDCE/VRF_Template` via a
+This root references the `Any` filter under `AFRICOM/VRF_Template` via a
 cross-schema link; plan fails if that object doesn't exist in NDO.
 
 ## Data layout
 
 ```
 data/nac-ndo/        NDO YAML — sites, tenants, schemas
-                     Schema AEDCE-V2 / template Tenant_EUR_V2
+                     Schema AFRICOM-V2 / template Tenant_EUR_V2
 ```
 
 ## Local workflow
@@ -38,8 +38,8 @@ terraform apply -parallelism=3 -auto-approve
 After apply, the schema content is in NDO but **not yet deployed to APIC**.
 Manual NDO UI step:
 
-> Application Management → Schemas → AEDCE-V2 → Tenant_EUR_V2 →
-> Deploy to sites → [AEDCG, AEDCK]
+> Application Management → Schemas → AFRICOM-V2 → Tenant_EUR_V2 →
+> Deploy to sites → [Kelley, Del-Din]
 
 ## GitLab CI
 
@@ -57,7 +57,7 @@ State key: `aci-redesign-ndo` (do NOT rename — live state exists).
 
 | Flag | Value | Why |
 |---|---|---|
-| `manage_sites` | false | AEDCG/AEDCK already onboarded in NDO |
+| `manage_sites` | false | Kelley/Del-Din already onboarded in NDO |
 | `manage_tenants` | false | tenant EUR pre-exists, owned out of band |
-| `manage_schemas` | true | this root owns AEDCE-V2 |
+| `manage_schemas` | true | this root owns AFRICOM-V2 |
 | `deploy_templates` | false | deploy is a manual NDO UI click for now |

@@ -11,7 +11,7 @@
 #   - APIC accepted the config but never created a VDS in vCenter
 #     (compDom=0, vmmEpPD=0). The 39 fvRsDomAtt pushed by NDO are dangling.
 #   - We now want APIC to instead adopt the pre-existing per-fabric VDSes
-#     (APCG-VDS1 on AEDCG, APCK-VDS1 on AEDCK), which requires the new VMM
+#     (APCG-VDS1 on Site1, APCK-VDS1 on Site2), which requires the new VMM
 #     domain names. Letting Terraform destroy the old `vmm-vcenter-rcc`
 #     during apply hangs because EPG fvRsDomAtt entries still reference it.
 #   - Deleting the old VMM domain via REST first lets APIC GC the dangling
@@ -19,13 +19,13 @@
 #     apic-vmware/ make apply -> ndo/ make apply sequence then runs clean.
 #
 # Usage:
-#   ./cleanup-old-vmm-domain.sh aedcg
-#   ./cleanup-old-vmm-domain.sh aedck
+#   ./cleanup-old-vmm-domain.sh site1
+#   ./cleanup-old-vmm-domain.sh site2
 #   ./cleanup-old-vmm-domain.sh both          (default)
 #
 # Required env vars (same names the rest of the project uses):
-#   TF_VAR_aedcg_apic_password   (admin password for AEDCG APIC)
-#   TF_VAR_aedck_apic_password   (admin password for AEDCK APIC)
+#   TF_VAR_site1_apic_password   (admin password for Site1 APIC)
+#   TF_VAR_site2_apic_password   (admin password for Site2 APIC)
 #
 # This script ONLY deletes the legacy domain and verifies the delete; it
 # does not touch any other APIC config and does not write anything to disk.
@@ -112,16 +112,16 @@ cleanup_one() {
 
 target="${1:-both}"
 case "$target" in
-  aedcg|aedck) cleanup_one "$target" ;;
+  site1|site2) cleanup_one "$target" ;;
   both|"")
     rc=0
-    cleanup_one aedcg || rc=1
+    cleanup_one site1 || rc=1
     echo
-    cleanup_one aedck || rc=1
+    cleanup_one site2 || rc=1
     exit "$rc"
     ;;
   *)
-    echo "cleanup: unknown fabric '$target'. Use aedcg, aedck, or both." >&2
+    echo "cleanup: unknown fabric '$target'. Use site1, site2, or both." >&2
     exit 2
     ;;
 esac

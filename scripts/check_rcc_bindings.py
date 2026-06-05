@@ -11,7 +11,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 NDO_HOST = "198.18.1.12"
 NDO_USER = "admin"
 NDO_PASSWORD = "IRanthehoodtocoast2021@"
-SCHEMA_NAME = "AEDCE"
+SCHEMA_NAME = "AFRICOM"
 
 # Authenticate
 session = requests.Session()

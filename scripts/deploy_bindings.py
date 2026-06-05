@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """
-NDO static-port-binding deployer for the V2 tenant redesign (schema AEDCE-V2).
+NDO static-port-binding deployer for the V2 tenant redesign (schema AFRICOM-V2).
 
 This is a fork of /Users/johbarbe/DC/NXOS/n5k/deploy_bindings_python_v2_prod.py
-with default schema set to AEDCE-V2 and the production NDO host removed
+with default schema set to AFRICOM-V2 and the production NDO host removed
 (must be supplied via the bindings JSON or env). All other behaviour is
 identical:
 
   * Robust auth: tries Nexus Dashboard /login (domain=local, DefaultAuth)
     then NDO /api/v1/auth/login. Works against ND 4.x and standalone MSO.
-  * Multi-site: groups bindings by binding['site'] and patches AEDCG and
-    AEDCK independently.
+  * Multi-site: groups bindings by binding['site'] and patches Kelley and
+    Del-Din independently.
   * Multi-template auto-resolve: looks up each EPG's template name in NDO
     via epgRef so the bindings JSON does not have to know the template name.
     For the V2 redesign that name is Tenant_EUR_V2.
@@ -25,13 +25,13 @@ Bindings JSON shape -- see scripts/bindings.example.json. Minimum:
     "ndo_host":      "<ip-or-hostname>",
     "ndo_username":  "admin",
     "ndo_password":  "<used only with --no-vault>",
-    "schema_name":   "AEDCE-V2",
+    "schema_name":   "AFRICOM-V2",
     "static_port_bindings": [
       {
-        "site":      "AEDCG",
+        "site":      "Kelley",
         "epg_name":  "EPG-WEB-SVR-V2",
         "vlan":      100,
-        "path":      "topology/pod-1/paths-152/pathep-[eth1/1]",
+        "path":      "topology/pod-1/paths-101/pathep-[eth1/1]",
         "deployment_immediacy": "immediate",
         "mode":      "regular"
       }
@@ -39,10 +39,10 @@ Bindings JSON shape -- see scripts/bindings.example.json. Minimum:
   }
 
 Operational sequence (full V2 cutover):
-  1. ndo/ Terraform root creates schema AEDCE-V2 / template Tenant_EUR_V2
+  1. ndo/ Terraform root creates schema AFRICOM-V2 / template Tenant_EUR_V2
      in NDO (deploy_templates=false, no APIC push).
-  2. Operator clicks Deploy in the NDO UI -- pushes the schema to AEDCG and
-     AEDCK. EPGs exist on the APICs at this point but have no static ports.
+  2. Operator clicks Deploy in the NDO UI -- pushes the schema to Kelley and
+     Del-Din. EPGs exist on the APICs at this point but have no static ports.
   3. This script reads bindings.json and PATCHes staticPorts onto each EPG
      in NDO. NDO reconciles down to APIC.
   4. Re-run NDO deploy from the UI to push the staticPorts changes.
@@ -66,7 +66,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 # guess.
 DEFAULT_NDO_HOST = ""
 DEFAULT_NDO_USER = "admin"
-DEFAULT_SCHEMA   = "AEDCE-V2"
+DEFAULT_SCHEMA   = "AFRICOM-V2"
 
 def load_password_from_vault(vault_file, vault_pass_file):
     """Decrypts an ansible-vault file and returns the NDO password."""

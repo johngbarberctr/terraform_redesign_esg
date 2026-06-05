@@ -15,7 +15,7 @@ import traceback
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 class NDOIPv6BindingGenerator:
-    def __init__(self, ndo_host, username, password, schema_name="AEDCE"):
+    def __init__(self, ndo_host, username, password, schema_name="AFRICOM"):
         self.ndo_host = ndo_host
         self.schema_name = schema_name
         self.session = requests.Session()
@@ -33,7 +33,7 @@ class NDOIPv6BindingGenerator:
             # Infrastructure Management - Map to similar infra EPGs
             'EPG-NAC': {'reference': 'EPG-V0015', 'vlan': 3000, 'template': 'L2_Stretched'},
             'EPG-CFG-MGMT': {'reference': 'EPG-V0021', 'vlan': 3001, 'template': 'L2_Stretched'},
-            'EPG-GEF-MGMT': {'reference': 'EPG-V0260', 'vlan': 3002, 'template': 'G-Specific_Only'},  # Uses GEF path
+            'EPG-GEF-MGMT': {'reference': 'EPG-V0260', 'vlan': 3002, 'template': 'Site1-Specific_Only'},  # Uses GEF path
             'EPG-MECM': {'reference': 'EPG-V0033', 'vlan': 3003, 'template': 'L2_Stretched'},
             
             # Network Services - Map to network service EPGs
@@ -77,7 +77,7 @@ class NDOIPv6BindingGenerator:
             # Storage Services - Map to storage EPGs
             'EPG-PRINT-SVR': {'reference': 'EPG-V0520', 'vlan': 3028, 'template': 'L2_Stretched'},  # Print
             'EPG-FILE-SVR': {'reference': 'EPG-V0521', 'vlan': 3029, 'template': 'L2_Stretched'},  # File
-            'EPG-BACKUP-SVR': {'reference': 'EPG-V0522', 'vlan': 3030, 'template': 'K-Specific_Only'},  # Backup
+            'EPG-BACKUP-SVR': {'reference': 'EPG-V0522', 'vlan': 3030, 'template': 'Site2-Specific_Only'},  # Backup
             
             # Database and Logging - Map to data EPGs
             'EPG-DB-SVR': {'reference': 'EPG-V0570', 'vlan': 3031, 'template': 'L2_Non-Stretched'},  # Database
@@ -238,28 +238,28 @@ class NDOIPv6BindingGenerator:
         """Provide default port bindings (VPC only, no leaves 101/102)"""
         return [
             {
-                'site': 'AEDCG',
+                'site': 'Site1',
                 'type': 'vpc',
                 'path': 'topology/pod-1/protpaths-111-112/pathep-[VPC_D1A-B]',
                 'deployment_immediacy': 'immediate',
                 'mode': 'regular'
             },
             {
-                'site': 'AEDCG',
+                'site': 'Site1',
                 'type': 'vpc',
                 'path': 'topology/pod-1/protpaths-111-112/pathep-[VPC_D2A-B]',
                 'deployment_immediacy': 'immediate',
                 'mode': 'regular'
             },
             {
-                'site': 'AEDCK',
+                'site': 'Site2',
                 'type': 'vpc',
                 'path': 'topology/pod-1/protpaths-111-112/pathep-[VPC_D1A-B]',
                 'deployment_immediacy': 'immediate',
                 'mode': 'regular'
             },
             {
-                'site': 'AEDCK',
+                'site': 'Site2',
                 'type': 'vpc',
                 'path': 'topology/pod-1/protpaths-111-112/pathep-[VPC_D2A-B]',
                 'deployment_immediacy': 'immediate',
@@ -308,11 +308,11 @@ class NDOIPv6BindingGenerator:
             for port in ports_to_use:
                 include_port = False
                 
-                if template == 'G-Specific_Only':
-                    if port['site'] == 'AEDCG':
+                if template == 'Site1-Specific_Only':
+                    if port['site'] == 'Site1':
                         include_port = True
-                elif template == 'K-Specific_Only':
-                    if port['site'] == 'AEDCK':
+                elif template == 'Site2-Specific_Only':
+                    if port['site'] == 'Site2':
                         include_port = True
                 else:
                     # L2_Stretched or L2_Non-Stretched: both sites
@@ -544,7 +544,7 @@ def main():
     NDO_HOST = "198.18.1.12"
     NDO_USER = "admin"
     NDO_PASSWORD = "IRanthehoodtocoast2021@"
-    SCHEMA_NAME = "AEDCE"
+    SCHEMA_NAME = "AFRICOM"
     
     mode = sys.argv[1] if len(sys.argv) > 1 else "both"
     

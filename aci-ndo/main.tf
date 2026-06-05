@@ -17,7 +17,7 @@ terraform {
 #
 # This root manages tenant EUR and its full template tree (VRFs, filters,
 # contracts, BDs, EPGs, ESGs, ANPs) in Nexus Dashboard Orchestrator. NDO
-# pushes the resulting objects down to AEDCG and AEDCK APICs.
+# pushes the resulting objects down to Kelley and Del-Din APICs.
 #
 # Sister roots:
 #   ../apic-vmware/      -- per-fabric APIC-direct (access policies, fabric
@@ -28,13 +28,13 @@ terraform {
 #
 # YAML directory:
 #   ../data/nac-ndo/   ndo top-level with sites + tenants + schemas. The
-#                      AEDCE-V2 schema declares a single template
+#                      AFRICOM-V2 schema declares a single template
 #                      (Tenant_EUR_V2) carrying VRFs, contracts, BDs, ANPs,
-#                      and EPGs. All target sites AEDCG and AEDCK.
+#                      and EPGs. All target sites Kelley and Del-Din.
 #
 # Naming convention:
-#   Every tenant-scoped object in AEDCE-V2 carries a -V2 suffix (BDs, EPGs,
-#   VRFs, contracts, ANPs). The legacy AEDCE schema (managed by
+#   Every tenant-scoped object in AFRICOM-V2 carries a -V2 suffix (BDs, EPGs,
+#   VRFs, contracts, ANPs). The legacy AFRICOM schema (managed by
 #   ../../../sac-johbarbe-AFRICOM-terraform-nac-ndo) deploys to the same tenant EUR; ACI
 #   enforces unique object names per tenant, so distinct names are required
 #   for parallel coexistence. The suffix is generational, not address-family
@@ -42,11 +42,11 @@ terraform {
 #   ../DESIGN.md "Naming convention" for the full rationale.
 #
 # Module flags:
-#   manage_sites            = false  -- AEDCG/AEDCK already onboarded into
+#   manage_sites            = false  -- Kelley/Del-Din already onboarded into
 #                                       NDO; we only reference them.
 #   manage_tenants          = false  -- tenant EUR already exists in NDO
 #                                       (created out of band). Templates in
-#                                       schema-aedce-v2.nac.yaml reference
+#                                       schema-africom-v2.nac.yaml reference
 #                                       it by name; that does not require us
 #                                       to own the mso_tenant resource. If we
 #                                       ever want this root to own the tenant,
@@ -56,10 +56,10 @@ terraform {
 #   manage_schemas          = true   -- schemas + templates + all child
 #                                       resources (vrfs/bds/contracts/epgs).
 #   deploy_templates        = false  -- create the schema/templates/objects
-#                                       in NDO only. The push to AEDCG and
-#                                       AEDCK is done manually from the NDO
+#                                       in NDO only. The push to Kelley and
+#                                       Del-Din is done manually from the NDO
 #                                       UI (Application Management -> Schemas
-#                                       -> AEDCE-V2 -> Deploy to sites) so
+#                                       -> AFRICOM-V2 -> Deploy to sites) so
 #                                       the operator controls timing per
 #                                       template. Flip to true once the
 #                                       schema content has been validated

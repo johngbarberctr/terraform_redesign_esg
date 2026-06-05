@@ -1,22 +1,22 @@
 # aci-ndo (V2 consolidated tenant redesign, NDO-managed) CI
 #
 # Per-project pipeline for the V2 redesign tenant tree (schema
-# AEDCE-V2 / template Tenant_EUR_V2: 2 VRFs, 39 BDs, 2 ANPs, 39 EPGs,
+# AFRICOM-V2 / template Tenant_EUR_V2: 2 VRFs, 39 BDs, 2 ANPs, 39 EPGs,
 # 2 vzAny contracts; all tenant-scoped objects suffixed -V2 to coexist
-# with the legacy AEDCE schema in tenant EUR -- see
+# with the legacy AFRICOM schema in tenant EUR -- see
 # docs/DESIGN.md "Naming convention" for rationale).
 # Reads YAML from aci-ndo/data/nac-ndo/.
 #
 # Pipeline shape: validate -> plan -> apply (manual)
 #
 # >>> After `apply` succeeds, the schema content is in NDO but NOT
-# >>> deployed to AEDCG/AEDCK (deploy_templates = false). YOU MANUALLY
+# >>> deployed to Kelley/Del-Din (deploy_templates = false). YOU MANUALLY
 # >>> click in the NDO UI:
-# >>>     Application Management -> Schemas -> AEDCE-V2 ->
-# >>>     Tenant_EUR_V2 -> Deploy to sites -> [AEDCG, AEDCK]
+# >>>     Application Management -> Schemas -> AFRICOM-V2 ->
+# >>>     Tenant_EUR_V2 -> Deploy to sites -> [Kelley, Del-Din]
 #
 # Phase-1 prerequisite: tenant EUR and the cross-schema-referenced filter
-# `Any` under AEDCE/VRF_Template MUST already exist in NDO. They are
+# `Any` under AFRICOM/VRF_Template MUST already exist in NDO. They are
 # created by the sibling repo ~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/ (its own
 # pipeline). If you run this project's apply before Phase 1 has been
 # applied AND its templates manually deployed, plan will fail to resolve
@@ -106,12 +106,12 @@ apply-aci-redesign-ndo:
     - terraform apply -input=false -auto-approve -parallelism=3 plan.tfplan
     - echo
     - echo '============================================================'
-    - echo 'NDO schema AEDCE-V2 / Tenant_EUR_V2 has been UPDATED in NDO.'
+    - echo 'NDO schema AFRICOM-V2 / Tenant_EUR_V2 has been UPDATED in NDO.'
     - echo 'The template is NOT YET DEPLOYED to APIC (deploy_templates=false).'
     - echo
     - echo 'Manual NDO UI step required:'
-    - echo '  Application Management -> Schemas -> AEDCE-V2 ->'
-    - echo '  Tenant_EUR_V2 -> Deploy to sites -> [AEDCG, AEDCK]'
+    - echo '  Application Management -> Schemas -> AFRICOM-V2 ->'
+    - echo '  Tenant_EUR_V2 -> Deploy to sites -> [Kelley, Del-Din]'
     - echo '============================================================'
   dependencies:
     - plan-aci-redesign-ndo

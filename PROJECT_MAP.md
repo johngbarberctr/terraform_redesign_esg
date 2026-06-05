@@ -90,7 +90,7 @@ Everything in one place. Saved at: `/Users/johbarbe/DC/ACI/terraform-esg/PROJECT
 ├── process_data.yml             ← generates terraform.tfvars.json from switch data
 ├── get_active_ports.yml         ← gathers port info from NX-OS switches
 ├── get_active_pc_ports5.yml     ← gathers port-channel info from NX-OS switches
-├── setup_fabric_policies_aedce.yml ← configures ACI fabric policies
+├── setup_fabric_policies_africom.yml ← configures ACI fabric policies
 ├── merge_tfvars.py              ← merges multiple tfvars JSON files
 ├── ansible.cfg
 ├── inventory.ini
@@ -267,12 +267,12 @@ This is the IPv6/ESG Terraform project — separate from aci-lf-rplc and n5k.
 
 | Aspect | Lab | Prod (pending Terraform root) |
 |--------|-----|-------------------------------|
-| APIC data dirs | `data/nac-aci-aedcg/`, `data/nac-aci-aedck/`, `data/nac-aci-shared/` | `data/nac-aci-aedcg-prod/`, `data/nac-aci-aedck-prod/` (Design A: UCS-FI direct attach, no vPC) |
-| VMM domains | `APCG-VDS1` (AEDCG) + `APCK-VDS1` (AEDCK), each adopts the matching pre-existing VDS in shared vCenter | same names |
+| APIC data dirs | `data/nac-aci-site1/`, `data/nac-aci-site2/`, `data/nac-aci-shared/` | `data/nac-aci-site1-prod/`, `data/nac-aci-site2-prod/` (Design A: UCS-FI direct attach, no vPC) |
+| VMM domains | `APCG-VDS1` (Site1) + `APCK-VDS1` (Site2), each adopts the matching pre-existing VDS in shared vCenter | same names |
 | `dvs_version` | `unmanaged` (only safe value with vCenter 7.x/8.x against the `netascode/nac-aci` 0.7.0 validator) | same |
 | Dynamic VLAN pool | `vmm-vlan-pool` 3501-3967 | same |
 | Static VLAN pool | -- | `fi-static-vlan-pool` (213 VLANs in 93 ranges, sourced from live prod NDO) |
 | FI uplink PGs | -- | `PC_FI_A` (eth1/6), `PC_FI_B` (eth1/7); `mac-pinning` (mode `mac-pin`); single-leaf, no vPC |
 | Terraform roots | `apic-vmware/` (lab) + `ndo/` (lab+prod schema) | `apic-vmware-prod/` not yet created |
 
-NDO schema `data/nac-ndo/schema-aedce-v2.nac.yaml` is shared between lab and prod (same EPG model). The split is purely on the APIC access-policy side.
+NDO schema `data/nac-ndo/schema-africom-v2.nac.yaml` is shared between lab and prod (same EPG model). The split is purely on the APIC access-policy side.

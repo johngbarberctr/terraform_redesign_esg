@@ -9,7 +9,7 @@ Why this exists
 The V2 redesign deploys two coupled artifacts:
 
     1. Tenant tree (VRFs, BDs, EPGs, contracts) -- pushed via Terraform
-       from ``aci-redesign/data/nac-ndo/schema-aedce-v2.nac.yaml``.
+       from ``aci-redesign/data/nac-ndo/schema-africom-v2.nac.yaml``.
 
     2. FI-uplink static-port bindings on PC_FI_A / PC_FI_B (Approach 2 in
        aci-redesign/README.md "VLAN strategy") -- PATCHed into NDO via
@@ -50,7 +50,7 @@ CLI
 ::
 
     ./check_fi_bindings_parity.py \\
-        --schema-yaml ../data/nac-ndo/schema-aedce-v2.nac.yaml \\
+        --schema-yaml ../data/nac-ndo/schema-africom-v2.nac.yaml \\
         --manifest    fi_epg_manifest.json
 
 Exit codes:
@@ -128,14 +128,14 @@ def expected_epgs_from_schema(
 def main() -> int:
     here = os.path.dirname(os.path.abspath(__file__))
     default_schema = os.path.normpath(
-        os.path.join(here, "..", "data", "nac-ndo", "schema-aedce-v2.nac.yaml")
+        os.path.join(here, "..", "data", "nac-ndo", "schema-africom-v2.nac.yaml")
     )
     default_manifest = os.path.join(here, "fi_epg_manifest.json")
 
     p = argparse.ArgumentParser(
         description=(
             "Verify aci-redesign/scripts/fi_epg_manifest.json matches "
-            "aci-redesign/data/nac-ndo/schema-aedce-v2.nac.yaml. "
+            "aci-redesign/data/nac-ndo/schema-africom-v2.nac.yaml. "
             "Run from CI to fail fast on schema/binding drift."
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,

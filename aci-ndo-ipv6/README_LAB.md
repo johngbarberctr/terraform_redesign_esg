@@ -105,15 +105,23 @@ A valid response includes a `token` field. Once both the service list shows `cis
 
 ### Optional: enable from the in-product swagger UI
 
-The Cisco docs walk you through this; it's the same outcome via the same `licensetier` plumbing under the hood, just clickier and more menu-spelunky. Use only if you want to keep the runbook fully UI-driven, or if you need to verify the `licensetier` API call did what you expected.
+The Cisco docs walk you through this via **swagger**; it's the same outcome via the same `licensetier` plumbing under the hood, just clickier and more menu-spelunky. Use only if you want to keep the runbook fully UI-driven, or if you need to verify the `licensetier` API call did what you expected.
 
 1. From the ND UI: top-right `?` → **Help Center** → **API reference: Swagger (In-product)**.
-2. Make sure you're on the **cluster-level** swagger (the URL bar should still be the ND host root, not a service tab like NDFC or Insights).
+2. Make sure you're on the **cluster-level swagger** (the URL bar should still be the ND host root, not a service tab like NDFC or Insights).
 3. Left nav → **Infra** group → **expand the `System Settings` sub-menu**. This is the gotcha: the sub-menu is collapsed by default and `Ctrl+F` won't find anything inside its body until you click to expand. The docs' "search for `/settings/general/actions/enableOrchestration`" instruction therefore returns no results until then.
 4. Find `POST /settings/general/actions/enableOrchestration`.
 5. Expand → **Try it Out** → **Execute**.
 
-If you still can't find the endpoint after expanding `System Settings`, the explicit action isn't exposed in your build's swagger — fall back to the `licensetier` recipe above.
+If you still can't find the endpoint after expanding `System Settings`, the explicit action isn't exposed in your build's **swagger** — fall back to the `licensetier` recipe above.
+
+### ND 4.x UI setup
+
+1. **Admin → System Settings → Advanced Settings** — enable "Display advanced settings and options for TAC support."
+2. **Admin → System Status → Features** — disable NDFC and Insights; enable Orchestrator only.
+3. **Manage → Fabrics → Create Fabric** — when onboarding: select the **Premier** license tier and **uncheck Telemetry** (leaving Telemetry checked blocks the Orchestrator radio button in the next step).
+4. Back at **Manage → Fabrics**, select the fabric → **Actions → Edit Fabric Settings** → select the **Orchestrator** radio button.
+5. Access NDO via **Manage → Orchestration**.
 
 ---
 
@@ -279,7 +287,7 @@ The full lab workflow looks roughly like:
 
 ### Deferred — re-enable after bindings
 
-> **Status (lab, AEDCG + AEDCK):** all three stage files are **active** (no `.disabled` suffix). `bds_epgs.tf` manages the VRF, `Any_RCC` contract (vzAny on VRF-RCC), and all BDs/EPGs. `l3outs_ndo.tf` manages the NDO L3Outs and ExtEPGs with the `Any_RCC` contract. `l3outs_apic.tf` manages the OSPF interface policy (`OSPF-IntPol-L3Out`), logical node/interface profiles, and IPv6 SVI path attachments on each APIC. `vlans_apic.tf` creates the `VLAN_All_Combined` static VLAN pool and all 39 encap entries on both APICs.
+> **Status (lab, Site1 + Site2):** all three stage files are **active** (no `.disabled` suffix). `bds_epgs.tf` manages the VRF, `Any_RCC` contract (vzAny on VRF-RCC), and all BDs/EPGs. `l3outs_ndo.tf` manages the NDO L3Outs and ExtEPGs with the `Any_RCC` contract. `l3outs_apic.tf` manages the OSPF interface policy (`OSPF-IntPol-L3Out`), logical node/interface profiles, and IPv6 SVI path attachments on each APIC. `vlans_apic.tf` creates the `VLAN_All_Combined` static VLAN pool and all 39 encap entries on both APICs.
 
 Three files form a strict ordered chain. They must be applied in sequence after `bds_epgs.tf` is in NDO and static port bindings have been pushed (workflow step 5). To deactivate one, rename `*.tf` → `*.tf.disabled`; to reactivate, rename back.
 
@@ -317,7 +325,7 @@ apic_password = "C1sco12345"
    ```bash
    terraform plan -var-file=lab.tfvars -refresh=false -parallelism=3 -out=vlans_apic.tfplan
    terraform apply -parallelism=3 vlans_apic.tfplan
-   # Creates: VLAN_All_Combined (static) pool + 39 encap entries on AEDCG and AEDCK
+   # Creates: VLAN_All_Combined (static) pool + 39 encap entries on Site1 and Site2
    ```
 
 **Rolling back a stage:** rename `*.tf` → `*.tf.disabled` **before** the next plan. If you skip the rename, Terraform sees the resources as removed from config and plans a destroy against live infrastructure. For stage 6b specifically, if you want to keep the providers loaded but not the resources, re-wrap the resource block in `/* ... */` instead of renaming the file.
@@ -404,7 +412,7 @@ If the rule is missing, your `.gitignore` was clobbered — restore from `git sh
 
 - **Production deployment** — see `README_PROD.md` (forthcoming) and the existing `README.md` GitLab CI/CD section. Lab and prod use different NDO instances, different VRF template names, different state backends.
 - **Modifying the schema** — `bds_epgs.tf` is hand-curated; before touching it, read `NDO_TERRAFORM_PRESENTATION.md` in this directory.
-- **Static port bindings** — handled outside Terraform by `generate_ipv6_bindings3.py`. Run from inside the shared `~/dc_redesign` venv (`source ~/dc_redesign/bin/activate`); see [`README.md`](README.md) "Python Virtual Environment" for the bootstrap. The script's defaults are Design A port-channel bindings only (PC_FI_A/B on AEDCG 152/153, AEDCK 119/191); two opt-in flags layer on:
+- **Static port bindings** — handled outside Terraform by `generate_ipv6_bindings3.py`. Run from inside the shared `~/dc_redesign` venv (`source ~/dc_redesign/bin/activate`); see [`README.md`](README.md) "Python Virtual Environment" for the bootstrap. The script's defaults are Design A port-channel bindings only (PC_FI_A/B on Site1 101/102, Site2 101/102); two opt-in flags layer on:
   - `--inherit-from-ipv4` copies binding *shape* from the legacy IPv4 reference EPGs in the same schema. Default OFF because those references carry legacy Design B (`VPC_D*A-B / protpaths`).
   - `--ports-override <file.json>` appends or replaces per-EPG bindings from a JSON file. Use this to add **individual interface** bindings (`type='port'`, e.g. `eth1/x`) — the default code path never emits these. See `ports_override.example.json` in this directory for the file shape; shorthand `{site, leaf, port}` expands to `topology/pod-1/paths-{leaf}/pathep-[{port}]` automatically.
 
@@ -415,34 +423,6 @@ If the rule is missing, your `.gitignore` was clobbered — restore from `git sh
 
 ## Enabling the NDO Orchestrator App (single-node ND / dCloud)
 
-When using dCloud or any single-node Nexus Dashboard, the Orchestrator app is not licensed by default. You need to activate it via API before NDO is usable.
+See [Bootstrapping NDO on a fresh dCloud ND 4.1](#bootstrapping-ndo-on-a-fresh-dcloud-nd-41) above for the complete procedure: **Before you start**, `licensetier` API (recommended), verification steps, optional in-product **swagger** UI, and ND 4.x UI setup.
 
-### Step 1 — Get a token
-
-```bash
-curl -k -X POST https://<ND-IP>/login \
-  -H "Content-Type: application/json" \
-  -d '{"userName":"admin","userPasswd":"<password>","domain":"local"}'
-```
-
-Copy the `token` value from the response.
-
-### Step 2 — Enable the Premier license tier with the Orchestrator app
-
-```bash
-curl -k -X POST https://<ND-IP>/api/v1/licensetier \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <token>" \
-  -d '{
-    "licenseTier": "Premier",
-    "apps": ["cisco-mso"]
-  }'
-```
-
-### ND 4.x UI setup
-
-1. **Admin → System Settings → Advanced Settings** — enable "Display advanced settings and options for TAC support."
-2. **Admin → System Status → Features** — disable NDFC and Insights; enable Orchestrator only.
-3. **Manage → Fabrics → Create Fabric** — when onboarding: select the **Premier** license tier and **uncheck Telemetry** (leaving Telemetry checked blocks the Orchestrator radio button in the next step).
-4. Back at **Manage → Fabrics**, select the fabric → **Actions → Edit Fabric Settings** → select the **Orchestrator** radio button.
-5. Access NDO via **Manage → Orchestration**.
+The canonical end-to-end runbook (all phases) is `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/README_LAB.md`.

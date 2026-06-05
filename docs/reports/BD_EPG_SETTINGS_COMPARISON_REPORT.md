@@ -57,7 +57,7 @@
 - BD-AD, BD-VVOIP-PROXY, BD-VVOIP-MGMT (L2_Stretched)
 - BD-APP-SVR, BD-E911-SVR, BD-DHCP-SVR, BD-WEB-SVR (L2_Stretched)
 - BD-DB-SVR, BD-SYSLOG (L2_Non-Stretched)
-- BD-GEF-MGMT (G-Specific_Only)
+- BD-GEF-MGMT (Site1-Specific_Only)
 - BD-V0950 (IPv4 BD also updated)
 
 ### IP Dataplane Learning

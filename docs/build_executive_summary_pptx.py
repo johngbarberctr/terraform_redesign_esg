@@ -249,7 +249,7 @@ def title_slide():
              size=28, color=RGBColor(0xCF, 0xDA, 0xEA))
     # Sub-line
     add_text(s, Inches(0.8), Inches(3.95), Inches(11.5), Inches(0.5),
-             "AEDCG + AEDCK   ·   2-VRF design   ·   "
+             "Site1 + Site2   ·   2-VRF design   ·   "
              "Design A (UCS-FI direct attach)   ·   IaC end-to-end",
              size=16, color=WHITE)
     # Card row at the bottom
@@ -394,7 +394,7 @@ def current_vs_target_slide():
     # Bottom footnote
     add_text(s, Inches(0.4), Inches(6.7), Inches(12.5), Inches(0.4),
              "Counts sourced from production NDO schema "
-             "AEDCE / AppProf-NetCentric and "
+             "AFRICOM / AppProf-NetCentric and "
              "docs/reports/bd_mapping_analysis.txt.",
              size=11, color=GREY, align=PP_ALIGN.CENTER)
     slides.append(s)
@@ -409,9 +409,9 @@ def architecture_slide():
     site_h = Inches(5.0)
     site_y = Inches(1.15)
     sites = [
-        ("AEDCG", Inches(0.5),
+        ("Site1", Inches(0.5),
          "Leaves 152 + 153   ·   APCG-VDS1   ·   PC_FI_A → eth1/6   ·   PC_FI_B → eth1/7"),
-        ("AEDCK", Inches(6.78),
+        ("Site2", Inches(6.78),
          "Leaves 119 + 191   ·   APCK-VDS1   ·   PC_FI_A → eth1/6   ·   PC_FI_B → eth1/7"),
     ]
     for name, x, sub in sites:
@@ -816,7 +816,7 @@ def timeline_slide():
              align=PP_ALIGN.CENTER)
     add_text(s, Inches(0.5), Inches(5.6), Inches(12.3), Inches(0.4),
              "Timeline assumes a single change-window per site, with "
-             "AEDCG and AEDCK cut over two weeks apart so issues at "
+             "Site1 and Site2 cut over two weeks apart so issues at "
              "site A surface before site B is touched.",
              size=12, color=GREY,
              align=PP_ALIGN.CENTER)
@@ -840,7 +840,7 @@ def ask_slide():
          "Single-window-per-site, Design A (UCS-FI direct attach), "
          "deploy gated when:manual."),
         ("Sponsor the maintenance window",
-         "Two 4-hour windows, two weeks apart (AEDCG then AEDCK). "
+         "Two 4-hour windows, two weeks apart (Site1 then Site2). "
          "Network, UCS, and Virtualisation owners on the bridge."),
         ("Sign off on VLAN-winner policy",
          "Recommend: highest endpoint-count wins for each "
@@ -881,11 +881,11 @@ def references_slide():
          "Pre-flight, 5-stage sequence with verify steps, "
          "per-stage rollback table."],
         ["NDO schema (single source of truth)",
-         "aci-redesign/data/nac-ndo/schema-aedce-v2.nac.yaml",
+         "aci-redesign/data/nac-ndo/schema-africom-v2.nac.yaml",
          "2 VRFs, 39 BDs, 39 EPGs, vzAny + 2 contracts (all -V2). "
          "Header documents all in-scope and out-of-scope items."],
         ["Production access policies",
-         "aci-redesign/data/nac-aci-{aedcg,aedck}-prod/access-policies.nac.yaml",
+         "aci-redesign/data/nac-aci-{site1,site2}-prod/access-policies.nac.yaml",
          "Design A: PC_FI_A/B, fi-static-vlan-pool, leaf splits."],
         ["Terraform roots",
          "aci-redesign/{apic-vmware,ndo,apic-vmware-prod}/",

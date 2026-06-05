@@ -43,7 +43,7 @@ This creates:
 ### Phase 2: Deploy from NDO UI
 
 1. Log into NDO
-2. Go to **Application Management** → **Schemas** → **AEDCE**
+2. Go to **Application Management** → **Schemas** → **AFRICOM**
 3. Click **Deploy to Sites**
 4. Select both sites (APIC1, APIC2)
 5. Click **Deploy**
@@ -98,7 +98,7 @@ terraform destroy
 ```
 
 **Important**: After terraform destroy, you must also **Undeploy** from NDO UI:
-1. Go to **Application Management** → **Schemas** → **AEDCE**
+1. Go to **Application Management** → **Schemas** → **AFRICOM**
 2. Click **Undeploy from Sites**
 
 ### Option B: Destroy Only L3Out/External EPG Resources

@@ -75,7 +75,7 @@ Deployed **27 IPv6 Bridge Domains** with associated subnets across the following
 | Component | Site G | Site K |
 |-----------|--------|--------|
 | L3Out Name | L3Out-RCC-E-G | L3Out-RCC-E-K |
-| Template | G-Specific_Only | K-Specific_Only |
+| Template | Site1-Specific_Only | Site2-Specific_Only |
 | VRF | VRF-RCC | VRF-RCC |
 | External EPG | ExtEPG-RCC-E-G | ExtEPG-RCC-E-K |
 
@@ -116,7 +116,7 @@ All 27 Bridge Domains are associated with their respective site-local L3Out for 
 ```
                     ┌─────────────────────────────────┐
                     │     Nexus Dashboard (NDO)       │
-                    │    Schema: AEDCE                │
+                    │    Schema: AFRICOM                │
                     └───────────────┬─────────────────┘
                                     │
             ┌───────────────────────┴───────────────────────┐
@@ -137,8 +137,8 @@ All 27 Bridge Domains are associated with their respective site-local L3Out for 
 |----------|-------|----------|
 | VRF_Template | Stretched | VRF-RCC, Any_VRF-RCC contract |
 | L2_Stretched | Stretched | All BDs, EPGs, ANP |
-| G-Specific_Only | Site G only | L3Out-RCC-E-G, ExtEPG-RCC-E-G |
-| K-Specific_Only | Site K only | L3Out-RCC-E-K, ExtEPG-RCC-E-K |
+| Site1-Specific_Only | Site G only | L3Out-RCC-E-G, ExtEPG-RCC-E-G |
+| Site2-Specific_Only | Site K only | L3Out-RCC-E-K, ExtEPG-RCC-E-K |
 
 ---
 

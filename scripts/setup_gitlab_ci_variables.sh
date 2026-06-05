@@ -30,26 +30,26 @@
 # Optional env vars (variable values to push to GitLab):
 #   LAB mode (PROD unset / 0):
 #     NDO_USERNAME, NDO_PASSWORD, NDO_URL,
-#     AEDCG_APIC_URL, AEDCG_APIC_USERNAME, AEDCG_APIC_PASSWORD, AEDCG_MCP_KEY,
-#     AEDCK_APIC_URL, AEDCK_APIC_USERNAME, AEDCK_APIC_PASSWORD, AEDCK_MCP_KEY,
+#     Site1_APIC_URL, Site1_APIC_USERNAME, Site1_APIC_PASSWORD, Site1_MCP_KEY,
+#     Site2_APIC_URL, Site2_APIC_USERNAME, Site2_APIC_PASSWORD, Site2_MCP_KEY,
 #     VCENTER_HOSTNAME_IP, VCENTER_DATACENTER, VCENTER_DVS_VERSION,
 #     VCENTER_USERNAME, VCENTER_PASSWORD,
 #     TF_HTTP_USERNAME, TF_HTTP_PASSWORD
 #   PROD mode (PROD=1):
-#     AEDCG_APIC_URL_PROD, AEDCG_APIC_USERNAME_PROD,
-#     AEDCG_APIC_PASSWORD_PROD, AEDCG_MCP_KEY_PROD,
-#     AEDCK_APIC_URL_PROD, AEDCK_APIC_USERNAME_PROD,
-#     AEDCK_APIC_PASSWORD_PROD, AEDCK_MCP_KEY_PROD
+#     Site1_APIC_URL_PROD, Site1_APIC_USERNAME_PROD,
+#     Site1_APIC_PASSWORD_PROD, Site1_MCP_KEY_PROD,
+#     Site2_APIC_URL_PROD, Site2_APIC_USERNAME_PROD,
+#     Site2_APIC_PASSWORD_PROD, Site2_MCP_KEY_PROD
 #
 # Usage:
 #   export GITLAB_TOKEN=glpat-xxxxxxxxxxxxxxxxxxxx
 #   export NDO_USERNAME=admin
 #   export NDO_PASSWORD='C1sco12345'              # gets masked in GitLab
 #   export NDO_URL='https://198.18.133.100'
-#   export AEDCG_APIC_URL='https://198.18.134.252'
-#   export AEDCG_APIC_USERNAME=admin
-#   export AEDCG_APIC_PASSWORD='...'              # masked + protected
-#   export AEDCG_MCP_KEY='...'                    # masked + protected, >=8 chars
+#   export Site1_APIC_URL='https://198.18.134.252'
+#   export Site1_APIC_USERNAME=admin
+#   export Site1_APIC_PASSWORD='...'              # masked + protected
+#   export Site1_MCP_KEY='...'                    # masked + protected, >=8 chars
 #   ...
 #   ./scripts/setup_gitlab_ci_variables.sh
 #
@@ -61,8 +61,8 @@
 #   - This script contains no secrets. Do not paste secrets into it.
 #   - GitLab masked/protected flags are set per spec:
 #       masked          : NDO_PASSWORD, TF_HTTP_PASSWORD
-#       masked+protected: AEDCG_APIC_PASSWORD, AEDCG_MCP_KEY,
-#                         AEDCK_APIC_PASSWORD, AEDCK_MCP_KEY,
+#       masked+protected: Site1_APIC_PASSWORD, Site1_MCP_KEY,
+#                         Site2_APIC_PASSWORD, Site2_MCP_KEY,
 #                         VCENTER_PASSWORD
 #       (no flags)      : everything else
 #   - "Protected" means the variable is only injected into pipelines that
@@ -215,27 +215,27 @@ if [[ "${PROD:-0}" == "1" ]]; then
   echo
 
   #             name                            masked  protected  default
-  set_var       AEDCG_APIC_URL_PROD             false   false
-  set_var       AEDCG_APIC_USERNAME_PROD        false   false
-  set_var       AEDCG_APIC_PASSWORD_PROD        true    true
-  set_var       AEDCG_MCP_KEY_PROD              true    true
-  set_var       AEDCK_APIC_URL_PROD             false   false
-  set_var       AEDCK_APIC_USERNAME_PROD        false   false
-  set_var       AEDCK_APIC_PASSWORD_PROD        true    true
-  set_var       AEDCK_MCP_KEY_PROD              true    true
+  set_var       Site1_APIC_URL_PROD             false   false
+  set_var       Site1_APIC_USERNAME_PROD        false   false
+  set_var       Site1_APIC_PASSWORD_PROD        true    true
+  set_var       Site1_MCP_KEY_PROD              true    true
+  set_var       Site2_APIC_URL_PROD             false   false
+  set_var       Site2_APIC_USERNAME_PROD        false   false
+  set_var       Site2_APIC_PASSWORD_PROD        true    true
+  set_var       Site2_MCP_KEY_PROD              true    true
 else
   #             name                            masked  protected  default
   set_var       NDO_USERNAME                    false   false
   set_var       NDO_PASSWORD                    true    false
   set_var       NDO_URL                         false   false
-  set_var       AEDCG_APIC_URL                  false   false
-  set_var       AEDCG_APIC_USERNAME             false   false
-  set_var       AEDCG_APIC_PASSWORD             true    true
-  set_var       AEDCG_MCP_KEY                   true    true
-  set_var       AEDCK_APIC_URL                  false   false
-  set_var       AEDCK_APIC_USERNAME             false   false
-  set_var       AEDCK_APIC_PASSWORD             true    true
-  set_var       AEDCK_MCP_KEY                   true    true
+  set_var       Site1_APIC_URL                  false   false
+  set_var       Site1_APIC_USERNAME             false   false
+  set_var       Site1_APIC_PASSWORD             true    true
+  set_var       Site1_MCP_KEY                   true    true
+  set_var       Site2_APIC_URL                  false   false
+  set_var       Site2_APIC_USERNAME             false   false
+  set_var       Site2_APIC_PASSWORD             true    true
+  set_var       Site2_MCP_KEY                   true    true
   set_var       VCENTER_HOSTNAME_IP             false   false
   set_var       VCENTER_DATACENTER              false   false
   set_var       VCENTER_DVS_VERSION             false   false      unmanaged

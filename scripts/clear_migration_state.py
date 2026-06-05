@@ -82,7 +82,7 @@ def clear_migration_and_delete():
         print("\nTrying alternative: Reset schema with only L2_Stretched...")
         minimal_schema = {
             "id": SCHEMA_ID,
-            "displayName": "AEDCE",
+            "displayName": "AFRICOM",
             "templates": [
                 {
                     "name": "L2_Stretched",

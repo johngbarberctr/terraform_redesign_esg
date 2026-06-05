@@ -6,9 +6,9 @@
 
 This directory holds the **V2 (consolidated) tenant redesign** — four pieces
 that together provision a 2-VRF tenant tree (`VRF-EUR-V2` + `VRF-DMZ-V2`)
-with 39 BDs/EPGs across the AEDCG and AEDCK ACI fabrics. Tenant-scoped
+with 39 BDs/EPGs across the Site1 and Site2 ACI fabrics. Tenant-scoped
 objects carry a `-V2` suffix so the redesign coexists with the legacy
-`AEDCE` schema in tenant `EUR` during the parallel-run period; see
+`AFRICOM` schema in tenant `EUR` during the parallel-run period; see
 [`DESIGN.md` → Naming convention](DESIGN.md#naming-convention).
 
 ## Subdirectories
@@ -17,7 +17,7 @@ objects carry a `-V2` suffix so the redesign coexists with the legacy
 |------|------------|---------------|
 | `apic-vmware/` | APIC-direct Terraform root (lab): access/fabric policies, MCP, VMware VMM domains for both fabrics | [`apic-vmware/README.md`](apic-vmware/README.md), [`README_LAB.md`](apic-vmware/README_LAB.md) |
 | `apic-vmware-prod/` | APIC-direct Terraform root (prod, Design A: UCS-FI direct attach) | [`apic-vmware-prod/README.md`](apic-vmware-prod/README.md) |
-| `ndo/` | NDO-managed Terraform root: schema `AEDCE-V2`, single template `Tenant_EUR_V2` | [`ndo/README.md`](ndo/README.md), [`README_LAB.md`](ndo/README_LAB.md) |
+| `ndo/` | NDO-managed Terraform root: schema `AFRICOM-V2`, single template `Tenant_EUR_V2` | [`ndo/README.md`](ndo/README.md), [`README_LAB.md`](ndo/README_LAB.md) |
 | `scripts/` | Python tools for static port binding push (`dump_bindings.py`, `deploy_bindings.py`, `generate_fi_bindings.py`) | [`scripts/README.md`](scripts/README.md) |
 | `data/` | Shared NAC YAML inputs (per-fabric + shared + NDO schema) | small per-folder notes; details in `DESIGN.md` |
 
@@ -37,8 +37,8 @@ we drive each layer from the right tool and keep the two roots independent
 of each other. Full design rationale is in [`DESIGN.md`](DESIGN.md).
 
 There's also a foundational dependency outside this repo: `terraform-esg/
-aci-redesign/ndo/`'s `AEDCE-V2` schema cross-references the `Any` filter
-defined in schema `AEDCE / VRF_Template`, which is built by the sibling repo
+aci-redesign/ndo/`'s `AFRICOM-V2` schema cross-references the `Any` filter
+defined in schema `AFRICOM / VRF_Template`, which is built by the sibling repo
 `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/`. That sibling repo is **Phase 1** of the
 runbook in [`../README_LAB.md`](../README_LAB.md); skip it and `terraform
 plan` against `ndo/` will fail to resolve the cross-schema reference.
@@ -47,7 +47,7 @@ plan` against `ndo/` will fail to resolve the cross-schema reference.
 
 ## Production cutover runbook
 
-This section is the operational checklist for cutting AEDCG + AEDCK over
+This section is the operational checklist for cutting Site1 + Site2 over
 from the legacy IPv6/N5K-fronted design to the IPv4 redesign on Design A
 (UCS-FI direct attach). It assumes the lab cutover has already succeeded
 (i.e. all phases in [`../README_LAB.md`](../README_LAB.md) ran cleanly
@@ -62,8 +62,8 @@ against the lab) and that all the YAML changes have merged to `main`.
 
 | Layer | What changes | Source of truth |
 | --- | --- | --- |
-| APIC access/fabric policies | New `fi-static-vlan-pool`, `fi-aaep`, `phys-fi-domain`, `PC_FI_A` / `PC_FI_B` policy groups, leaf 152/153 (AEDCG) and 119/191 (AEDCK) split between VMM ports (8-48) and FI uplinks (eth1/6, eth1/7), per-fabric VMM domain (`APCG-VDS1`, `APCK-VDS1`). | `apic-vmware-prod/` (Terraform) reading `data/nac-aci-{aedcg,aedck}-prod/`. |
-| APIC tenant tree (VRFs/BDs/EPGs/contracts) | Tenant `EUR`: 2 VRFs (`VRF-EUR-V2`, `VRF-DMZ-V2`), 39 BDs (suffixed `-V2`), 39 EPGs (suffixed `-V2`), vzAny + 2 cross-VRF contracts, EPGs bound to per-fabric VMM domains. | `ndo/` (Terraform) reading `data/nac-ndo/schema-aedce-v2.nac.yaml`. NDO pushes to both APICs. |
+| APIC access/fabric policies | New `fi-static-vlan-pool`, `fi-aaep`, `phys-fi-domain`, `PC_FI_A` / `PC_FI_B` policy groups, leaf 101/102 (Site1) and 101/102 (Site2) split between VMM ports (8-48) and FI uplinks (eth1/6, eth1/7), per-fabric VMM domain (`APCG-VDS1`, `APCK-VDS1`). | `apic-vmware-prod/` (Terraform) reading `data/nac-aci-{site1,site2}-prod/`. |
+| APIC tenant tree (VRFs/BDs/EPGs/contracts) | Tenant `EUR`: 2 VRFs (`VRF-EUR-V2`, `VRF-DMZ-V2`), 39 BDs (suffixed `-V2`), 39 EPGs (suffixed `-V2`), vzAny + 2 cross-VRF contracts, EPGs bound to per-fabric VMM domains. | `ndo/` (Terraform) reading `data/nac-ndo/schema-africom-v2.nac.yaml`. NDO pushes to both APICs. |
 | Static port bindings (non-VMM EPGs) | `EPG-LB-V2`, `EPG-LMR-V2`, `EPG-VHOST-MGMT-V2` plus any prod bare-metal endpoints. | `scripts/deploy_bindings.py` reading a curated JSON file. |
 | L3Outs / external EPGs | **No change in this cutover.** They remain in the legacy IPv6 schema and continue to attach to VRFs by name; both schemas share the same VRF objects on the APICs. | `~/DC/ACI/terraform-esg/ndo-terraform-ipv6/` (legacy IPv6 layer). |
 | UCS / vCenter | FI uplinks physically re-cabled from N5K to ACI leaves; ESXi host VDS uplinks moved to the new APIC-managed `APCG-VDS1` / `APCK-VDS1`. | UCS team + virtualisation team. Out of scope for this repo. |
@@ -89,9 +89,9 @@ against the lab) and that all the YAML changes have merged to `main`.
    export NDO_HOST=<prod-ndo-ip>
    export NDO_USER=admin
    ./dump_bindings.py \
-       --source-schema AEDCE \
+       --source-schema AFRICOM \
        --source-anp    AppProf-NetCentric \
-       --target-schema AEDCE-V2 \
+       --target-schema AFRICOM-V2 \
        --leaves        152,153,119,191 \
        --keep-vlan \
        --output prod_bindings.json
@@ -115,22 +115,22 @@ against the lab) and that all the YAML changes have merged to `main`.
    cd ../ndo
    make auth-check
    make plan
-   #   - expect CREATE for schema AEDCE-V2, template Tenant_EUR_V2,
+   #   - expect CREATE for schema AFRICOM-V2, template Tenant_EUR_V2,
    #     2 VRFs, 39 BDs, 2 ANPs, 39 EPGs, 2 contracts (all -V2).
    #   - DELETE on any pre-existing IPv6 schema is a bug; this root only
-   #     manages AEDCE-V2.
+   #     manages AFRICOM-V2.
    ```
 6. **Verify cabling and UCS plan.** The UCS team must confirm:
-   - FI-A is currently single-homed to **leaf 152 (AEDCG)** / **leaf 119 (AEDCK)** through what will become `eth1/6`.
-   - FI-B is single-homed to **leaf 153 (AEDCG)** / **leaf 191 (AEDCK)** through `eth1/7`.
-   - LACP is configured **mac-pin** on the FI vNIC templates (matches `port_channel_policies: mac-pinning` in the prod data dirs). Note: the **lab** data dirs (`nac-aci-aedcg/`, `nac-aci-aedck/`) use `lacp-active` instead of `mac-pinning` for the FI IPGs — if running against the lab, the FI vNIC templates should match `active` mode.
-   - If port assignments differ in production, edit `data/nac-aci-aedcg-prod/access-policies.nac.yaml` (`leaf_interface_profiles` sections) and `data/nac-aci-aedck-prod/access-policies.nac.yaml` BEFORE running `make plan`. **Never commit a plan you didn't review against the cabling worksheet.**
+   - FI-A is currently single-homed to **leaf 152 (Site1)** / **leaf 119 (Site2)** through what will become `eth1/6`.
+   - FI-B is single-homed to **leaf 153 (Site1)** / **leaf 191 (Site2)** through `eth1/7`.
+   - LACP is configured **mac-pin** on the FI vNIC templates (matches `port_channel_policies: mac-pinning` in the prod data dirs). Note: the **lab** data dirs (`nac-aci-site1/`, `nac-aci-site2/`) use `lacp-active` instead of `mac-pinning` for the FI IPGs — if running against the lab, the FI vNIC templates should match `active` mode.
+   - If port assignments differ in production, edit `data/nac-aci-site1-prod/access-policies.nac.yaml` (`leaf_interface_profiles` sections) and `data/nac-aci-site2-prod/access-policies.nac.yaml` BEFORE running `make plan`. **Never commit a plan you didn't review against the cabling worksheet.**
 7. **Check `fi-static-vlan-pool` against today's NDO state.** The pool was
    sourced 2026-04-29. If the cutover slips by more than ~1 week, re-pull
    live VLANs from NDO and diff:
    ```bash
    curl -k -sS -u "$NDO_USER:$NDO_PASS" \
-        "https://$NDO_HOST/mso/api/v1/schemas?name=AEDCE" \
+        "https://$NDO_HOST/mso/api/v1/schemas?name=AFRICOM" \
        | jq '... | .staticPorts[] | .vlan' | sort -un > /tmp/vlans_live.txt
    ```
    Add any new VLANs to both prod data files, rerun `make plan`, get an MR
@@ -179,13 +179,13 @@ make apply
 ```
 
 Then in NDO UI:
-`Application Management → Schemas → AEDCE-V2 → Tenant_EUR_V2 → Deploy to sites`.
-Confirm AEDCG and AEDCK both show "Deployed".
+`Application Management → Schemas → AFRICOM-V2 → Tenant_EUR_V2 → Deploy to sites`.
+Confirm Site1 and Site2 both show "Deployed".
 
 **Verify:**
 
 - APIC GUI on each fabric: `Tenants → EUR → Application Profiles → AppProf-NetCentric-V2 / AppProf-DMZ-V2 → 39 EPGs` present (36 + 3).
-- Each EPG shows the per-fabric VMM domain bound to it (`APCG-VDS1` on AEDCG, `APCK-VDS1` on AEDCK), with `Resolution Immediacy = Immediate`.
+- Each EPG shows the per-fabric VMM domain bound to it (`APCG-VDS1` on Site1, `APCK-VDS1` on Site2), with `Resolution Immediacy = Immediate`.
 - vCenter: 39 port-groups under each VDS, named `EUR|...`. Should match the lab pattern.
 - 3 EPGs (`EPG-LB-V2`, `EPG-LMR-V2`, `EPG-VHOST-MGMT-V2`) intentionally have **no** VMM bindings; they will land via Stage 3.
 
@@ -233,12 +233,12 @@ Stage 2) so the new `staticPorts[]` push to the APICs.
 This is run by the UCS team and the vSphere admin, **not** Terraform. The
 required changes:
 
-1. UCS: re-cable FI-A uplink from current N5K port to ACI leaf-152 (AEDCG) / leaf-119 (AEDCK) on `eth1/6`. Same for FI-B → leaf-153 / leaf-191 on `eth1/7`. Confirm `port-channel summary` on both FIs shows the bundle up with the new uplink.
+1. UCS: re-cable FI-A uplink from current N5K port to ACI leaf-152 (Site1) / leaf-119 (Site2) on `eth1/6`. Same for FI-B → leaf-153 / leaf-191 on `eth1/7`. Confirm `port-channel summary` on both FIs shows the bundle up with the new uplink.
 2. vCenter: for each ESXi host behind a moved FI, migrate the VDS uplinks from the legacy VDS to `APCG-VDS1` / `APCK-VDS1`. Use **Migrate VMs to another network** in the VDS UI to drop VMs onto the new port-groups (named per the redesign EPGs).
 
 **Verify:**
 
-- APIC GUI: `Fabric → Inventory → <leaf> → Interfaces → Physical → eth1/6` shows `oper-state = up` on AEDCG-152 and AEDCK-119 (and `eth1/7` up on -153/-191).
+- APIC GUI: `Fabric → Inventory → <leaf> → Interfaces → Physical → eth1/6` shows `oper-state = up` on Site1-152 and Site2-119 (and `eth1/7` up on -153/-191).
 - vCenter: VMs are now on port-groups whose names match redesign EPGs.
 - `fvCEp` count on the new EPGs grows as VMs are migrated.
 
@@ -256,8 +256,8 @@ If any verify step fails irrecoverably, abort and restore.
 
 | If you stopped after... | Rollback action |
 | --- | --- |
-| Stage 1 (APIC policy push) | `cd aci-redesign/apic-vmware-prod && make destroy` (or use `apply-aedcg`/`-aedck` `-destroy` for one fabric only). All adds were additive; no existing object on the APIC was overwritten. Faults clear in <60s. |
-| Stage 2 (NDO tenant push) | NDO UI: `Tenant_EUR_V2 → Undeploy from sites` for both AEDCG and AEDCK. Then `cd aci-redesign/ndo && make destroy` to remove the schema from NDO. Legacy IPv6 schema is unaffected (separate state, separate schema name). |
+| Stage 1 (APIC policy push) | `cd aci-redesign/apic-vmware-prod && make destroy` (or use `apply-site1`/`-site2` `-destroy` for one fabric only). All adds were additive; no existing object on the APIC was overwritten. Faults clear in <60s. |
+| Stage 2 (NDO tenant push) | NDO UI: `Tenant_EUR_V2 → Undeploy from sites` for both Site1 and Site2. Then `cd aci-redesign/ndo && make destroy` to remove the schema from NDO. Legacy IPv6 schema is unaffected (separate state, separate schema name). |
 | Stage 3 (static bindings) | NDO UI: hand-remove bindings on the 3 affected EPGs, then re-deploy. `deploy_bindings.py` is additive only and does not auto-undo. |
 | Stage 4 (UCS / vCenter physical) | UCS team re-cables FIs back to the N5K. vCenter admin migrates VMs back to the legacy VDS / port-groups. ACI-side policies stay in place; they're harmless if no port is up. |
 | Catastrophic | Restore APIC config from the snapshot taken in Pre-flight Step 1. Restore NDO from Step 2. This is the last resort; it nukes any other concurrent change made during the window. |
@@ -277,8 +277,8 @@ If any verify step fails irrecoverably, abort and restore.
 The runbook in [`../README_LAB.md`](../README_LAB.md) is the canonical
 source. Briefly:
 
-1. `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/` — foundational NDO build (tenant `EUR`, schema `AEDCE`, 5 templates, 812 prod bindings)
-2. NDO UI: deploy 5 `AEDCE` templates in strict order
+1. `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/` — foundational NDO build (tenant `EUR`, schema `AFRICOM`, 5 templates, 812 prod bindings)
+2. NDO UI: deploy 5 `AFRICOM` templates in strict order
 3. `apic-vmware/` — APIC fabric/VMM (this directory's lab Terraform root)
 4. `ndo/` — V2 redesign tenant tree (this directory's NDO Terraform root)
 5. `~/DC/ACI/terraform-esg/ndo-terraform-ipv6/` — IPv6 RCC layer (optional, only if Phase 6 Path A)

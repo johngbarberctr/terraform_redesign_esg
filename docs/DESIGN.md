@@ -17,7 +17,7 @@ For deployment runbooks see:
 
 1. [Two-root architecture](#two-root-architecture)
 2. [Design decisions (why this project looks weird)](#design-decisions-why-this-project-looks-weird)
-3. [Multi-fabric layout (AEDCG + AEDCK)](#multi-fabric-layout-aedcg--aedck)
+3. [Multi-fabric layout (Site1 + Site2)](#multi-fabric-layout-site1--site2)
 4. [Current state — 2-VRF redesign (VRF-EUR + VRF-DMZ)](#current-state--2-vrf-redesign-vrf-eur--vrf-dmz)
 5. [Design rationale](#design-rationale)
 6. [Naming conventions (production-ready)](#naming-conventions-production-ready)
@@ -65,7 +65,7 @@ hard-coded default key of `cisco` when `manage_access_policies = true`. APIC
 5.2+/6.x rejects that with `Error Code 182: Password is required for MCP
 Instance Policy`. We disable it via `data/nac-aci-shared/modules.nac.yaml`
 (`modules.aci_mcp: false`) and own the MCP policy with a sensitive
-`var.aedcg_mcp_key` (resp. `var.aedck_mcp_key`) per fabric, so each fabric's
+`var.site1_mcp_key` (resp. `var.site2_mcp_key`) per fabric, so each fabric's
 key flows in from env / CI / Vault and a leak of one fabric's key does not
 compromise the other.
 
@@ -81,12 +81,12 @@ plan time.
 
 **3. APIC passwords and MCP keys are NOT declared in `terraform.tfvars`.**
 Terraform variable precedence puts `terraform.tfvars` *above* `TF_VAR_*`
-environment variables. If the file declares `aedcg_apic_password = ""`
+environment variables. If the file declares `site1_apic_password = ""`
 (even empty), the env var is silently ignored and `terraform plan` fails
 with `Authentication details not provided`. Leaving the slot undeclared in
 the file lets the env var win for both fabrics' four secret variables
-(`aedcg_apic_password`, `aedck_apic_password`, `aedcg_mcp_key`,
-`aedck_mcp_key`), which is the pattern Stage 2 (GitLab masked CI variables)
+(`site1_apic_password`, `site2_apic_password`, `site1_mcp_key`,
+`site2_mcp_key`), which is the pattern Stage 2 (GitLab masked CI variables)
 and Stage 3 (Vault data source) both rely on.
 
 **4. The five vCenter values are NOT Terraform variables.**
@@ -97,7 +97,7 @@ never appear in plan output. This is what lets us keep the vCenter service-
 account password out of both source and state — rotating it is `export
 TF_VAR_vcenter_password='...' && make plan`.
 
-**5. `data/` is split shared / per-fabric, with both AEDCG and AEDCK wired up in the same Terraform root via provider aliases. Tenant content lives in `data/nac-ndo/`, not `data/nac-aci-shared/`.**
+**5. `data/` is split shared / per-fabric, with both Site1 and Site2 wired up in the same Terraform root via provider aliases. Tenant content lives in `data/nac-ndo/`, not `data/nac-aci-shared/`.**
 The `netascode/nac-aci` module deep-merges every YAML under every
 `yaml_directories` entry. Per-fabric *infrastructure* policy — leaf-and-
 port access policies, AAEP, VPC policy group, the rendered VMM-domain YAML
@@ -106,16 +106,16 @@ The shared `data/nac-aci-shared/` directory now holds only
 `modules.nac.yaml` (which disables the wrapper's MCP sub-module). Tenant
 intent (VRFs, BDs, EPGs, contracts) moved to `data/nac-ndo/` and is
 consumed by the sister `ndo/` Terraform root, not by `apic-vmware/`. Two
-providers (default `aci` = AEDCG, aliased `aci.aedck` = AEDCK) and four
+providers (default `aci` = Site1, aliased `aci.site2` = Site2) and four
 resource blocks (two module + two MCP per fabric) push the per-fabric
 infrastructure design to both APICs in one `terraform plan`.
 
 ---
 
-## Multi-fabric layout (AEDCG + AEDCK)
+## Multi-fabric layout (Site1 + Site2)
 
-Both fabrics are wired up in the `apic-vmware/` Terraform root. AEDCG is the
-lab control fabric (`https://198.18.134.253`), AEDCK is the second lab
+Both fabrics are wired up in the `apic-vmware/` Terraform root. Site1 is the
+lab control fabric (`https://198.18.134.253`), Site2 is the second lab
 fabric (`https://198.18.134.254`). The same shared tenant design lands on
 both. Production promotion flips the URLs in `terraform.tfvars` and the
 corresponding GitLab CI masked variables; no code change.
@@ -129,16 +129,16 @@ data/
 │                                  (tenant content moved to data/nac-ndo/)
 ├── nac-ndo/                    NDO-managed tenant policy (consumed by ndo/ root)
 │   ├── tenant.nac.yaml           stub: EUR is referenced, not created
-│   └── schema-aedce-v2.nac.yaml  schema AEDCE-V2 / template Tenant_EUR_V2
+│   └── schema-africom-v2.nac.yaml  schema AFRICOM-V2 / template Tenant_EUR_V2
 ├── _archive/                   deprecated YAMLs (reference only)
 │   └── tenant-epg-nac.nac.yaml.archived
-├── nac-aci-aedcg/              AEDCG-only access/fabric policies
-│   └── access-policies.nac.yaml  VLAN pool 3501-3967, AAEP, leaf 152/153 profiles, VPC PG
-├── nac-aci-aedcg-rendered/     gitignored; rebuilt by `render-vmm-yaml.sh aedcg`
+├── nac-aci-site1/              Site1-only access/fabric policies
+│   └── access-policies.nac.yaml  VLAN pool 3501-3967, AAEP, leaf 101/102 profiles, VPC PG
+├── nac-aci-site1-rendered/     gitignored; rebuilt by `render-vmm-yaml.sh site1`
 │   └── vmm-domain.nac.yaml       VMware VMM domain w/ vCenter creds substituted in
-├── nac-aci-aedck/              AEDCK-only access/fabric policies
-│   └── access-policies.nac.yaml  same shape as AEDCG; leaf nodes 119+191 (non-contiguous)
-└── nac-aci-aedck-rendered/     gitignored; rebuilt by `render-vmm-yaml.sh aedck`
+├── nac-aci-site2/              Site2-only access/fabric policies
+│   └── access-policies.nac.yaml  same shape as Site1; leaf nodes 119+191 (non-contiguous)
+└── nac-aci-site2-rendered/     gitignored; rebuilt by `render-vmm-yaml.sh site2`
     └── vmm-domain.nac.yaml       same template, same vCenter (today), per-fabric output
 ```
 
@@ -147,14 +147,14 @@ blocks for state migration:
 
 | Module | Provider | YAML dirs | What it owns |
 |---|---|---|---|
-| `module.aci_aedcg` | default `aci` | shared + aedcg + aedcg-rendered | AEDCG tenant + access/fabric/VMM policy |
-| `module.aci_mcp_aedcg` | default `aci` | n/a (HCL only, key from `var.aedcg_mcp_key`) | AEDCG MCP Instance Policy |
-| `module.aci_aedck` | `aci.aedck` (aliased) | shared + aedck + aedck-rendered | AEDCK tenant + access/fabric/VMM policy |
-| `module.aci_mcp_aedck` | `aci.aedck` (aliased) | n/a (HCL only, key from `var.aedck_mcp_key`) | AEDCK MCP Instance Policy |
+| `module.aci_site1` | default `aci` | shared + site1 + site1-rendered | Site1 tenant + access/fabric/VMM policy |
+| `module.aci_mcp_site1` | default `aci` | n/a (HCL only, key from `var.site1_mcp_key`) | Site1 MCP Instance Policy |
+| `module.aci_site2` | `aci.site2` (aliased) | shared + site2 + site2-rendered | Site2 tenant + access/fabric/VMM policy |
+| `module.aci_mcp_site2` | `aci.site2` (aliased) | n/a (HCL only, key from `var.site2_mcp_key`) | Site2 MCP Instance Policy |
 
 The `moved {}` blocks rename the previous monolithic `module.aci` /
-`module.aci_mcp` to their AEDCG-suffixed names. Terraform applies these as
-in-place state moves; existing AEDCG state does not see a destroy/recreate
+`module.aci_mcp` to their Site1-suffixed names. Terraform applies these as
+in-place state moves; existing Site1 state does not see a destroy/recreate
 or a provider reassignment because the default unaliased provider FQN stays
 the same.
 
@@ -169,9 +169,9 @@ nothing and costs a lot:
 - A `make plan` that produces a single combined plan for both fabrics is
   dramatically easier to review than two plans you have to mentally diff.
 - State stays simple: each module's resources are scoped to its provider,
-  so AEDCG resources live under `module.aci_aedcg.*` /
-  `module.aci_mcp_aedcg.*` and AEDCK under `module.aci_aedck.*` /
-  `module.aci_mcp_aedck.*`. No state-file gymnastics.
+  so Site1 resources live under `module.aci_site1.*` /
+  `module.aci_mcp_site1.*` and Site2 under `module.aci_site2.*` /
+  `module.aci_mcp_site2.*`. No state-file gymnastics.
 - NDO orchestrates production multi-site policy already; the per-fabric
   work this project does is **only** what NDO can't push (access/fabric
   policies, MCP, VMM). That set is small enough that splitting it across
@@ -181,16 +181,16 @@ nothing and costs a lot:
 
 The recommended path is partial-fabric apply via `-target`:
 
-1. **Validate AEDCG in lab** as you do today: `make plan && make apply-aedcg`
-   against the lab AEDCG APIC.
-2. **Validate AEDCK in lab** independently: `make apply-aedck`. AEDCK leaf
-   node IDs in `data/nac-aci-aedck/access-policies.nac.yaml` are currently
+1. **Validate Site1 in lab** as you do today: `make plan && make apply-site1`
+   against the lab Site1 APIC.
+2. **Validate Site2 in lab** independently: `make apply-site2`. Site2 leaf
+   node IDs in `data/nac-aci-site2/access-policies.nac.yaml` are currently
    119 and 191 (non-contiguous, so two single-node `node_blocks`). Re-check
    those IDs whenever the lab gets recabled and confirm them against the
-   production AEDCK fabric before any production apply.
-3. **Promote to production** by changing `aedcg_apic_url` / `aedck_apic_url`
-   in `terraform.tfvars` and the corresponding `AEDCG_APIC_*` /
-   `AEDCK_APIC_*` GitLab CI masked variables. `terraform.tfvars` is
+   production Site2 fabric before any production apply.
+3. **Promote to production** by changing `site1_apic_url` / `site2_apic_url`
+   in `terraform.tfvars` and the corresponding `Site1_APIC_*` /
+   `Site2_APIC_*` GitLab CI masked variables. `terraform.tfvars` is
    gitignored, so the lab values stay local.
 
 ---
@@ -211,7 +211,7 @@ all traffic within each VRF initially.
 ### What gets deployed
 
 39 BDs/EPGs matching the IPv6 RCC naming structure (with the `-V2` suffix
-for parallel coexistence with AEDCE — see [Naming convention](#naming-convention)),
+for parallel coexistence with AFRICOM — see [Naming convention](#naming-convention)),
 with legacy IPv4 subnets consolidated under each functional BD. Each new BD
 inherits all IPv4 subnets from the old numeric BDs it replaces (per
 `docs/reports/bd_mapping_analysis.txt`). 18 BDs are placeholders with no
@@ -220,7 +220,7 @@ prefixes are added).
 
 ```
 Tenant: EUR
-├── Filter: Any (cross-ref to AEDCE/VRF_Template/Any -- not redefined here)
+├── Filter: Any (cross-ref to AFRICOM/VRF_Template/Any -- not redefined here)
 ├── Contract: Any_VRF-EUR-V2 (scope: context)
 ├── Contract: Any_VRF-DMZ-V2 (scope: context)
 │
@@ -270,12 +270,12 @@ Tenant: EUR
 │   └── BD-RWEB-PROXY-V2     (placeholder)     → EPG-RWEB-PROXY-V2
 │
 ├── AppProf-NetCentric-V2  (36 internal EPGs on per-fabric VMM domains: APCG-VDS1, APCK-VDS1)
-│                          NDO-managed via data/nac-ndo/schema-aedce-v2.nac.yaml
+│                          NDO-managed via data/nac-ndo/schema-africom-v2.nac.yaml
 ├── AppProf-DMZ-V2         (3 DMZ EPGs on per-fabric VMM domains: APCG-VDS1, APCK-VDS1)
-│                          NDO-managed via data/nac-ndo/schema-aedce-v2.nac.yaml
+│                          NDO-managed via data/nac-ndo/schema-africom-v2.nac.yaml
 └── AppProf-AppCentric-V2  (Phase-2 ESG layer -- 0 EPGs, 2 ESGs)
                            APIC-direct via data/nac-aci-shared/tenant-eur-esgs.nac.yaml
-                           loaded by both AEDCG and AEDCK modules in apic-vmware/main.tf
+                           loaded by both Site1 and Site2 modules in apic-vmware/main.tf
                            ├── ESG-All-Internal-V2  (VRF-EUR-V2 -- selects all 36 EPGs in AppProf-NetCentric-V2)
                            └── ESG-All-DMZ-V2       (VRF-DMZ-V2 -- selects all 3 EPGs in AppProf-DMZ-V2)
 
@@ -315,7 +315,7 @@ section explains why, what's affected, and what happens at cutover.
 
 ### Why `-V2`
 
-The legacy `AEDCE` schema (managed by `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/`)
+The legacy `AFRICOM` schema (managed by `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/`)
 deploys to the same ACI tenant `EUR` and is **already in production**. ACI
 enforces unique object names per tenant: a BD has exactly one DN
 (`uni/tn-EUR/BD-foo`) and two NDO templates cannot both own that DN — NDO
@@ -325,7 +325,7 @@ will refuse the deploy of the second one with
 This is not an NDO/NaC quirk. It's an ACI data-model constraint. Same
 tenant + same name + two parallel schemas is impossible.
 
-The redesign needs to coexist with `AEDCE` for a long parallel period before
+The redesign needs to coexist with `AFRICOM` for a long parallel period before
 cutover, so distinct names are mandatory. The two viable options were:
 
 - **Suffix the redesign objects** (chosen): one tenant, two name families
@@ -358,14 +358,14 @@ convention extends without ambiguity.
 
 | Object class | Convention | Example |
 |---|---|---|
-| Schema | `AEDCE-V2` | `AEDCE-V2` |
+| Schema | `AFRICOM-V2` | `AFRICOM-V2` |
 | Template | `Tenant_EUR_V2` | `Tenant_EUR_V2` |
 | ACI tenant | **unchanged** (`EUR`) | `EUR` |
 | VRF (internal) | `VRF-EUR-V2` | `VRF-EUR-V2` |
 | VRF (DMZ) | `VRF-DMZ-V2` | `VRF-DMZ-V2` |
 | VRF (IPv6) | `VRF-RCC` (legacy, unchanged) | `VRF-RCC` |
 | Contract | `Any_<VRF>-V2` | `Any_VRF-EUR-V2`, `Any_VRF-DMZ-V2` |
-| Filter | `Any` (cross-ref to `AEDCE/VRF_Template`, **not redefined**) | `Any` |
+| Filter | `Any` (cross-ref to `AFRICOM/VRF_Template`, **not redefined**) | `Any` |
 | BD | `BD-<function>-V2` | `BD-DNS-MGMT-V2`, `BD-DB-SVR-V2` |
 | EPG | `EPG-<function>-V2` | `EPG-DNS-MGMT-V2`, `EPG-DB-SVR-V2` |
 | App Profile (internal EPGs, NDO-managed) | `AppProf-NetCentric-V2` | `AppProf-NetCentric-V2` |
@@ -378,14 +378,14 @@ convention extends without ambiguity.
 
 - The ACI tenant `EUR` itself — `tenant: EUR` in the YAML stays as `EUR`.
   Suffixing the tenant would force a tenant-rename which is destructive.
-- Filter `Any` — referenced cross-schema from `AEDCE / VRF_Template`, not
+- Filter `Any` — referenced cross-schema from `AFRICOM / VRF_Template`, not
   redefined in the V2 schema, so there's nothing to collide.
-- Sites `AEDCG` / `AEDCK`, VMM domains `APCG-VDS1` / `APCK-VDS1`, and
+- Sites `Site1` / `Site2`, VMM domains `APCG-VDS1` / `APCK-VDS1`, and
   anything else that lives outside the `uni/tn-EUR/...` namespace.
 
 ### What happens at cutover
 
-When the legacy AEDCE schema is decommissioned (months out, see
+When the legacy AFRICOM schema is decommissioned (months out, see
 [Migration phases](#migration-phases)), each `-V2` object can either:
 
 - **Stay suffixed** (the path of least resistance — cosmetic only, zero
@@ -399,8 +399,8 @@ Either choice is reversible at any point; pick later, not now.
 ### Defensive use of the suffix
 
 Apply the suffix to **all** tenant-scoped V2 objects, not just the ones
-currently colliding with AEDCE. Today the YAML-only collision is BDs only,
-but anyone adding a `VRF-EUR` or `Any_VRF-EUR` to AEDCE in the future
+currently colliding with AFRICOM. Today the YAML-only collision is BDs only,
+but anyone adding a `VRF-EUR` or `Any_VRF-EUR` to AFRICOM in the future
 would re-trigger the same class of error. Consistent suffixing eliminates
 that whole future failure mode.
 
@@ -416,8 +416,8 @@ traffic. Production migration requires coexistence, not a rebuild.
 
 | Phase | What | Status |
 |-------|------|--------|
-| 1 | Base build — 2 VRFs, 39 BDs (with consolidated IPv4 subnets), 39 EPGs in `AppProf-NetCentric-V2` + `AppProf-DMZ-V2`, VMM domain, vzAny+permit-all — NDO-managed via schema `AEDCE-V2` / template `Tenant_EUR_V2` | **Complete** |
-| 2 | Lift-and-shift ESGs grouping every EPG per VRF: `ESG-All-Internal-V2` (selects all 36 EPGs in `AppProf-NetCentric-V2`) and `ESG-All-DMZ-V2` (selects all 3 EPGs in `AppProf-DMZ-V2`), both under the new `AppProf-AppCentric-V2` ANP. APIC-direct via `nac-aci@0.7.0` (loaded from `data/nac-aci-shared/tenant-eur-esgs.nac.yaml` by `apic-vmware/main.tf` for both AEDCG and AEDCK). vzAny+permit-all on each VRF keeps reachability identical. EPG-only selectors for now. | **In flight** — see [Phase 2 deploy playbook](#phase-2-deploy-playbook) below |
+| 1 | Base build — 2 VRFs, 39 BDs (with consolidated IPv4 subnets), 39 EPGs in `AppProf-NetCentric-V2` + `AppProf-DMZ-V2`, VMM domain, vzAny+permit-all — NDO-managed via schema `AFRICOM-V2` / template `Tenant_EUR_V2` | **Complete** |
+| 2 | Lift-and-shift ESGs grouping every EPG per VRF: `ESG-All-Internal-V2` (selects all 36 EPGs in `AppProf-NetCentric-V2`) and `ESG-All-DMZ-V2` (selects all 3 EPGs in `AppProf-DMZ-V2`), both under the new `AppProf-AppCentric-V2` ANP. APIC-direct via `nac-aci@0.7.0` (loaded from `data/nac-aci-shared/tenant-eur-esgs.nac.yaml` by `apic-vmware/main.tf` for both Site1 and Site2). vzAny+permit-all on each VRF keeps reachability identical. EPG-only selectors for now. | **In flight** — see [Phase 2 deploy playbook](#phase-2-deploy-playbook) below |
 | 3 | Split each Phase-2 ESG into per-zone ESGs (e.g. `ESG-AIM-V2`, `ESG-AIS-V2`, `ESG-DMZ-Web-V2`, `ESG-DMZ-Apps-V2`) by adding `tag_selectors` (vCenter custom-attribute → ACI tag) and trimming the matching `epg_selectors`. Open question: tag scheme + ownership (vCenter team vs ACI team). | Future |
 | 4 | Replace VRF-level vzAny with explicit ESG-to-ESG contracts on the only flows that need to exist; remove `vzany: true` on each VRF last | Future — micro-segmentation |
 
@@ -480,20 +480,20 @@ vice versa.
 
 | Fabric | Lab data dir (consumed by `apic-vmware/`) | Prod data dir (consumed by `apic-vmware-prod/`) |
 |--------|--------------------------------------------|-------------------------------------------------|
-| AEDCG  | `data/nac-aci-aedcg/`                      | `data/nac-aci-aedcg-prod/`                      |
-| AEDCK  | `data/nac-aci-aedck/`                      | `data/nac-aci-aedck-prod/`                      |
+| Site1  | `data/nac-aci-site1/`                      | `data/nac-aci-site1-prod/`                      |
+| Site2  | `data/nac-aci-site2/`                      | `data/nac-aci-site2-prod/`                      |
 
 The `*-prod` dirs add (vs the lab dirs):
 
 | Object | Notes |
 |--------|-------|
-| `fi-static-vlan-pool` | Static VLAN pool, 213 distinct VLANs in 93 contiguous ranges — the union of every VLAN in production NDO schema `AEDCE / AppProf-NetCentric` (sourced live). Both sites use the same union for symmetry. |
+| `fi-static-vlan-pool` | Static VLAN pool, 213 distinct VLANs in 93 contiguous ranges — the union of every VLAN in production NDO schema `AFRICOM / AppProf-NetCentric` (sourced live). Both sites use the same union for symmetry. |
 | `phys-fi-domain` | Physical domain attached to `fi-static-vlan-pool` for non-VMM workloads riding the FI uplinks. |
 | `fi-aaep` | Carries BOTH the per-fabric VMM domain (so VM traffic via the VDS reaches ESXi behind FIs over `PC_FI_A`/`PC_FI_B`) AND `phys-fi-domain` (for static bare-metal VLANs). `infra_vlan: true` so ESXi VTEPs work for OpFlex. |
 | `PC_FI_A`, `PC_FI_B` | Single-leaf port-channels (`type: pc`, not vpc) using `mac-pinning`. AAEP = `fi-aaep`. |
 | `leaf-<X>-fi-intprof`, `leaf-<X>-prof` | Per-leaf interface and switch profiles binding eth1/6 (FI-A) and eth1/7 (FI-B). VMM port range trimmed from 1-48 to 8-48 to reserve eth1/1-7 for FI uplinks. |
 
-NDO schema `data/nac-ndo/schema-aedce-v2.nac.yaml` is shared between lab
+NDO schema `data/nac-ndo/schema-africom-v2.nac.yaml` is shared between lab
 and prod — there is one schema definition because the EPG model itself is
 identical; only the underlying APIC access policy differs. EPGs bind to the
 per-fabric VMM domains (`APCG-VDS1`, `APCK-VDS1`) at the site-local level
@@ -514,60 +514,60 @@ per-fabric VDS in vCenter.
 access/fabric policies, MCP Instance Policy, and the VMware VMM domain.
 The two tables below describe what `apic-vmware/` lands on each APIC.
 
-`ndo/` creates the **tenant policy** in NDO (schema `AEDCE-V2`, template
+`ndo/` creates the **tenant policy** in NDO (schema `AFRICOM-V2`, template
 `Tenant_EUR_V2`). Nothing reaches the APICs from the NDO Terraform until
 the operator clicks **Deploy to sites** in the NDO UI — because
 `deploy_templates = false` is set in `ndo/main.tf`. See
 [`../README_LAB.md`](../README_LAB.md) Phase 4 for the click-to-deploy
 sequence.
 
-### Access & fabric policies — AEDCG (`module.aci_aedcg` + `module.aci_mcp_aedcg`)
+### Access & fabric policies — Site1 (`module.aci_site1` + `module.aci_mcp_site1`)
 
 | ACI Object | File | Description |
 |------------|------|-------------|
-| VLAN Pool | `nac-aci-aedcg/access-policies.nac.yaml` | `vmm-vlan-pool` (dynamic, 3501-3967) |
-| CDP Policy | `nac-aci-aedcg/access-policies.nac.yaml` | `cdp-enabled` |
-| LLDP Policy | `nac-aci-aedcg/access-policies.nac.yaml` | `lldp-enabled` (`admin_rx_state: true` + `admin_tx_state: true`) |
-| Port Channel Policy | `nac-aci-aedcg/access-policies.nac.yaml` | `mac-pinning` (mode `mac-pin`; LACP LAG / `lacpLagPol`) |
-| Link Level Policy | `nac-aci-aedcg/access-policies.nac.yaml` | `10G` |
-| AAEP | `nac-aci-aedcg/access-policies.nac.yaml` | `vmm-aaep` linked to VMM domain |
-| VPC Interface Policy Group | `nac-aci-aedcg/access-policies.nac.yaml` | `vpc-vmm-hosts` |
-| Leaf Interface Profile | `nac-aci-aedcg/access-policies.nac.yaml` | `leaf-152-153-intprof` (ports 1-48) |
-| Leaf Switch Profile | `nac-aci-aedcg/access-policies.nac.yaml` | `leaf-152-153-prof` (nodes 152-153, contiguous range) |
-| VMware VMM Domain | `nac-aci-aedcg-rendered/vmm-domain.nac.yaml` | `APCG-VDS1` (read-write, adopts the existing per-fabric VDS in vCenter) |
-| vCenter Controller | `nac-aci-aedcg-rendered/vmm-domain.nac.yaml` | `vcenter01` with credential policy |
-| Virtual Distributed Switch | `nac-aci-aedcg-rendered/vmm-domain.nac.yaml` | Adopted from vCenter via `dvs_version: unmanaged` |
-| MCP Instance Policy | `apic-vmware/main.tf` (`module.aci_mcp_aedcg`) | `default` w/ key from `TF_VAR_aedcg_mcp_key` |
+| VLAN Pool | `nac-aci-site1/access-policies.nac.yaml` | `vmm-vlan-pool` (dynamic, 3501-3967) |
+| CDP Policy | `nac-aci-site1/access-policies.nac.yaml` | `cdp-enabled` |
+| LLDP Policy | `nac-aci-site1/access-policies.nac.yaml` | `lldp-enabled` (`admin_rx_state: true` + `admin_tx_state: true`) |
+| Port Channel Policy | `nac-aci-site1/access-policies.nac.yaml` | `mac-pinning` (mode `mac-pin`; LACP LAG / `lacpLagPol`) |
+| Link Level Policy | `nac-aci-site1/access-policies.nac.yaml` | `10G` |
+| AAEP | `nac-aci-site1/access-policies.nac.yaml` | `vmm-aaep` linked to VMM domain |
+| VPC Interface Policy Group | `nac-aci-site1/access-policies.nac.yaml` | `vpc-vmm-hosts` |
+| Leaf Interface Profile | `nac-aci-site1/access-policies.nac.yaml` | `leaf-152-153-intprof` (ports 1-48) |
+| Leaf Switch Profile | `nac-aci-site1/access-policies.nac.yaml` | `leaf-152-153-prof` (nodes 152-153, contiguous range) |
+| VMware VMM Domain | `nac-aci-site1-rendered/vmm-domain.nac.yaml` | `APCG-VDS1` (read-write, adopts the existing per-fabric VDS in vCenter) |
+| vCenter Controller | `nac-aci-site1-rendered/vmm-domain.nac.yaml` | `vcenter01` with credential policy |
+| Virtual Distributed Switch | `nac-aci-site1-rendered/vmm-domain.nac.yaml` | Adopted from vCenter via `dvs_version: unmanaged` |
+| MCP Instance Policy | `apic-vmware/main.tf` (`module.aci_mcp_site1`) | `default` w/ key from `TF_VAR_site1_mcp_key` |
 
-### Access & fabric policies — AEDCK (`module.aci_aedck` + `module.aci_mcp_aedck`)
+### Access & fabric policies — Site2 (`module.aci_site2` + `module.aci_mcp_site2`)
 
-Same object shape as AEDCG but read from `nac-aci-aedck/` and pushed via
-the aliased `aci.aedck` provider. AEDCK leaf nodes are 119 and 191 (non-
+Same object shape as Site1 but read from `nac-aci-site2/` and pushed via
+the aliased `aci.site2` provider. Site2 leaf nodes are 119 and 191 (non-
 contiguous, so the switch profile uses two single-node `node_blocks` rather
 than a `from`/`to` range).
 
 | ACI Object | File | Description |
 |------------|------|-------------|
-| VLAN Pool / CDP / LLDP / Port-Channel / LinkLevel / AAEP / VPC PG | `nac-aci-aedck/access-policies.nac.yaml` | identical names + values to AEDCG (names are scoped per-APIC, so this is safe) |
-| Leaf Interface Profile | `nac-aci-aedck/access-policies.nac.yaml` | `leaf-119-191-intprof` (ports 1-48) |
-| Leaf Switch Profile | `nac-aci-aedck/access-policies.nac.yaml` | `leaf-119-191-prof` (nodes 119 + 191, two single-node node_blocks) |
-| VMware VMM Domain / vCenter / VDS / Uplinks | `nac-aci-aedck-rendered/vmm-domain.nac.yaml` | `APCK-VDS1` adopting the per-fabric VDS for AEDCK |
-| MCP Instance Policy | `apic-vmware/main.tf` (`module.aci_mcp_aedck`) | `default` w/ key from `TF_VAR_aedck_mcp_key` |
+| VLAN Pool / CDP / LLDP / Port-Channel / LinkLevel / AAEP / VPC PG | `nac-aci-site2/access-policies.nac.yaml` | identical names + values to Site1 (names are scoped per-APIC, so this is safe) |
+| Leaf Interface Profile | `nac-aci-site2/access-policies.nac.yaml` | `leaf-119-191-intprof` (ports 1-48) |
+| Leaf Switch Profile | `nac-aci-site2/access-policies.nac.yaml` | `leaf-119-191-prof` (nodes 119 + 191, two single-node node_blocks) |
+| VMware VMM Domain / vCenter / VDS / Uplinks | `nac-aci-site2-rendered/vmm-domain.nac.yaml` | `APCK-VDS1` adopting the per-fabric VDS for Site2 |
+| MCP Instance Policy | `apic-vmware/main.tf` (`module.aci_mcp_site2`) | `default` w/ key from `TF_VAR_site2_mcp_key` |
 
 ### Tenant EUR — VRF-EUR-V2 (Internal) — NDO-managed
 
 Tenant content is no longer pushed by `apic-vmware/`. The `ndo/` root
-creates schema `AEDCE-V2` with a single template `Tenant_EUR_V2`; the
-operator clicks **Deploy to sites** in the NDO UI to land it on AEDCG and
-AEDCK.
+creates schema `AFRICOM-V2` with a single template `Tenant_EUR_V2`; the
+operator clicks **Deploy to sites** in the NDO UI to land it on Site1 and
+Site2.
 
 | ACI Object | NDO source | Description |
 |------------|------------|-------------|
-| Filter (cross-schema ref) | `data/nac-ndo/schema-aedce-v2.nac.yaml` | `Any` filter is referenced from `AEDCE / VRF_Template` (NDO requires unique object names per tenant) |
-| Contract | `data/nac-ndo/schema-aedce-v2.nac.yaml` | `Any_VRF-EUR-V2` (scope: context, vzAny permit-all) |
-| VRF | `data/nac-ndo/schema-aedce-v2.nac.yaml` | `VRF-EUR-V2` — vzAny provider + consumer of `Any_VRF-EUR-V2` |
-| Bridge Domains | `data/nac-ndo/schema-aedce-v2.nac.yaml` | 36 BDs with descriptive names suffixed `-V2` (BD-AD-V2, BD-APP-SVR-V2, BD-CFG-MGMT-V2, etc.) — multi-subnet from legacy consolidation |
-| EPGs | `data/nac-ndo/schema-aedce-v2.nac.yaml` | 36 EPGs under `AppProf-NetCentric-V2` bound to `APCG-VDS1` on AEDCG and `APCK-VDS1` on AEDCK |
+| Filter (cross-schema ref) | `data/nac-ndo/schema-africom-v2.nac.yaml` | `Any` filter is referenced from `AFRICOM / VRF_Template` (NDO requires unique object names per tenant) |
+| Contract | `data/nac-ndo/schema-africom-v2.nac.yaml` | `Any_VRF-EUR-V2` (scope: context, vzAny permit-all) |
+| VRF | `data/nac-ndo/schema-africom-v2.nac.yaml` | `VRF-EUR-V2` — vzAny provider + consumer of `Any_VRF-EUR-V2` |
+| Bridge Domains | `data/nac-ndo/schema-africom-v2.nac.yaml` | 36 BDs with descriptive names suffixed `-V2` (BD-AD-V2, BD-APP-SVR-V2, BD-CFG-MGMT-V2, etc.) — multi-subnet from legacy consolidation |
+| EPGs | `data/nac-ndo/schema-africom-v2.nac.yaml` | 36 EPGs under `AppProf-NetCentric-V2` bound to `APCG-VDS1` on Site1 and `APCK-VDS1` on Site2 |
 | Static port bindings | pushed by `scripts/deploy_bindings.py` after the NDO Deploy | per-EPG `staticPorts[]`; not modeled in nac-ndo YAML |
 | ESG | `data/nac-aci-shared/tenant-eur-esgs.nac.yaml` (APIC-direct) | `ESG-All-Internal-V2` in `AppProf-AppCentric-V2`; selects all 36 EPGs in `AppProf-NetCentric-V2`. nac-ndo `~> 1.2.0` and Cisco mso provider `~> 1.7.x` do not model `endpoint_security_groups`, so the ESG layer rides the `nac-aci@0.7.0` wrapper instead. vzAny+permit-all on `VRF-EUR-V2` keeps the ESG reachability-neutral. |
 
@@ -575,10 +575,10 @@ AEDCK.
 
 | ACI Object | NDO source | Description |
 |------------|------------|-------------|
-| Contract | `data/nac-ndo/schema-aedce-v2.nac.yaml` | `Any_VRF-DMZ-V2` (scope: context, vzAny permit-all) |
-| VRF | `data/nac-ndo/schema-aedce-v2.nac.yaml` | `VRF-DMZ-V2` — vzAny provider + consumer of `Any_VRF-DMZ-V2` |
-| Bridge Domains | `data/nac-ndo/schema-aedce-v2.nac.yaml` | 3 BDs: `BD-D64-PROXY-V2`, `BD-FWEB-PROXY-V2`, `BD-RWEB-PROXY-V2` |
-| EPGs | `data/nac-ndo/schema-aedce-v2.nac.yaml` | 3 EPGs under `AppProf-DMZ-V2` bound to `APCG-VDS1` on AEDCG and `APCK-VDS1` on AEDCK |
+| Contract | `data/nac-ndo/schema-africom-v2.nac.yaml` | `Any_VRF-DMZ-V2` (scope: context, vzAny permit-all) |
+| VRF | `data/nac-ndo/schema-africom-v2.nac.yaml` | `VRF-DMZ-V2` — vzAny provider + consumer of `Any_VRF-DMZ-V2` |
+| Bridge Domains | `data/nac-ndo/schema-africom-v2.nac.yaml` | 3 BDs: `BD-D64-PROXY-V2`, `BD-FWEB-PROXY-V2`, `BD-RWEB-PROXY-V2` |
+| EPGs | `data/nac-ndo/schema-africom-v2.nac.yaml` | 3 EPGs under `AppProf-DMZ-V2` bound to `APCG-VDS1` on Site1 and `APCK-VDS1` on Site2 |
 | Static port bindings | pushed by `scripts/deploy_bindings.py` after the NDO Deploy | per-EPG `staticPorts[]` |
 | ESG | `data/nac-aci-shared/tenant-eur-esgs.nac.yaml` (APIC-direct) | `ESG-All-DMZ-V2` in `AppProf-AppCentric-V2`; selects all 3 EPGs in `AppProf-DMZ-V2`. Same `nac-aci@0.7.0` wrapper and reachability-neutrality story as `ESG-All-Internal-V2` above. |
 
@@ -592,14 +592,16 @@ aci-redesign/
 ├── DESIGN.md                       this file — design rationale + object inventory
 │
 ├── apic-vmware/                    APIC-direct Terraform root (lab)
-│   ├── main.tf                       4 module blocks: aci_aedcg, aci_mcp_aedcg,
-│   │                                 aci_aedck, aci_mcp_aedck
-│   ├── providers.tf                  default `aci` provider = AEDCG;
-│   │                                 aliased `aci.aedck` = AEDCK
+│   ├── main.tf                       4 module blocks: aci_site1, aci_mcp_site1,
+│   │                                 aci_site2, aci_mcp_site2
+│   ├── providers.tf                  default `aci` provider = Site1;
+│   │                                 aliased `aci.site2` = Site2
 │   ├── variables.tf                  per-fabric APIC + MCP variables
-│   ├── terraform.tfvars              non-sensitive only; gitignored
-│   ├── terraform.tfvars.example      copy + edit
+│   ├── lab.tfvars                    lab APIC IPs + manage_tenants=true (committed)
+│   ├── prod.tfvars                   prod APIC IPs + manage_tenants=false (committed)
+│   ├── terraform.tfvars.example      reference only — credentials via TF_VAR_* env vars
 │   ├── Makefile                      plan/apply/auth-check/render/clean targets
+│   │                                 (TFVARS_FILE=lab.tfvars default; override for prod)
 │   ├── scripts/                      render-vmm-yaml, set-apic-password,
 │   │                                 generate-mcp-key, auth-check, etc.
 │   ├── templates/vmm-domain.nac.yaml.tftpl  rendered to ../data/nac-aci-<fabric>-rendered/
@@ -621,8 +623,8 @@ aci-redesign/
 │   └── README_LAB.md                 lab daily-driver
 │
 ├── scripts/                        cross-cutting Python tools (run after NDO apply)
-│   ├── dump_bindings.py              read AEDCE/AppProf-RCC, write JSON for AEDCE-V2
-│   ├── deploy_bindings.py            PATCH per-EPG staticPorts[] into AEDCE-V2
+│   ├── dump_bindings.py              read AFRICOM/AppProf-RCC, write JSON for AFRICOM-V2
+│   ├── deploy_bindings.py            PATCH per-EPG staticPorts[] into AFRICOM-V2
 │   ├── generate_fi_bindings.py       FI port-channel binding generator (Design A)
 │   ├── check_fi_bindings_parity.py   CI guard for schema/manifest drift
 │   ├── test_fi_bindings.py           unittest suite
@@ -635,18 +637,18 @@ aci-redesign/
     │   └── README.md                   data tier note
     ├── nac-ndo/                      NDO-managed tenant policy (consumed by ndo/ root)
     │   ├── tenant.nac.yaml             stub: tenant EUR is referenced, not created
-    │   └── schema-aedce-v2.nac.yaml    schema AEDCE-V2 with single template
+    │   └── schema-africom-v2.nac.yaml    schema AFRICOM-V2 with single template
     │                                   Tenant_EUR_V2 — 2 VRFs, 39 BDs, 2 ANPs,
     │                                   39 EPGs w/ VMM bindings, 2 vzAny contracts
-    ├── nac-aci-aedcg/                AEDCG-only access/fabric policies
-    │   └── access-policies.nac.yaml    VLAN pool 3501-3967, AAEP, leaf 152/153, VPC PG
-    ├── nac-aci-aedcg-rendered/       gitignored; rebuilt every `make plan`
+    ├── nac-aci-site1/                Site1-only access/fabric policies
+    │   └── access-policies.nac.yaml    VLAN pool 3501-3967, AAEP, leaf 101/102, VPC PG
+    ├── nac-aci-site1-rendered/       gitignored; rebuilt every `make plan`
     │   └── vmm-domain.nac.yaml         VMware VMM with vCenter creds substituted in
-    ├── nac-aci-aedck/                AEDCK-only access/fabric policies
-    │   └── access-policies.nac.yaml    same shape as AEDCG; leaf 119+191 (non-contiguous)
-    ├── nac-aci-aedck-rendered/       gitignored; rebuilt every `make plan`
+    ├── nac-aci-site2/                Site2-only access/fabric policies
+    │   └── access-policies.nac.yaml    same shape as Site1; leaf 119+191 (non-contiguous)
+    ├── nac-aci-site2-rendered/       gitignored; rebuilt every `make plan`
     │   └── vmm-domain.nac.yaml         per-fabric VMM (same vCenter today)
-    ├── nac-aci-{aedcg,aedck}-prod/   production access/fabric policies (Design A)
+    ├── nac-aci-{site1,site2}-prod/   production access/fabric policies (Design A)
     ├── _archive/                     deprecated YAMLs (reference only)
     │   ├── tenant-epg-nac.nac.yaml.archived  old APIC-direct tenant model
     │   └── README.md                   archive note

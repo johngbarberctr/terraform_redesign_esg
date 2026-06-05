@@ -47,7 +47,7 @@ This repository contains Terraform configurations and Python automation for depl
 - **33 Bridge Domains** with IPv6 subnets
 - **33 Endpoint Groups (EPGs)** for service segmentation
 - **~200 static port bindings** via Python automation
-- **Multi-site deployment** across AEDCG (Grafenwoehr) and AEDCK (Kaiserslautern)
+- **Multi-site deployment** across Site1 (Grafenwoehr) and Site2 (Kaiserslautern)
 - **VLAN range:** 3000-3032
 
 ### GitLab Project
@@ -157,7 +157,7 @@ This should show the current planned changes without errors. See [Running Terraf
 | `bds_epgs.tf` | VRF-RCC, `Any_VRF-RCC` and `Any_RCC` contracts (vzAny), all BDs and EPGs |
 | `l3outs_ndo.tf` | NDO site-local L3Outs, External EPGs, BD-L3Out associations, `Any_RCC` ExtEPG contract |
 | `l3outs_apic.tf` | APIC-direct: `OSPF-IntPol-L3Out` policy, logical node/interface profiles, SVI path attachments (per-site `aci.apic_g` / `aci.apic_k`) |
-| `vlans_apic.tf` | APIC-direct: creates `VLAN_All_Combined` static pool and 39 encap entries on AEDCG and AEDCK |
+| `vlans_apic.tf` | APIC-direct: creates `VLAN_All_Combined` static pool and 39 encap entries on Site1 and Site2 |
 | `.gitlab-ci.yml` | CI/CD pipeline definition |
 | `.gitignore` | Git exclusion rules |
 | `README.md` | This file |
@@ -372,7 +372,7 @@ git push to a branch or merge request
               only, on purpose)
 ```
 
-After clicking apply: NDO has the new ANP `AppProf-RCC` and 39 IPv6 EPGs inside `AEDCE / L2_Stretched`, but they are **not yet deployed to AEDCG/AEDCK**. The apply job's tail log prints the exact NDO UI path: `Application Management → Schemas → AEDCE → L2_Stretched → Deploy to sites → [AEDCG, AEDCK]`. This is **a re-deploy** of `L2_Stretched` (Phase 1 already deployed it once with the original IPv4 content; this re-deploy adds the IPv6 layer).
+After clicking apply: NDO has the new ANP `AppProf-RCC` and 39 IPv6 EPGs inside `AFRICOM / L2_Stretched`, but they are **not yet deployed to Site1/Site2**. The apply job's tail log prints the exact NDO UI path: `Application Management → Schemas → AFRICOM → L2_Stretched → Deploy to sites → [Site1, Site2]`. This is **a re-deploy** of `L2_Stretched` (Phase 1 already deployed it once with the original IPv4 content; this re-deploy adds the IPv6 layer).
 
 ### GitLab CI/CD Variables
 
@@ -537,12 +537,12 @@ tail -f apply_output.log
 **This step cannot be automated** due to a Terraform provider limitation.
 
 1. Login to NDO/MSO GUI
-2. Navigate to: **Schemas > AEDCE > UpgradeTemplate1 > VRF-RCC**
+2. Navigate to: **Schemas > AFRICOM > UpgradeTemplate1 > VRF-RCC**
 3. Check the **vzAny** checkbox
 4. Under **vzAny Provider Contracts**: click **+ Contract**, select `Any_VRF-RCC`
 5. Under **vzAny Consumer Contracts**: click **+ Contract**, select `Any_VRF-RCC`
 6. Click **Save**
-7. Click **Deploy** > check both sites (AEDCG, AEDCK) > Deploy
+7. Click **Deploy** > check both sites (Site1, Site2) > Deploy
 
 Duration: 2-3 minutes. One-time setup -- rarely changes.
 
@@ -589,7 +589,7 @@ grep -E "paths-10[12]|protpaths-101-102" ipv6_rcc_port_bindings_lab_*.json
 - **1 VRF**: VRF-RCC with vzAny for intra-VRF communication
 - **33 Bridge Domains** with IPv6 subnets (`2609:efff:b33b:xxxx::1/64`)
 - **33 EPGs** organized into service categories
-- **Multi-site**: AEDCG (Grafenwoehr) and AEDCK (Kaiserslautern)
+- **Multi-site**: Site1 (Grafenwoehr) and Site2 (Kaiserslautern)
 - **VLANs**: 3000-3032
 
 ### Service Categories
@@ -613,8 +613,8 @@ grep -E "paths-10[12]|protpaths-101-102" ipv6_rcc_port_bindings_lab_*.json
 |---|---|---|---|---|---|
 | UpgradeTemplate1 | 0 | 0 | N/A | N/A | VRF and contracts only |
 | L2_Stretched | 29 | 29 | Yes | Both | Production services |
-| G-Specific_Only | 1 | 1 | No | AEDCG | GEF Management |
-| K-Specific_Only | 1 | 1 | No | AEDCK | Backup Services |
+| Site1-Specific_Only | 1 | 1 | No | Site1 | GEF Management |
+| Site2-Specific_Only | 1 | 1 | No | Site2 | Backup Services |
 | L2_Non-Stretched | 2 | 2 | No | Both | Database, Logging |
 
 ### Port Binding Patterns
@@ -622,14 +622,14 @@ grep -E "paths-10[12]|protpaths-101-102" ipv6_rcc_port_bindings_lab_*.json
 **Standard Pattern (most EPGs):**
 
 ```
-AEDCG: VPC_D1A-B (nodes 111-112), VPC_D2A-B (nodes 111-112)
-AEDCK: VPC_D1A-B (nodes 111-112), VPC_D2A-B (nodes 111-112), VPC_D3A-B (nodes 111-112)
+Site1: VPC_D1A-B (nodes 111-112), VPC_D2A-B (nodes 111-112)
+Site2: VPC_D1A-B (nodes 111-112), VPC_D2A-B (nodes 111-112), VPC_D3A-B (nodes 111-112)
 ```
 
 **GEF Management (EPG-GEF-MGMT only):**
 
 ```
-AEDCG only: VPC_D1A-B, VPC_D2A-B, VPC_GEF_A-B (nodes 111-112)
+Site1 only: VPC_D1A-B, VPC_D2A-B, VPC_GEF_A-B (nodes 111-112)
 ```
 
 **Excluded:** Leaves 101/102 and VPC_Transport (management nodes -- production traffic uses nodes 111-112 only).
@@ -672,9 +672,9 @@ python3 generate_ipv6_bindings3.py [mode] [--inherit-from-ipv4] [--ports-overrid
 | `--inherit-from-ipv4` | OFF | Copy binding shape from the legacy IPv4 reference EPGs (`EPG-V0xxx`) in the same schema. OFF by default because those references hold legacy Design B shape (`VPC_D*A-B / protpaths`), which is wrong for Design A. |
 | `--ports-override <file>` | none | JSON file with per-EPG port-binding overrides. Used to layer individual interface bindings (`type='port'`, e.g. `eth1/x`) on top of, or in place of, the Design A defaults. |
 
-**Defaults (no flags):** Design A direct port-channels only — `PC_FI_A` / `PC_FI_B` (`type='dpc'`) on AEDCG leaves 152/153 and AEDCK leaves 119/191. The default code path never emits `type='port'` bindings; individual interface bindings come exclusively via `--ports-override`.
+**Defaults (no flags):** Design A direct port-channels only — `PC_FI_A` / `PC_FI_B` (`type='dpc'`) on Site1 leaves 101/102 and Site2 leaves 101/102. The default code path never emits `type='port'` bindings; individual interface bindings come exclusively via `--ports-override`.
 
-The script auto-discovers RCC EPGs across all templates and applies template-aware filtering for base bindings: `G-Specific_Only` → AEDCG only, `K-Specific_Only` → AEDCK only, `L2_Stretched` / `L2_Non-Stretched` → both sites.
+The script auto-discovers RCC EPGs across all templates and applies template-aware filtering for base bindings: `Site1-Specific_Only` → Site1 only, `Site2-Specific_Only` → Site2 only, `L2_Stretched` / `L2_Non-Stretched` → both sites.
 
 #### `--ports-override` file format
 
@@ -686,15 +686,15 @@ Two shapes per EPG, both validated at load time (before any NDO connection):
   "_comment": "underscore-prefixed top-level keys are ignored",
 
   "EPG-NAC": [
-    {"site": "AEDCG", "leaf": 152, "port": "eth1/10"},
-    {"site": "AEDCK", "leaf": 119, "port": "eth1/10"}
+    {"site": "Site1", "leaf": 152, "port": "eth1/10"},
+    {"site": "Site2", "leaf": 119, "port": "eth1/10"}
   ],
 
   "EPG-WEB-SVR": {
     "mode": "replace",
     "bindings": [
-      {"site": "AEDCG", "leaf": 152, "port": "eth1/8"},
-      {"site": "AEDCG", "leaf": 153, "port": "eth1/8"}
+      {"site": "Site1", "leaf": 152, "port": "eth1/8"},
+      {"site": "Site1", "leaf": 153, "port": "eth1/8"}
     ]
   }
 }
@@ -702,7 +702,7 @@ Two shapes per EPG, both validated at load time (before any NDO connection):
 
 - **List form** (`EPG-NAC`) is shorthand for `{"mode": "append", "bindings": [...]}`.
 - **Dict form** (`EPG-WEB-SVR`) makes `mode` explicit. `"append"` (default) adds to defaults; `"replace"` drops defaults entirely.
-- Each binding requires `site` (`AEDCG` or `AEDCK`) and either:
+- Each binding requires `site` (`Site1` or `Site2`) and either:
   - shorthand: `leaf` (int) + `port` (e.g. `"eth1/10"`) — auto-expands to `topology/pod-1/paths-{leaf}/pathep-[{port}]` with `type='port'`, or
   - explicit: `type` (`port`, `dpc`, or `vpc`) + `path` (full NDO path).
 - Optional per-binding fields: `deployment_immediacy` (default `"immediate"`), `mode` (NDO trunk mode, default `"regular"`).
@@ -713,14 +713,14 @@ A working example lives in `ports_override.example.json` next to the script.
 
 ACI does not allow a physical interface to host an individual `type='port'` static binding while it is also a member of a port-channel/vPC policy group — the policy group owns the interface. The script knows the Design A PC composition (sourced from the access-policies YAMLs in `nac-aci-aedc{g,k}-prod`) and rejects any override that targets a known PC member at load time, before talking to NDO. Today:
 
-- `eth1/6` on AEDCG-152 / AEDCK-119 → member of `PC_FI_A`
-- `eth1/7` on AEDCG-153 / AEDCK-191 → member of `PC_FI_B`
+- `eth1/6` on Site1-152 / Site2-119 → member of `PC_FI_A`
+- `eth1/7` on Site1-153 / Site2-191 → member of `PC_FI_B`
 
 To bind to those PCs, use `type='dpc'` with path `topology/pod-1/paths-{leaf}/pathep-[PC_FI_A]` (or `PC_FI_B`) instead. The error message includes the suggested replacement path verbatim. If access policies change, update the `PC_MEMBER_INTERFACES` constant near the top of the override section in `generate_ipv6_bindings3.py`.
 
 #### Override-vs-template-filter behavior
 
-The per-template/site filter (which drops AEDCK bindings from `G-Specific_Only` etc.) applies only to **base** bindings (defaults or `--inherit-from-ipv4` inherited). Override bindings flow through verbatim — the operator already specified each entry's site, so honor that. If an override binding targets a site where the EPG doesn't exist, `deploy_bindings()` surfaces it under the `EPG instances not found in schema` warning at deploy time rather than silently dropping it during generation.
+The per-template/site filter (which drops Site2 bindings from `Site1-Specific_Only` etc.) applies only to **base** bindings (defaults or `--inherit-from-ipv4` inherited). Override bindings flow through verbatim — the operator already specified each entry's site, so honor that. If an override binding targets a site where the EPG doesn't exist, `deploy_bindings()` surfaces it under the `EPG instances not found in schema` warning at deploy time rather than silently dropping it during generation.
 
 #### Tests
 
@@ -846,7 +846,7 @@ If resources exist on NDO but not in Terraform state:
 
 ```bash
 terraform state show data.mso_schema.existing    # get schema_id
-terraform state show data.mso_site.aedck          # get site_id
+terraform state show data.mso_site.site2          # get site_id
 
 terraform import mso_schema_template_bd_subnet.bd_example_subnet \
   "<schema_id>/template/L2_Stretched/bd/BD-EXAMPLE/subnet/<ip>"

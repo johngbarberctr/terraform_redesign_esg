@@ -101,8 +101,8 @@ NDO manages both sites from one place using **template-based deployment**:
 
 | Template | Deploys To |
 |----------|------------|
-| `G-Specific_Only` | Site G only (Grafenwoehr) |
-| `K-Specific_Only` | Site K only (Kaiserslautern) |
+| `Site1-Specific_Only` | Site G only (Grafenwoehr) |
+| `Site2-Specific_Only` | Site K only (Kaiserslautern) |
 | `L2_Stretched` | Both sites |
 
 ### For APIC (vhost_mgmt_apic.tf): **YES - Two Provider Instances**

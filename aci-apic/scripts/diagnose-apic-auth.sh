@@ -17,8 +17,8 @@
 #      expansion, copy-paste artefacts, etc.).
 #
 # Usage:
-#   ./diagnose-apic-auth.sh aedcg     # diagnose AEDCG (default)
-#   ./diagnose-apic-auth.sh aedck     # diagnose AEDCK
+#   ./diagnose-apic-auth.sh site1     # diagnose Site1 (default)
+#   ./diagnose-apic-auth.sh site2     # diagnose Site2
 #
 # Output is safe to share -- the actual password is never echoed. Only the
 # length, a character-class summary, and HTTP status codes are printed.
@@ -27,11 +27,11 @@ set -euo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
-FABRIC="${1:-aedcg}"
+FABRIC="${1:-site1}"
 case "$FABRIC" in
-  aedcg|aedck) ;;
+  site1|site2) ;;
   *)
-    echo "diagnose: unknown fabric '$FABRIC'. Use one of: aedcg, aedck." >&2
+    echo "diagnose: unknown fabric '$FABRIC'. Use one of: site1, site2." >&2
     exit 2
     ;;
 esac

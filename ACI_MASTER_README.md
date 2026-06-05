@@ -44,7 +44,7 @@ Creates baseline ACI fabric configuration: templates, node profiles, interfaces,
 
 | File | Purpose | LAB | PRODUCTION |
 |------|---------|-----|------------|
-| `setup_fabric_policies_aedce.yml` | Create fabric templates, node profiles, interfaces | ✅ | ✅ |
+| `setup_fabric_policies_africom.yml` | Create fabric templates, node profiles, interfaces | ✅ | ✅ |
 
 **Usage:**
 ```bash
@@ -53,7 +53,7 @@ source ~/dc_redesign/bin/activate  # Mac
 source /home/john.g.barber.ctr/ansvenv/bin/activate  # Snake
 
 # Run playbook
-ansible-playbook setup_fabric_policies_aedce.yml
+ansible-playbook setup_fabric_policies_africom.yml
 ```
 
 ---
@@ -90,11 +90,11 @@ Process gathered data and generate configuration files.
 **Usage:**
 ```bash
 # N5K Migration
-ansible-playbook process_data.yml -e site=AEDCG
-mv terraform.tfvars.json terraform.aedcg.json
-ansible-playbook process_data.yml -e site=AEDCK
-mv terraform.tfvars.json terraform.aedck.json
-python merge_tfvars.py terraform.aedcg.json terraform.aedck.json terraform.tfvars.json
+ansible-playbook process_data.yml -e site=Site1
+mv terraform.tfvars.json terraform.site1.json
+ansible-playbook process_data.yml -e site=Site2
+mv terraform.tfvars.json terraform.site2.json
+python merge_tfvars.py terraform.site1.json terraform.site2.json terraform.tfvars.json
 
 # Leaf Replacement
 ansible-playbook process_data_LF.yml
@@ -114,10 +114,10 @@ Deploy static port bindings to NDO EPGs.
 **Usage:**
 ```bash
 # Dry run first
-python deploy_bindings_python_v2.py terraform.tfvars.json AEDCE --dry-run
+python deploy_bindings_python_v2.py terraform.tfvars.json AFRICOM --dry-run
 
 # Deploy
-python deploy_bindings_python_v2.py terraform.tfvars.json AEDCE
+python deploy_bindings_python_v2.py terraform.tfvars.json AFRICOM
 ```
 
 ---
@@ -136,7 +136,7 @@ Remove specific static port bindings from NDO.
 python selective_bindings_del.py bindings_to_remove.json --dry-run
 
 # Remove
-python selective_bindings_del.py bindings_to_remove.json AEDCE
+python selective_bindings_del.py bindings_to_remove.json AFRICOM
 ```
 
 ---
@@ -184,7 +184,7 @@ Uses Ansible playbooks and Python REST API scripts.
 
 | File | Purpose |
 |------|---------|
-| `setup_fabric_policies_aedce.yml` | Create fabric resource templates, interface policy groups, node profiles, physical interfaces, port-channels |
+| `setup_fabric_policies_africom.yml` | Create fabric resource templates, interface policy groups, node profiles, physical interfaces, port-channels |
 | `deploy_bindings_python_v2.py` | Deploy static port bindings to NDO EPGs via REST API (supports `--dry-run`) |
 | `selective_bindings_del.py` | Remove specific static port bindings from NDO EPGs |
 | `ansible.cfg` | Ansible configuration (vault password file reference) |
@@ -198,15 +198,15 @@ Uses Ansible playbooks and Python REST API scripts.
 source ~/dc_redesign/bin/activate
 
 # Step 1: Setup fabric (first time only)
-ansible-playbook setup_fabric_policies_aedce.yml
+ansible-playbook setup_fabric_policies_africom.yml
 
 # Step 2: Deploy bindings
-python deploy_bindings_python_v2.py terraform.tfvars.json AEDCE --dry-run
-python deploy_bindings_python_v2.py terraform.tfvars.json AEDCE
+python deploy_bindings_python_v2.py terraform.tfvars.json AFRICOM --dry-run
+python deploy_bindings_python_v2.py terraform.tfvars.json AFRICOM
 
 # Remove specific bindings
 python selective_bindings_del.py bindings_to_remove.json --dry-run
-python selective_bindings_del.py bindings_to_remove.json AEDCE
+python selective_bindings_del.py bindings_to_remove.json AFRICOM
 ```
 
 ---
@@ -223,13 +223,13 @@ Includes GitLab CI/CD pipeline, test suite, and schema definitions.
 - Uses `netascode/nac-ndo/mso` module (version 1.2.0)
 - Configuration in YAML: `data/ndo/*.nac.yaml`
 - Manages: system, sites, tenants, schemas, templates
-- Contains 266 EPGs, 532 BDs for AEDCE schema
+- Contains 266 EPGs, 532 BDs for AFRICOM schema
 - Has its own git repo and GitLab CI/CD pipeline
 
 | File/Directory | Purpose |
 |----------------|---------|
 | `main.tf` | NAC module config |
-| `data/ndo/schema_AEDCE.nac.yaml` | Schema, EPGs, BDs (YAML) |
+| `data/ndo/schema_AFRICOM.nac.yaml` | Schema, EPGs, BDs (YAML) |
 | `data/ndo/ndo.nac.yaml` | Sites, tenants (YAML) |
 | `.env` | LAB MSO credentials |
 | `.gitlab-ci.yml`, `.ci/` | GitLab CI/CD pipeline |
@@ -314,7 +314,7 @@ python3 generate_ipv6_bindings3.py deploy
 │   └── Snake/
 │       ├── PRODUCTION/                        ← Run on Snake server (155.155.X.X)
 │       │   ├── N5K/                           ← N5K Migration & Fabric Setup
-│       │   │   ├── setup_fabric_policies_aedce.yml
+│       │   │   ├── setup_fabric_policies_africom.yml
 │       │   │   ├── process_data.yml
 │       │   │   ├── deploy_bindings_python_v2.py
 │       │   │   ├── selective_bindings_del.py
@@ -338,7 +338,7 @@ python3 generate_ipv6_bindings3.py deploy
 │           └── aci-lf-rplc/                   ← Same capabilities as PRODUCTION
 │
 ├── ndo_terraform/                             ← LAB IPv4 Fabric & Binding Deployment
-│   ├── setup_fabric_policies_aedce.yml           Ansible + Python REST API
+│   ├── setup_fabric_policies_africom.yml           Ansible + Python REST API
 │   ├── deploy_bindings_python_v2.py              Deploy bindings to NDO
 │   ├── selective_bindings_del.py                 Remove bindings from NDO
 │   ├── ansible.cfg                               Ansible configuration
@@ -354,7 +354,7 @@ python3 generate_ipv6_bindings3.py deploy
     │
     ├── main.tf                                ← NAC module config
     ├── .env                                   ← LAB MSO credentials
-    ├── data/ndo/schema_AEDCE.nac.yaml         ← 266 EPGs, 532 BDs (YAML)
+    ├── data/ndo/schema_AFRICOM.nac.yaml         ← 266 EPGs, 532 BDs (YAML)
     ├── data/ndo/ndo.nac.yaml                  ← Sites, tenants (YAML)
     ├── .gitlab-ci.yml, .ci/                   ← GitLab CI/CD pipeline
     ├── tests/, scripts/                       ← Test suite and utilities
@@ -411,17 +411,17 @@ python3 generate_ipv6_bindings3.py deploy
    - ansible-playbook get_active_pc_ports5.yml
    - ansible-playbook sh_vl_summ2.yml
 5. Process data for each site:
-   - ansible-playbook process_data.yml -e site=AEDCG
-   - mv terraform.tfvars.json terraform.aedcg.json
-   - ansible-playbook process_data.yml -e site=AEDCK
-   - mv terraform.tfvars.json terraform.aedck.json
+   - ansible-playbook process_data.yml -e site=Site1
+   - mv terraform.tfvars.json terraform.site1.json
+   - ansible-playbook process_data.yml -e site=Site2
+   - mv terraform.tfvars.json terraform.site2.json
 6. Merge configs:
-   - python merge_tfvars.py terraform.aedcg.json terraform.aedck.json terraform.tfvars.json
+   - python merge_tfvars.py terraform.site1.json terraform.site2.json terraform.tfvars.json
 7. Setup fabric (first time only):
-   - ansible-playbook setup_fabric_policies_aedce.yml
+   - ansible-playbook setup_fabric_policies_africom.yml
 8. Deploy bindings:
-   - python deploy_bindings_python_v2.py terraform.tfvars.json AEDCE --dry-run
-   - python deploy_bindings_python_v2.py terraform.tfvars.json AEDCE
+   - python deploy_bindings_python_v2.py terraform.tfvars.json AFRICOM --dry-run
+   - python deploy_bindings_python_v2.py terraform.tfvars.json AFRICOM
 ```
 
 ### Workflow 2: ACI Leaf Replacement (PRODUCTION)
@@ -508,7 +508,7 @@ chmod 600 vault_pass.txt
 - Verify network connectivity
 
 ### "Schema not found"
-- Confirm schema name is "AEDCE"
+- Confirm schema name is "AFRICOM"
 - Verify NDO connection
 
 ---

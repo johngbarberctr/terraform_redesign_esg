@@ -4,7 +4,7 @@ NDO IPv6 Binding Generator and Deployer
 - Auto-discovers all RCC EPGs across templates
 - Extracts port bindings from reference IPv4 EPG
 - Creates IPv6 bindings with VLANs 3000-3032
-- Handles both AEDCG and AEDCK sites
+- Handles both Site1 and Site2 sites
 - Future-proof: automatically handles new EPGs
 """
 import requests
@@ -19,7 +19,7 @@ import traceback
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 class NDOIPv6BindingGenerator:
-    def __init__(self, ndo_host, username, password, schema_name="AEDCE"):
+    def __init__(self, ndo_host, username, password, schema_name="AFRICOM"):
         self.ndo_host = ndo_host
         self.schema_name = schema_name
         self.session = requests.Session()
@@ -210,28 +210,28 @@ class NDOIPv6BindingGenerator:
         print("\nUsing default port binding pattern...")
         return [
             {
-                'site': 'AEDCG',
+                'site': 'Site1',
                 'type': 'vpc',
                 'path': 'topology/pod-1/protpaths-111-112/pathep-[VPC_D1A-B]',
                 'deployment_immediacy': 'immediate',
                 'mode': 'regular'
             },
             {
-                'site': 'AEDCG',
+                'site': 'Site1',
                 'type': 'vpc',
                 'path': 'topology/pod-1/protpaths-111-112/pathep-[VPC_D2A-B]',
                 'deployment_immediacy': 'immediate',
                 'mode': 'regular'
             },
             {
-                'site': 'AEDCK',
+                'site': 'Site2',
                 'type': 'vpc',
                 'path': 'topology/pod-1/protpaths-111-112/pathep-[VPC_D1A-B]',
                 'deployment_immediacy': 'immediate',
                 'mode': 'regular'
             },
             {
-                'site': 'AEDCK',
+                'site': 'Site2',
                 'type': 'vpc',
                 'path': 'topology/pod-1/protpaths-111-112/pathep-[VPC_D2A-B]',
                 'deployment_immediacy': 'immediate',
@@ -253,7 +253,7 @@ class NDOIPv6BindingGenerator:
         if not has_gef_path:
             print("\n⚠ No VPC_GEF_A-B found in reference, adding default GEF path")
             gef_bindings.append({
-                'site': 'AEDCG',
+                'site': 'Site1',
                 'type': 'vpc',
                 'path': 'topology/pod-1/protpaths-111-112/pathep-[VPC_GEF_A-B]',
                 'deployment_immediacy': 'immediate',
@@ -294,11 +294,11 @@ class NDOIPv6BindingGenerator:
             for port in ports_to_use:
                 include_port = False
                 
-                if template == 'G-Specific_Only':
-                    if port['site'] == 'AEDCG':
+                if template == 'Site1-Specific_Only':
+                    if port['site'] == 'Site1':
                         include_port = True
-                elif template == 'K-Specific_Only':
-                    if port['site'] == 'AEDCK':
+                elif template == 'Site2-Specific_Only':
+                    if port['site'] == 'Site2':
                         include_port = True
                 else:
                     # L2_Stretched or L2_Non-Stretched: both sites
@@ -526,7 +526,7 @@ def main():
     NDO_HOST = "198.18.1.12"
     NDO_USER = "admin"
     NDO_PASSWORD = "IRanthehoodtocoast2021@"
-    SCHEMA_NAME = "AEDCE"
+    SCHEMA_NAME = "AFRICOM"
     
     # Parse command line arguments
     if len(sys.argv) > 1:

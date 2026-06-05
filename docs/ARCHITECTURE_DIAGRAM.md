@@ -8,7 +8,7 @@
                                     │                   (Nexus Dashboard Orchestrator)             │
                                     │                                                              │
                                     │  ┌─────────────────────────────────────────────────────┐    │
-                                    │  │                    Schema: AEDCE                     │    │
+                                    │  │                    Schema: AFRICOM                     │    │
                                     │  │                    Tenant: EUR                       │    │
                                     │  └─────────────────────────────────────────────────────┘    │
                                     └──────────────────────────┬──────────────────────────────────┘
@@ -22,7 +22,7 @@
               │                               │                         │                               │
               │  ┌─────────────────────────┐  │                         │  ┌─────────────────────────┐  │
               │  │    L3Out-RCC-E-G        │  │                         │  │    L3Out-RCC-E-K        │  │
-              │  │  (G-Specific_Only)      │  │                         │  │  (K-Specific_Only)      │  │
+              │  │  (Site1-Specific_Only)      │  │                         │  │  (Site2-Specific_Only)      │  │
               │  │                         │  │                         │  │                         │  │
               │  │  ExtEPG-RCC-E-G         │  │                         │  │  ExtEPG-RCC-E-K         │  │
               │  │  Subnet: ::/0           │  │                         │  │  Subnet: ::/0           │  │
@@ -36,11 +36,11 @@
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                         Schema: AEDCE                                                 │
+│                                         Schema: AFRICOM                                                 │
 ├──────────────────────────────────────────────────────────────────────────────────────────────────────┤
 │                                                                                                       │
 │  ┌─────────────────────┐    ┌─────────────────────┐    ┌─────────────────────┐    ┌────────────────┐ │
-│  │    VRF_Template     │    │    L2_Stretched     │    │   G-Specific_Only   │    │ K-Specific_Only│ │
+│  │    VRF_Template     │    │    L2_Stretched     │    │   Site1-Specific_Only   │    │ Site2-Specific_Only│ │
 │  │                     │    │                     │    │                     │    │                │ │
 │  │  • VRF-RCC          │    │  • 29 BDs           │    │  • BD-GEF-MGMT      │    │ • BD-BACKUP-SVR│ │
 │  │  • vzAny enabled    │    │  • 29 EPGs          │    │  • EPG-GEF-MGMT     │    │ • EPG-BACKUP-  │ │
@@ -111,12 +111,12 @@
     │                                                                              │
     └──────────────────────────────────────────────────────────────────────────────┘
 
-                                    G-Specific_Only Template
+                                    Site1-Specific_Only Template
     ┌──────────────────────────────────────────────────────────────────────────────┐
     │   BD-GEF-MGMT ─────────────► L3Out-RCC-E-G (Site G only)                    │
     └──────────────────────────────────────────────────────────────────────────────┘
 
-                                    K-Specific_Only Template
+                                    Site2-Specific_Only Template
     ┌──────────────────────────────────────────────────────────────────────────────┐
     │   BD-BACKUP-SVR ───────────► L3Out-RCC-E-K (Site K only)                    │
     └──────────────────────────────────────────────────────────────────────────────┘
@@ -249,7 +249,7 @@
 
 ```mermaid
 graph TB
-    subgraph NDO["NDO - Schema: AEDCE"]
+    subgraph NDO["NDO - Schema: AFRICOM"]
         subgraph VRF_Template["VRF_Template"]
             VRF[VRF-RCC<br/>vzAny enabled]
             Contract[Any_VRF-RCC<br/>Contract]
@@ -260,13 +260,13 @@ graph TB
             EPGs[29 EPGs<br/>AppProf-RCC]
         end
         
-        subgraph G_Only["G-Specific_Only (Site G)"]
+        subgraph G_Only["Site1-Specific_Only (Site G)"]
             L3OUT_G[L3Out-RCC-E-G]
             EXTEPG_G[ExtEPG-RCC-E-G]
             BD_GEF[BD-GEF-MGMT]
         end
         
-        subgraph K_Only["K-Specific_Only (Site K)"]
+        subgraph K_Only["Site2-Specific_Only (Site K)"]
             L3OUT_K[L3Out-RCC-E-K]
             EXTEPG_K[ExtEPG-RCC-E-K]
             BD_BACKUP[BD-BACKUP-SVR]

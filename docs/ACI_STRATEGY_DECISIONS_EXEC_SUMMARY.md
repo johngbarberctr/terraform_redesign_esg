@@ -1,7 +1,7 @@
 # ACI V2 Redesign — Executive Summary
 
 **For:** RCC-E DC team leadership and stakeholders
-**About:** Tenant `EUR` ACI redesign on the AEDCG/AEDCK fabric pair
+**About:** Tenant `EUR` ACI redesign on the Site1/Site2 fabric pair
 **Detail:** See `ACI_STRATEGY_DECISIONS.md` (37 decision items, 932 lines)
 **Excluded:** firewall service graphs, K8s, AI, mainframe, F5 placement, multi-site failover
 
@@ -9,13 +9,13 @@
 
 ## What and why
 
-We are migrating the `EUR` tenant from a network-centric layout (11 VRFs, 215 BDs, 266 VLAN-named EPGs, no security groups) to a consolidated, security-policy-aware layout (2 VRFs, 39 descriptive BDs, 39 EPGs, ESGs as the security overlay). The migration runs in-place inside the same tenant, using a `-V2` naming suffix for safe coexistence with the legacy AEDCE schema.
+We are migrating the `EUR` tenant from a network-centric layout (11 VRFs, 215 BDs, 266 VLAN-named EPGs, no security groups) to a consolidated, security-policy-aware layout (2 VRFs, 39 descriptive BDs, 39 EPGs, ESGs as the security overlay). The migration runs in-place inside the same tenant, using a `-V2` naming suffix for safe coexistence with the legacy AFRICOM schema.
 
 The redesign aligns with Cisco's current ACI design guidance (BRKDCN-2984), the WWT/Belete recommendations from the 2025 design discussions, and the operational constraints we have today (one on-site engineer, no Tetration/CSW, NDI is the only flow-analysis tool).
 
 ## Where we are
 
-| | Legacy AEDCE | V2 redesign |
+| | Legacy AFRICOM | V2 redesign |
 |---|---|---|
 | Tenants | 1 (`EUR`) | 1 (same `EUR`) |
 | VRFs | 11 | 2 (`VRF-EUR-V2`, `VRF-DMZ-V2`) |
@@ -41,11 +41,11 @@ These are the items that the DC team cannot resolve alone. The full document tra
 
 | # | Decision | Owner needed | Blocks | Recommended choice |
 |---|---|---|---|---|
-| 1 | **V2 L3Out ownership** — does V2 build its own L3Outs, or inherit from legacy AEDCE forever? | Network architect + FW team | Phase 3 cleanup, AEDCE retirement | V2 builds its own (4 L3Outs, dedicated per VRF per site) |
+| 1 | **V2 L3Out ownership** — does V2 build its own L3Outs, or inherit from legacy AFRICOM forever? | Network architect + FW team | Phase 3 cleanup, AFRICOM retirement | V2 builds its own (4 L3Outs, dedicated per VRF per site) |
 | 2 | **vCenter tag scheme + ownership** — who owns the `aci-zone` / `aci-tier` / `aci-app` tag values, and how are new VMs tagged? | vCenter team + Network team jointly | Phase 3 entirely | Network team owns scheme, vCenter team applies tags via existing provisioning flow |
 | 3 | **Application Dependency Mapping procedure** — who runs NDI flow capture, who interviews app owners, who maintains the output? | Network team + an app-side liaison | Phase 4 entirely | Network team runs NDI; app owners called per-app on demand; output stored in Git |
 | 4 | **Contract naming convention for Phase 4** — adopt now while it's free | Network team | Cleanliness of Phase 4 | Adopt the BRKDCN convention (`permit-to-<provider-ESG>` + `<protocol>-src-any-dst-<port>`) |
-| 5 | **AEDCE decommissioning end-state** — does the redesign ever "finish", and what does the final state look like? | DC management | Defining "done" | V2 fully owns the tenant; AEDCE schema retired; `-V2` suffix kept (or renamed in a separate window) |
+| 5 | **AFRICOM decommissioning end-state** — does the redesign ever "finish", and what does the final state look like? | DC management | Defining "done" | V2 fully owns the tenant; AFRICOM schema retired; `-V2` suffix kept (or renamed in a separate window) |
 
 ## What is going well
 
@@ -60,7 +60,7 @@ These are the items that the DC team cannot resolve alone. The full document tra
 |---|---|---|---|
 | Phase 3 stalls for lack of vCenter tag governance | High | Phase 3 cannot start | Decision #2 above |
 | Phase 4 contracts written without app-flow data and break production | Medium | Outage | Decision #3 above; long Phase 2 baseline; pilot one app first |
-| Legacy AEDCE never gets decommissioned, two-headed schema permanently | Medium | Operational debt | Decision #5 above |
+| Legacy AFRICOM never gets decommissioned, two-headed schema permanently | Medium | Operational debt | Decision #5 above |
 | `nac-ndo` upstream stays without ESG support, two-Terraform-roots split is permanent | Low | Maintenance friction | Track upstream; consolidate when it ships |
 | Audit/compliance challenges vzAny+permit-all as a security posture | Low | Forced re-architecture | Document the migration plan with target dates; vzAny is explicitly the migration scaffold |
 

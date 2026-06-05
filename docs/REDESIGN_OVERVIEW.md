@@ -13,7 +13,7 @@
 > objects deployed by `aci-redesign/ndo/` carry a generational `-V2` suffix
 > (`BD-AD-V2`, `EPG-APP-SVR-V2`, `VRF-EUR-V2`, `Any_VRF-EUR-V2`,
 > `AppProf-NetCentric-V2`, ...). The suffix exists because the legacy
-> `AEDCE` schema (managed by `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/`) deploys
+> `AFRICOM` schema (managed by `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/`) deploys
 > into the **same tenant `EUR`**, and ACI requires unique object names per
 > tenant. See **`DESIGN.md` -> "Naming convention"** for the full
 > rationale, including why `-V2` is generational and not address-family
@@ -36,7 +36,7 @@ for future segmentation.
 The first wave of the redesign carries IPv4 subnets only (the legacy
 production tenant is IPv4 today). The same BDs are designed to absorb
 the IPv6 RCC subnets in a follow-on wave, producing a single dual-stack
-schema and allowing the legacy `AEDCE` schema to be retired.
+schema and allowing the legacy `AFRICOM` schema to be retired.
 
 ---
 
@@ -45,7 +45,7 @@ schema and allowing the legacy `AEDCE` schema to be retired.
 | Attribute | Value |
 |-----------|-------|
 | Tenant | EUR |
-| Schema | AEDCE |
+| Schema | AFRICOM |
 | VRFs | 11 (EUR-E, EUR-AIS, EUR-AIM, EUR-AIV, EUR-AIZ, EUR-AIG, EUR-AIP, EUR-AOV-UC-DMZ, EUR-ARMY-ENT-SVR-DMZ, EUR-GSN-Test, EUR-E catch-all) |
 | Bridge Domains | 215 (numeric: BD-V0005 through BD-V2205) |
 | EPGs | 266 (numeric: EPG-V0005 through EPG-V2205) |
@@ -66,14 +66,14 @@ schema and allowing the legacy `AEDCE` schema to be retired.
 
 | Attribute | Value |
 |-----------|-------|
-| Tenant | EUR (unchanged -- the legacy `AEDCE` schema also deploys into this tenant) |
-| Schema | `AEDCE-V2` (single template `Tenant_EUR_V2`) |
+| Tenant | EUR (unchanged -- the legacy `AFRICOM` schema also deploys into this tenant) |
+| Schema | `AFRICOM-V2` (single template `Tenant_EUR_V2`) |
 | VRFs | **2** -- `VRF-EUR` (internal) + `VRF-DMZ` (proxy segments). Deployed names: `VRF-EUR-V2`, `VRF-DMZ-V2`. |
 | Bridge Domains | **39** (descriptive: `BD-AD`, `BD-APP-SVR`, `BD-CFG-MGMT`, ...). Deployed names: same with `-V2` suffix. |
 | EPGs | **39** (1:1 with BDs: `EPG-AD`, `EPG-APP-SVR`, `EPG-CFG-MGMT`, ...). Deployed names: same with `-V2` suffix. |
 | Contracts | vzAny permit-all on each VRF (initial), tightened via ESGs later. Deployed names: `Any_VRF-EUR-V2`, `Any_VRF-DMZ-V2`. |
-| ESGs | `ESG-All-Internal-V2` (selects all 36 EPGs in `AppProf-NetCentric-V2`) + `ESG-All-DMZ-V2` (selects all 3 EPGs in `AppProf-DMZ-V2`), both under a third ANP `AppProf-AppCentric-V2`. The two ESGs land APIC-direct via the `nac-aci@0.7.0` wrapper (loaded by `apic-vmware/main.tf` from `data/nac-aci-shared/tenant-eur-esgs.nac.yaml` for both AEDCG and AEDCK), because `nac-ndo ~> 1.2.0` and the upstream Cisco `mso` provider `~> 1.7.x` do not model `endpoint_security_groups`. vzAny+permit-all on each VRF keeps both ESGs reachability-neutral. |
-| VMM Domains | **Per-fabric**: `APCG-VDS1` on AEDCG, `APCK-VDS1` on AEDCK. Each adopts the existing per-fabric VDS in vCenter (`dvs_version: unmanaged`). Replaces the legacy single shared `VMM1` domain. |
+| ESGs | `ESG-All-Internal-V2` (selects all 36 EPGs in `AppProf-NetCentric-V2`) + `ESG-All-DMZ-V2` (selects all 3 EPGs in `AppProf-DMZ-V2`), both under a third ANP `AppProf-AppCentric-V2`. The two ESGs land APIC-direct via the `nac-aci@0.7.0` wrapper (loaded by `apic-vmware/main.tf` from `data/nac-aci-shared/tenant-eur-esgs.nac.yaml` for both Site1 and Site2), because `nac-ndo ~> 1.2.0` and the upstream Cisco `mso` provider `~> 1.7.x` do not model `endpoint_security_groups`. vzAny+permit-all on each VRF keeps both ESGs reachability-neutral. |
+| VMM Domains | **Per-fabric**: `APCG-VDS1` on Site1, `APCK-VDS1` on Site2. Each adopts the existing per-fabric VDS in vCenter (`dvs_version: unmanaged`). Replaces the legacy single shared `VMM1` domain. |
 | Address families | IPv4 today; IPv6 (currently in `VRF-RCC` / `AppProf-RCC`) folded in later as additional subnets on the same `BD-*-V2` objects. |
 
 ---
@@ -86,7 +86,7 @@ schema and allowing the legacy `AEDCE` schema to be retired.
 ```
 Tenant: EUR
 │
-├── Filter: Any (cross-referenced from AEDCE / VRF_Template / Any -- not redefined here)
+├── Filter: Any (cross-referenced from AFRICOM / VRF_Template / Any -- not redefined here)
 ├── Contract: Any_VRF-EUR  (scope: context)              [deployed as Any_VRF-EUR-V2]
 ├── Contract: Any_VRF-DMZ  (scope: context)              [deployed as Any_VRF-DMZ-V2]
 │
@@ -103,11 +103,11 @@ Tenant: EUR
 │   │   BD-VVOIP-MGMT (9 subnets), BD-VVOIP-PROXY, BD-WEB-SVR (11 subnets)
 │   │
 │   ├── AppProf-NetCentric (36 EPGs on per-fabric VMM domains: APCG-VDS1 / APCK-VDS1)
-│   │       NDO-managed via data/nac-ndo/schema-aedce-v2.nac.yaml
+│   │       NDO-managed via data/nac-ndo/schema-africom-v2.nac.yaml
 │   │       [deployed as AppProf-NetCentric-V2]
 │   └── AppProf-AppCentric / ESG-All-Internal (selects all 36 EPGs above)
 │           APIC-direct via data/nac-aci-shared/tenant-eur-esgs.nac.yaml
-│           (loaded by apic-vmware/ for both AEDCG and AEDCK)
+│           (loaded by apic-vmware/ for both Site1 and Site2)
 │           [deployed as AppProf-AppCentric-V2 / ESG-All-Internal-V2]
 │
 ├── VRF-DMZ (DMZ Proxies) ─── vzAny: Any_VRF-DMZ        [deployed as VRF-DMZ-V2]
@@ -116,7 +116,7 @@ Tenant: EUR
 │   │   BD-D64-PROXY (placeholder), BD-FWEB-PROXY (3 subnets), BD-RWEB-PROXY (placeholder)
 │   │
 │   ├── AppProf-DMZ (3 EPGs on per-fabric VMM domains: APCG-VDS1 / APCK-VDS1)
-│   │       NDO-managed via data/nac-ndo/schema-aedce-v2.nac.yaml
+│   │       NDO-managed via data/nac-ndo/schema-africom-v2.nac.yaml
 │   │       [deployed as AppProf-DMZ-V2]
 │   └── AppProf-AppCentric / ESG-All-DMZ (selects all 3 DMZ EPGs)
 │           APIC-direct via the same data/nac-aci-shared/tenant-eur-esgs.nac.yaml
@@ -239,7 +239,7 @@ Is ACI the IP gateway for this segment?
 | **VRF count** | 11 → 2 | -- |
 | **BD/EPG count** | 215/266 → 39/39 | -- |
 | **BD/EPG names** | Numeric → descriptive (with `-V2` suffix on the wire) | -- |
-| **Tenant name** | -- | `EUR` -- legacy `AEDCE` and new `AEDCE-V2` share it |
+| **Tenant name** | -- | `EUR` -- legacy `AFRICOM` and new `AFRICOM-V2` share it |
 | **Contracts** | Per-EPG → vzAny + ESG | Contract model (still ACI contracts) |
 | **VMM domain** | VMM1 → per-fabric `APCG-VDS1` / `APCK-VDS1` (each adopts the existing per-fabric VDS in vCenter) | Dynamic VLAN assignment from `vmm-vlan-pool` 3501-3967 |
 | **L3Outs** | 13 → ~4 (production) | External routing concept |
@@ -252,8 +252,8 @@ Is ACI the IP gateway for this segment?
 
 | File | Purpose |
 |------|---------|
-| `aci-redesign/data/nac-ndo/schema-aedce-v2.nac.yaml` | Source of truth (NDO layer): schema `AEDCE-V2` / template `Tenant_EUR_V2`, VRFs, BDs, contracts, and the 2 ANPs holding the 39 EPGs (`AppProf-NetCentric-V2` + `AppProf-DMZ-V2`) |
-| `aci-redesign/data/nac-aci-shared/tenant-eur-esgs.nac.yaml` | Source of truth (ESG layer): the third ANP `AppProf-AppCentric-V2` and the two Phase-2 ESGs (`ESG-All-Internal-V2`, `ESG-All-DMZ-V2`). Loaded APIC-direct by both AEDCG and AEDCK modules in `aci-redesign/apic-vmware/main.tf`. |
+| `aci-redesign/data/nac-ndo/schema-africom-v2.nac.yaml` | Source of truth (NDO layer): schema `AFRICOM-V2` / template `Tenant_EUR_V2`, VRFs, BDs, contracts, and the 2 ANPs holding the 39 EPGs (`AppProf-NetCentric-V2` + `AppProf-DMZ-V2`) |
+| `aci-redesign/data/nac-aci-shared/tenant-eur-esgs.nac.yaml` | Source of truth (ESG layer): the third ANP `AppProf-AppCentric-V2` and the two Phase-2 ESGs (`ESG-All-Internal-V2`, `ESG-All-DMZ-V2`). Loaded APIC-direct by both Site1 and Site2 modules in `aci-redesign/apic-vmware/main.tf`. |
 | `aci-redesign/DESIGN.md` | Design rationale + the canonical "Naming convention" section explaining `-V2`; full Phase-2 deploy playbook |
 | `docs/reports/bd_mapping_analysis.txt` | Full mapping of all 215 legacy BDs to the 39 functional BDs |
 | `ndo-terraform-nac/136.215.4.96/bds_epgs.tf` | IPv6 RCC design (source of the 39-BD naming structure) |
@@ -274,7 +274,7 @@ The lab is greenfield (built from scratch). Production requires coexistence:
 | 4 | Migrate EPGs from old VRFs to `VRF-EUR-V2` / `VRF-DMZ-V2` | **Brief traffic loss per subnet** | Per-subnet maintenance windows; endpoints re-learn |
 | 5 | Consolidate L3Outs (13 → ~4) | **Routing re-convergence** | Coordinate with firewall/WAN teams |
 | 6 | Rename EPGs/BDs from numeric to descriptive | Cosmetic only | Can be done anytime |
-| 7 | Decommission old VRFs, contracts, L3Outs (and the legacy `AEDCE` schema once empty) | None (if all migrated) | Validate no orphaned objects |
+| 7 | Decommission old VRFs, contracts, L3Outs (and the legacy `AFRICOM` schema once empty) | None (if all migrated) | Validate no orphaned objects |
 
 **Phase 4 is the critical step.** Moving a BD from one VRF to another causes endpoint re-learning (~seconds of traffic loss per subnet). Each subnet gets its own change window.
 

@@ -2,15 +2,15 @@
 """
 NDO static-port-binding dumper for the V2 tenant redesign.
 
-Reads an existing NDO schema (default: AEDCE -- the IPv6 RCC redesign in
+Reads an existing NDO schema (default: AFRICOM -- the IPv6 RCC redesign in
 AppProf-RCC) and emits its per-EPG staticPorts[] in the JSON shape that
 scripts/deploy_bindings.py consumes. Designed so the operator does not
 hand-author hundreds of port lines: dump from the live source-of-truth,
 review/edit, push.
 
 Why this exists:
-  * The V2 redesign (schema AEDCE-V2 / AppProf-NetCentric-V2 + AppProf-DMZ-V2)
-    has the SAME 39 EPG functions as the IPv6 redesign in AEDCE / AppProf-RCC,
+  * The V2 redesign (schema AFRICOM-V2 / AppProf-NetCentric-V2 + AppProf-DMZ-V2)
+    has the SAME 39 EPG functions as the IPv6 redesign in AFRICOM / AppProf-RCC,
     just suffixed -V2 on the target side (see aci-redesign/DESIGN.md
     "Naming convention" for why).
   * Dual-stack hosts land on the same physical interfaces, so the IPv6
@@ -29,7 +29,7 @@ Auth:
 Output:
   JSON file matching scripts/bindings.example.json. Each binding becomes:
     {
-      "site":     "AEDCG" | "AEDCK",
+      "site":     "Site1" | "Site2",
       "epg_name": "EPG-...",
       "path":     "topology/pod-1/(prot)?paths-N(-M)?/pathep-[...]",
       "deployment_immediacy": "immediate" | "lazy",
@@ -41,7 +41,7 @@ Output:
 Filters (default: lab-safe):
   --exclude-leaves 101,102   border leaves (L2 collection only in IPv6)
   --leaves "..."             include-only filter, comma-separated leaf IDs
-                             (e.g. 152,153,119,191 for the AEDCG+AEDCK lab)
+                             (e.g. 152,153,119,191 for the Site1+Site2 lab)
 
 ANP routing:
   --target-netcentric-anp AppProf-NetCentric-V2
@@ -56,11 +56,11 @@ ANP routing:
   AppProf-NetCentric-V2 or AppProf-DMZ-V2 ANPs above.
 
 Validation:
-  If --target-schema is set (default AEDCE-V2), the script also pulls
+  If --target-schema is set (default AFRICOM-V2), the script also pulls
   that schema and warns about: source EPGs missing in the target, target
   EPGs with zero source bindings, and per-site/per-leaf coverage gaps.
 
-Note: source EPG names from AEDCE/AppProf-RCC do NOT carry the -V2 suffix
+Note: source EPG names from AFRICOM/AppProf-RCC do NOT carry the -V2 suffix
 (they are legacy names). The dumper does not auto-rewrite EPG names; the
 operator must either pre-edit the bindings JSON to rename source EPGs to
 their -V2 equivalents (e.g. EPG-WEB-SVR -> EPG-WEB-SVR-V2) before pushing
@@ -86,9 +86,9 @@ import urllib3
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-DEFAULT_SOURCE_SCHEMA = "AEDCE"
+DEFAULT_SOURCE_SCHEMA = "AFRICOM"
 DEFAULT_SOURCE_ANP    = "AppProf-RCC"
-DEFAULT_TARGET_SCHEMA = "AEDCE-V2"
+DEFAULT_TARGET_SCHEMA = "AFRICOM-V2"
 DEFAULT_NETCENTRIC    = "AppProf-NetCentric-V2"
 DEFAULT_DMZ_ANP       = "AppProf-DMZ-V2"
 DEFAULT_DMZ_EPGS      = "EPG-D64-PROXY-V2,EPG-FWEB-PROXY-V2,EPG-RWEB-PROXY-V2"

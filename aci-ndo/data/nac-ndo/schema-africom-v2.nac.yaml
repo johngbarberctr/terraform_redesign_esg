@@ -1,5 +1,5 @@
 # =============================================================================
-# Schema AEDCE-V2 -- single source of truth for the consolidated tenant tree.
+# Schema AFRICOM-V2 -- single source of truth for the consolidated tenant tree.
 #
 # Single-template design (Cisco NDO "Approach 1: Single Template Deployment"
 # from the 4.3.1 templates overview). Everything for the redesign lives in
@@ -7,33 +7,33 @@
 #
 #   - 2 VRFs (VRF-EUR-V2, VRF-DMZ-V2) with vzAny enforced
 #   - 2 contracts (Any_VRF-EUR-V2, Any_VRF-DMZ-V2), filter cross-ref to
-#     AEDCE/VRF_Template/Any (filter names are unique per tenant)
+#     AFRICOM/VRF_Template/Any (filter names are unique per tenant)
 #   - 39 stretched BDs (l2_stretch=true is the default in nac-ndo)
 #   - 2 ANPs (AppProf-NetCentric-V2, AppProf-DMZ-V2) with 39 EPGs total
 #     (a third ANP, AppProf-AppCentric-V2, is created APIC-direct in
 #     ../nac-aci-shared/tenant-eur-esgs.nac.yaml -- it holds the Phase-2
 #     ESGs that overlay these EPGs; see "ESGs" note below)
-#   - VMware VMM bindings on every EPG to APCG-VDS1 on AEDCG and APCK-VDS1
-#     on AEDCK (per-fabric VMM domains: each adopts its own pre-existing VDS
+#   - VMware VMM bindings on every EPG to APCG-VDS1 on Kelley and APCK-VDS1
+#     on Del-Din (per-fabric VMM domains: each adopts its own pre-existing VDS
 #     in the shared vCenter rather than creating a new shared VDS)
 #
 # Naming convention -- WHY THE -V2 SUFFIX:
 #   * Every tenant-scoped object (BDs, EPGs, VRFs, contracts, ANPs) carries
-#     -V2. The legacy AEDCE schema (managed by ../../../sac-johbarbe-AFRICOM-terraform-nac-ndo)
+#     -V2. The legacy AFRICOM schema (managed by ../../../sac-johbarbe-AFRICOM-terraform-nac-ndo)
 #     deploys to the same tenant EUR. ACI enforces unique object names per
 #     tenant (uni/tn-EUR/BD-foo is one MO; two NDO templates cannot both own
-#     it), so the redesign needs distinct names to coexist with AEDCE during
+#     it), so the redesign needs distinct names to coexist with AFRICOM during
 #     the parallel-run period.
 #   * The suffix is GENERATIONAL, not address-family. These objects are NOT
 #     "the IPv4 versions" -- they are version 2 of the tenant model and will
 #     eventually carry both IPv4 and IPv6 subnets (dual-stack BDs). Do not
 #     read -V2 as a synonym for -IPv4.
-#   * After cutover (when AEDCE is decommissioned) the suffix can either stay
+#   * After cutover (when AFRICOM is decommissioned) the suffix can either stay
 #     (cosmetic only) or be dropped during a per-object maintenance window
 #     (each rename = destroy+recreate of that one BD/EPG, so it carries a
 #     brief drop on that object's traffic). Most operators just keep -V2.
 #   * Filter "Any" in the contracts below is INTENTIONALLY left un-suffixed
-#     -- it is referenced cross-schema from AEDCE/VRF_Template/Any, not
+#     -- it is referenced cross-schema from AFRICOM/VRF_Template/Any, not
 #     redefined here, so there is nothing to collide.
 #
 # Why single template:
@@ -41,13 +41,13 @@
 #   * No cross-template references => no risk of NDO 4.0+ cyclical dep error.
 #   * One deploy click in the NDO UI per change.
 #   * One rollback unit per coherent change set.
-#   * Aligns with the existing AEDCE/VRF_Template single-template pattern.
+#   * Aligns with the existing AFRICOM/VRF_Template single-template pattern.
 #
 # Deploy / cutover:
 #   * The ndo/ Terraform root runs with deploy_templates=false. This file
-#     creates the schema and template content in NDO only. Pushes to AEDCG
-#     and AEDCK are operator-driven from the NDO UI:
-#       Application Management -> Schemas -> AEDCE-V2
+#     creates the schema and template content in NDO only. Pushes to Kelley
+#     and Del-Din are operator-driven from the NDO UI:
+#       Application Management -> Schemas -> AFRICOM-V2
 #         -> Tenant_EUR_V2 -> Deploy to sites
 #   * Static port bindings on the EPGs are NOT in this file. They land via
 #     ../../scripts/deploy_bindings.py against the NDO REST API after the
@@ -55,7 +55,7 @@
 #
 # Notes:
 #   * Filter "Any" intentionally NOT defined here. Tenant EUR already has
-#     filter Any in schema AEDCE / template VRF_Template (created by the
+#     filter Any in schema AFRICOM / template VRF_Template (created by the
 #     sac-johbarbe-AFRICOM-terraform-nac-ndo stack). NDO enforces unique object names per
 #     tenant, so the two contracts below cross-reference that existing filter.
 #   * L3Outs and External EPGs are NOT declared in this schema. North-south
@@ -68,8 +68,8 @@
 #     v1.2.x module schema does not model endpoint_security_groups, and the
 #     upstream Cisco mso Terraform provider also lacks ESG resource types
 #     (verified against v1.7.x). ESGs therefore live APIC-direct in
-#     ../nac-aci-shared/tenant-eur-esgs.nac.yaml (loaded by both AEDCG and
-#     AEDCK modules in ../../apic-vmware/main.tf), under the third ANP
+#     ../nac-aci-shared/tenant-eur-esgs.nac.yaml (loaded by both Kelley and
+#     Del-Din modules in ../../apic-vmware/main.tf), under the third ANP
 #     AppProf-AppCentric-V2. Phase 2 ships two lift-and-shift ESGs:
 #       - ESG-All-Internal-V2 (VRF-EUR-V2)  -> selects all 36 EPGs in
 #         AppProf-NetCentric-V2 (declared below).
@@ -90,7 +90,7 @@
 #     are deliberately NOT bound to a VMM domain because their endpoints are
 #     physical (F5 BIG-IP, LMR gateways, ESXi vmkernel); they require
 #     static bindings to function.
-#   * sites: at the template level associates the template to AEDCG/AEDCK.
+#   * sites: at the template level associates the template to Kelley/Del-Din.
 #     sites: under each VRF is for site-local VRF properties; with no
 #     site-local overrides, listing the sites is harmless and matches the
 #     style of the existing IPv6 schema.
@@ -98,13 +98,13 @@
 ---
 ndo:
   schemas:
-    - name: AEDCE-V2
+    - name: AFRICOM-V2
       templates:
         - name: Tenant_EUR_V2
           tenant: EUR
           sites:
-            - AEDCG
-            - AEDCK
+            - Kelley
+            - Del-Din
 
           # ─────────────────────────────────────────────────────────────────────
           # VRFs and contracts (vzAny permit-all between EPGs in the VRF)
@@ -118,8 +118,8 @@ ndo:
                 consumers:
                   - name: Any_VRF-EUR-V2
               sites:
-                - name: AEDCG
-                - name: AEDCK
+                - name: Kelley
+                - name: Del-Din
 
             - name: VRF-DMZ-V2
               vzany: true
@@ -129,8 +129,8 @@ ndo:
                 consumers:
                   - name: Any_VRF-DMZ-V2
               sites:
-                - name: AEDCG
-                - name: AEDCK
+                - name: Kelley
+                - name: Del-Din
 
           contracts:
             - name: Any_VRF-EUR-V2
@@ -138,7 +138,7 @@ ndo:
               type: bothWay
               filters:
                 - name: Any
-                  schema: AEDCE
+                  schema: AFRICOM
                   template: VRF_Template
 
             - name: Any_VRF-DMZ-V2
@@ -146,7 +146,7 @@ ndo:
               type: bothWay
               filters:
                 - name: Any
-                  schema: AEDCE
+                  schema: AFRICOM
                   template: VRF_Template
 
           # ─────────────────────────────────────────────────────────────────────
@@ -569,7 +569,7 @@ ndo:
           # ─────────────────────────────────────────────────────────────────────
           # Application Profiles and EPGs
           # BD refs are in-template, so no schema/template fields needed.
-          # Each EPG associates to AEDCG via VMM domain APCG-VDS1 and to AEDCK
+          # Each EPG associates to Kelley via VMM domain APCG-VDS1 and to Del-Din
           # via APCK-VDS1 (the VMM domain objects themselves are created
           # APIC-direct in ../apic-vmware/, one per fabric, each adopting its
           # pre-existing VDS in the shared vCenter).
@@ -590,12 +590,12 @@ ndo:
                 - name: EPG-ACAS-MGMT-V2
                   bridge_domain: { name: BD-ACAS-MGMT-V2 }
                   sites: &epg_sites_internal
-                    - name: AEDCG
+                    - name: Kelley
                       vmware_vmm_domains:
                         - name: APCG-VDS1
                           deployment_immediacy: immediate
                           resolution_immediacy: immediate
-                    - name: AEDCK
+                    - name: Del-Din
                       vmware_vmm_domains:
                         - name: APCK-VDS1
                           deployment_immediacy: immediate
@@ -666,15 +666,15 @@ ndo:
                   # F5 BIG-IP is a physical appliance (vPC to F5_BIGIP in legacy
                   # N5K config). VMM domain removed -- bound statically only.
                   sites:
-                    - name: AEDCG
-                    - name: AEDCK
+                    - name: Kelley
+                    - name: Del-Din
 
                 - name: EPG-LMR-V2
                   bridge_domain: { name: BD-LMR-V2 }
                   # Land Mobile Radio gateways are physical. VMM domain removed.
                   sites:
-                    - name: AEDCG
-                    - name: AEDCK
+                    - name: Kelley
+                    - name: Del-Din
 
                 - name: EPG-MECM-V2
                   bridge_domain: { name: BD-MECM-V2 }
@@ -738,8 +738,8 @@ ndo:
                   # hosts themselves and cannot ride a VDS port-group; VMM
                   # domain removed.
                   sites:
-                    - name: AEDCG
-                    - name: AEDCK
+                    - name: Kelley
+                    - name: Del-Din
 
                 - name: EPG-VVOIP-MGMT-V2
                   bridge_domain: { name: BD-VVOIP-MGMT-V2 }

@@ -4,32 +4,32 @@
   "ndo_host":     "192.0.2.10",
   "ndo_username": "admin",
   "ndo_password": "REDACTED-only-used-with-no-vault",
-  "schema_name":  "AEDCE-V2",
+  "schema_name":  "AFRICOM-V2",
 
-  "_comment_bindings": "Each binding is one static port. site = NDO site name (AEDCG or AEDCK). epg_name = EPG declared in schema-aedce-v2.nac.yaml (note the -V2 suffix). path = APIC topology path (use protpaths-X-Y for vPC). vlan = VLAN ID. deployment_immediacy / resolution_immediacy / mode are passed straight through. The script auto-resolves the template name (Tenant_EUR_V2) per EPG, so do not include a template field.",
+  "_comment_bindings": "Each binding is one static port. site = NDO site name (Site1 or Site2). epg_name = EPG declared in schema-africom-v2.nac.yaml (note the -V2 suffix). path = APIC topology path (use protpaths-X-Y for vPC). vlan = VLAN ID. deployment_immediacy / resolution_immediacy / mode are passed straight through. The script auto-resolves the template name (Tenant_EUR_V2) per EPG, so do not include a template field.",
 
   "static_port_bindings": [
     {
-      "site":     "AEDCG",
+      "site":     "Site1",
       "epg_name": "EPG-WEB-SVR-V2",
       "vlan":     100,
-      "path":     "topology/pod-1/paths-152/pathep-[eth1/1]",
+      "path":     "topology/pod-1/paths-101/pathep-[eth1/1]",
       "deployment_immediacy": "immediate",
       "mode":     "regular"
     },
     {
-      "site":     "AEDCG",
+      "site":     "Site1",
       "epg_name": "EPG-DB-SVR-V2",
       "vlan":     200,
-      "path":     "topology/pod-1/protpaths-152-153/pathep-[VPC-d1a-eth1-1]",
+      "path":     "topology/pod-1/protpaths-101-102/pathep-[VPC-d1a-eth1-1]",
       "deployment_immediacy": "immediate",
       "mode":     "regular"
     },
     {
-      "site":     "AEDCK",
+      "site":     "Site2",
       "epg_name": "EPG-WEB-SVR-V2",
       "vlan":     100,
-      "path":     "topology/pod-1/paths-119/pathep-[eth1/1]",
+      "path":     "topology/pod-1/paths-101/pathep-[eth1/1]",
       "deployment_immediacy": "immediate",
       "mode":     "regular"
     }

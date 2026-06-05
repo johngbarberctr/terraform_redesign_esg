@@ -66,38 +66,38 @@ variables:
     description: "NDO password (Masked)"
   NDO_URL:
     description: "NDO URL"
-  AEDCG_APIC_URL:
-    description: "Lab AEDCG APIC URL (apic-vmware)"
-  AEDCG_APIC_USERNAME:
-    description: "Lab AEDCG APIC username"
-  AEDCG_APIC_PASSWORD:
-    description: "Lab AEDCG APIC password (Masked + Protected)"
-  AEDCG_MCP_KEY:
-    description: "Lab AEDCG MCP Instance Policy key (>=8 chars, mixed; Masked + Protected)"
-  AEDCK_APIC_URL:
-    description: "Lab AEDCK APIC URL"
-  AEDCK_APIC_USERNAME:
-    description: "Lab AEDCK APIC username"
-  AEDCK_APIC_PASSWORD:
-    description: "Lab AEDCK APIC password (Masked + Protected)"
-  AEDCK_MCP_KEY:
-    description: "Lab AEDCK MCP Instance Policy key (Masked + Protected)"
-  AEDCG_APIC_URL_PROD:
-    description: "Prod AEDCG APIC URL (apic-vmware-prod)"
-  AEDCG_APIC_USERNAME_PROD:
-    description: "Prod AEDCG APIC username"
-  AEDCG_APIC_PASSWORD_PROD:
-    description: "Prod AEDCG APIC password (Masked + Protected)"
-  AEDCG_MCP_KEY_PROD:
-    description: "Prod AEDCG MCP Instance Policy key (Masked + Protected)"
-  AEDCK_APIC_URL_PROD:
-    description: "Prod AEDCK APIC URL"
-  AEDCK_APIC_USERNAME_PROD:
-    description: "Prod AEDCK APIC username"
-  AEDCK_APIC_PASSWORD_PROD:
-    description: "Prod AEDCK APIC password (Masked + Protected)"
-  AEDCK_MCP_KEY_PROD:
-    description: "Prod AEDCK MCP Instance Policy key (Masked + Protected)"
+  Site1_APIC_URL:
+    description: "Lab Site1 APIC URL (apic-vmware)"
+  Site1_APIC_USERNAME:
+    description: "Lab Site1 APIC username"
+  Site1_APIC_PASSWORD:
+    description: "Lab Site1 APIC password (Masked + Protected)"
+  Site1_MCP_KEY:
+    description: "Lab Site1 MCP Instance Policy key (>=8 chars, mixed; Masked + Protected)"
+  Site2_APIC_URL:
+    description: "Lab Site2 APIC URL"
+  Site2_APIC_USERNAME:
+    description: "Lab Site2 APIC username"
+  Site2_APIC_PASSWORD:
+    description: "Lab Site2 APIC password (Masked + Protected)"
+  Site2_MCP_KEY:
+    description: "Lab Site2 MCP Instance Policy key (Masked + Protected)"
+  Site1_APIC_URL_PROD:
+    description: "Prod Site1 APIC URL (apic-vmware-prod)"
+  Site1_APIC_USERNAME_PROD:
+    description: "Prod Site1 APIC username"
+  Site1_APIC_PASSWORD_PROD:
+    description: "Prod Site1 APIC password (Masked + Protected)"
+  Site1_MCP_KEY_PROD:
+    description: "Prod Site1 MCP Instance Policy key (Masked + Protected)"
+  Site2_APIC_URL_PROD:
+    description: "Prod Site2 APIC URL"
+  Site2_APIC_USERNAME_PROD:
+    description: "Prod Site2 APIC username"
+  Site2_APIC_PASSWORD_PROD:
+    description: "Prod Site2 APIC password (Masked + Protected)"
+  Site2_MCP_KEY_PROD:
+    description: "Prod Site2 MCP Instance Policy key (Masked + Protected)"
   VCENTER_HOSTNAME_IP:
     description: "vCenter IP/FQDN (shared by both APIC roots; if your prod vCenter is a different instance, add VCENTER_HOSTNAME_IP_PROD and update apic-vmware-prod/.gitlab-ci.yml)"
   VCENTER_DATACENTER:
@@ -142,7 +142,7 @@ include:
 # Cross-project: FI-binding parity check
 #
 # The V2 redesign deploys two coupled artifacts: the tenant tree (via
-# Terraform from data/nac-ndo/schema-aedce-v2.nac.yaml) and the FI-uplink
+# Terraform from data/nac-ndo/schema-africom-v2.nac.yaml) and the FI-uplink
 # static-port bindings on PC_FI_A / PC_FI_B (PATCHed via deploy_bindings.py).
 # If they drift -- e.g. an EPG added to the schema without a corresponding
 # regeneration of fi_epg_manifest.json -- VMs behind the UCS FI on that EPG
@@ -160,13 +160,13 @@ parity-check-fi-bindings:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes:
-        - aci-ndo/data/nac-ndo/schema-aedce-v2.nac.yaml
+        - aci-ndo/data/nac-ndo/schema-africom-v2.nac.yaml
         - scripts/generate_fi_bindings.py
         - scripts/check_fi_bindings_parity.py
         - scripts/fi_epg_manifest.json
     - if: $CI_COMMIT_BRANCH == "main"
       changes:
-        - aci-ndo/data/nac-ndo/schema-aedce-v2.nac.yaml
+        - aci-ndo/data/nac-ndo/schema-africom-v2.nac.yaml
         - scripts/generate_fi_bindings.py
         - scripts/check_fi_bindings_parity.py
         - scripts/fi_epg_manifest.json

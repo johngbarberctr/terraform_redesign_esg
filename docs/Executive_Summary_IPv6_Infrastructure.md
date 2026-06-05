@@ -71,8 +71,8 @@ Examples:
 | Template | Purpose | Sites |
 |----------|---------|-------|
 | L2_Stretched | Production services | Both (G & K) |
-| G-Specific_Only | Site G exclusive services | Grafenwoehr only |
-| K-Specific_Only | Site K exclusive services | Kaiserslautern only |
+| Site1-Specific_Only | Site G exclusive services | Grafenwoehr only |
+| Site2-Specific_Only | Site K exclusive services | Kaiserslautern only |
 | L2_Non-Stretched | Site-local services | Both (non-stretched) |
 
 ### Deployment Command

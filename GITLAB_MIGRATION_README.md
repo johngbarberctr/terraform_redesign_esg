@@ -61,7 +61,7 @@ git push local-gitlab main
 ├── data/
 │   ├── ndo/                # NDO schemas and NAC configs
 │   │   ├── ndo.nac.yaml
-│   │   └── schema_AEDCE.nac.yaml
+│   │   └── schema_AFRICOM.nac.yaml
 │   └── sites/              # Per-site APIC configs
 │       ├── primary/
 │       ├── site_g/
@@ -89,8 +89,8 @@ git push local-gitlab main
 │   └── data/
 │       ├── blueprints/         # Blueprint NAC YAML definitions
 │       ├── nac-aci-shared/     # Cross-fabric YAML (tenant, BDs, EPGs, ESGs)
-│       ├── nac-aci-aedcg/      # AEDCG-only access/fabric policies
-│       └── nac-aci-aedcg-rendered/  # gitignored; vmm-domain.nac.yaml output
+│       ├── nac-aci-site1/      # Site1-only access/fabric policies
+│       └── nac-aci-site1-rendered/  # gitignored; vmm-domain.nac.yaml output
 ├── ndo-terraform/
 │   ├── bds_epgs.tf         # NDO BD/EPG definitions (~4200 lines)
 │   ├── main.tf             # MSO/ACI providers

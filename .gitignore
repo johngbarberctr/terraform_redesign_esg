@@ -38,6 +38,7 @@ Thumbs.db
 
 # Logs
 *.log
+nohup.out
 
 # Credentials
 *password*
@@ -61,6 +62,23 @@ vault_pass.txt
 *.tar.gz
 *.zip
 *.xlsx
+*.docx
+*.pptx
+
+# Versioned/backup script copies (e.g. generate_ipv6_bindings1.py,
+# parse_ndo_backup_v2.py). Canonical versions have no trailing digit.
+*[0-9].py
+
+# Disabled or archived source files
+*.old
+
+# Design/strategy documents and generated reports not for version control
+aci-ndo-ipv6/NDO_TERRAFORM_PRESENTATION.md
+docs/ACI_STRATEGY_DECISIONS.md
+docs/ACI_STRATEGY_DECISIONS_EXEC_SUMMARY.md
+docs/AFRICOM/AFRICOM_Implementation_Plan.md
+docs/presentations/RCC-E_IPv6_Infrastructure_Executive_Summary.md
+docs/reports/BD_EPG_SETTINGS_COMPARISON_REPORT.md
 
 # Backups directory (large, contains state files and binaries)
 backups/
@@ -73,4 +91,4 @@ vault_plaintext.yml
 # templates/vmm-domain.nac.yaml.tftpl by scripts/render-vmm-yaml.sh -- one dir
 # per fabric per environment, all gitignored). The wildcard covers both lab
 # (-rendered) and production (-prod-rendered) outputs.
-aci-redesign/data/nac-aci-*-rendered/
+aci-apic/data/nac-aci-*-rendered/
