@@ -64,8 +64,8 @@ If you'd rather drive everything through CI: skip the `local_override.tf` step, 
     │   ├── prod.tfvars                        prod APIC URLs + manage_tenants=false
     │   └── data/                              per-fabric NAC YAML inputs
     │       ├── nac-aci-shared/                shared tenant/ESG YAML
-    │       ├── nac-aci-site1/                 Site1 fabric-specific YAML
-    │       └── nac-aci-site2/                 Site2 fabric-specific YAML
+    │       ├── nac-aci-site1/                 Kelley fabric-specific YAML
+    │       └── nac-aci-site2/                 Del-Din fabric-specific YAML
     │
     ├── aci-ndo/                               [Phase 4 — IPv4 redesign tenant tree]
     │   ├── README.md                          reference (cutover, schema)
@@ -97,7 +97,7 @@ at the per-stack README for details.
 |---|------|-------|------|---------|
 | 0 *(optional)* | Bootstrap the two GitLab projects' CI/CD variables (prerequisite for CI-driven runs only) | `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/` + `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/` | ~5 min total | One script per repo, mostly auto-discovered |
 | 1 | Build foundational NDO state (tenant `EUR`, schema `AFRICOM`, 5 prod templates) | `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/` | ~10 min plan/apply | Terraform |
-| 2 | Deploy 5 templates to Site1/Site2 (in strict order) | NDO UI | ~15 min total | **Manual UI** |
+| 2 | Deploy 5 templates to Kelley/Del-Din (in strict order) | NDO UI | ~15 min total | **Manual UI** |
 | 2.5 | Push legacy N5K static port bindings to AFRICOM EPGs | `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/scripts/` | ~2 min | Python (`deploy_bindings_python_v2.py`) |
 | 3 | APIC fabric/access policies, MCP, VMware VMM domains | `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/aci-apic/` | ~5 min apply | Terraform (both fabrics in one root) |
 | 4 | V2 redesign tenant tree (schema `AFRICOM-V2`, template `Tenant_EUR_V2`; all tenant-scoped objects suffixed `-V2`) | `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/aci-ndo/` | ~5 min apply + UI deploy | Terraform + manual UI |
@@ -117,7 +117,7 @@ Skip this phase entirely if you plan to run everything from your laptop with `lo
 Read this phase if you want GitLab CI to drive `terraform plan` / `terraform apply` for any of Phases 1, 3, 4, or 5. The GitLab project that hosts each repo needs:
 
 - `sac-johbarbe-AFRICOM-terraform-nac-ndo`: 6 variables — `MSO_URL`, `MSO_USERNAME`, `MSO_PASSWORD` (mask+protect), `MSO_DOMAIN`, `TF_HTTP_USERNAME`, `TF_HTTP_PASSWORD` (mask).
-- `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo`: 18 variables — `NDO_*`, `Site1_APIC_*`, `Site2_APIC_*`, `VCENTER_*`, `TF_HTTP_*` (lab set, with masked/protected flags per project policy). The `_PROD`-suffixed variant for `apic-vmware-prod` is provisioned later via the same script with `--prod` (or on a separate production GitLab) — see the "Production cutover" subsection below.
+- `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo`: 18 variables — `NDO_*`, `KELLEY_APIC_*`, `DELDIN_APIC_*`, `VCENTER_*`, `TF_HTTP_*` (lab set, with masked/protected flags per project policy). The `_PROD`-suffixed variant for `apic-vmware-prod` is provisioned later via the same script with `--prod` (or on a separate production GitLab) — see the "Production cutover" subsection below.
 
 Provisioning these by hand through the GitLab UI is slow and error-prone (~24 clicks per repo). Each repo ships an interactive bootstrap script under `scripts/` that:
 
@@ -178,17 +178,17 @@ GITLAB_PROJECT=team/sac-johbarbe-AFRICOM-terraform-esg-nac-ndo \
 
 You'll be prompted for the *production* NDO password, APIC admin password, and vCenter creds. Everything else (URLs, usernames, NDO_DOMAIN, etc.) is auto-discovered from your local tfvars/`.env`. No `--prod` flag is needed in this pattern because there is no name collision between lab and prod variables — they live on different GitLab servers.
 
-**Pattern B — Same GitLab project hosts both lab and prod CI.** This is what `apic-vmware-prod/.gitlab-ci.yml` is designed for: it reads `Site1_APIC_PASSWORD_PROD` (etc.) so both lab and prod APIC variables can coexist on one project. For this pattern, run the lab bootstrap first to populate the 18 lab variables, then re-run the wrapper with `--prod` to add the 8 `_PROD` APIC variables alongside them:
+**Pattern B — Same GitLab project hosts both lab and prod CI.** This is what `apic-vmware-prod/.gitlab-ci.yml` is designed for: it reads `KELLEY_APIC_PASSWORD_PROD` (etc.) so both lab and prod APIC variables can coexist on one project. For this pattern, run the lab bootstrap first to populate the 18 lab variables, then re-run the wrapper with `--prod` to add the 8 `_PROD` APIC variables alongside them:
 
 ```bash
 cd ~/DC/ACI/sac-johbarbe-AFRICOM-terraform-esg-nac-ndo
 ./scripts/setup_gitlab_ci_variables_interactive.sh           # lab pass (one-time, already done in Phase 0 above)
-./scripts/setup_gitlab_ci_variables_interactive.sh --prod    # prod cutover: adds Site1_*_PROD + Site2_*_PROD only
+./scripts/setup_gitlab_ci_variables_interactive.sh --prod    # prod cutover: adds KELLEY_*_PROD + DELDIN_*_PROD only
 ```
 
 `--prod` mode:
 
-- prompts for both production APIC URLs (`Site1_APIC_URL_PROD`, `Site2_APIC_URL_PROD`), the production APIC admin password, and (silently) generates fresh `Site1_MCP_KEY_PROD` / `Site2_MCP_KEY_PROD` values
+- prompts for both production APIC URLs (`KELLEY_APIC_URL_PROD`, `DELDIN_APIC_URL_PROD`), the production APIC admin password, and (silently) generates fresh `KELLEY_MCP_KEY_PROD` / `DELDIN_MCP_KEY_PROD` values
 - does **not** touch `NDO_*`, `VCENTER_*`, or `TF_HTTP_*` — those are either shared between lab and prod (the per-project CI files have no `_PROD` variant for them) or already set in the lab pass
 - still validates the GitLab PAT length and downgrades any value that can't be masked, exactly like the lab pass
 
@@ -201,8 +201,8 @@ cd ~/DC/ACI/sac-johbarbe-AFRICOM-terraform-esg-nac-ndo
 ## Phase 1 — Foundational NDO build (`sac-johbarbe-AFRICOM-terraform-nac-ndo`)
 
 This repo creates **tenant `EUR`**, **schema `AFRICOM`** with five templates
-(`VRF_Template`, `L2_Stretched`, `L2_Non-Stretched`, `Site1-Specific_Only`,
-`Site2-Specific_Only`), 11 prod VRFs, 266 BDs, 265 EPGs, 13 L3Outs, and 812 VPC
+(`VRF_Template`, `L2_Stretched`, `L2_Non-Stretched`, `Kelley-Specific_Only`,
+`Del-Din-Specific_Only`), 11 prod VRFs, 266 BDs, 265 EPGs, 13 L3Outs, and 812 VPC
 static-port bindings. Phase 4 in `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/aci-ndo/` cross-
 references `AFRICOM / VRF_Template / Any` (the filter), so this phase has to
 land first.
@@ -243,7 +243,7 @@ and `README_LAB.md` (lab toggle).
 ## Phase 2 — Manual NDO-UI deploy of `AFRICOM` templates
 
 Strict order. Cross-template VRF dependencies will break the deploy if you skip
-ahead — error message is "VRF EUR-X must be deployed on Fabric Site2 before
+ahead — error message is "VRF EUR-X must be deployed on Fabric Del-Din before
 BD type … can be deployed".
 
 NDO UI → **Application Management → Schemas → AFRICOM** → for each template,
@@ -251,15 +251,15 @@ click **Deploy to sites** in this order, **waiting for green** between steps:
 
 | # | Template | Sites |
 |---|----------|-------|
-| 2.1 | `VRF_Template` | Site1, then Site2 |
-| 2.2 | `L2_Stretched` | Site1, then Site2 |
-| 2.3 | `L2_Non-Stretched` | Site1, then Site2 |
-| 2.4 | `Site1-Specific_Only` | Site1 only |
-| 2.5 | `Site2-Specific_Only` | Site2 only |
+| 2.1 | `VRF_Template` | Kelley, then Del-Din |
+| 2.2 | `L2_Stretched` | Kelley, then Del-Din |
+| 2.3 | `L2_Non-Stretched` | Kelley, then Del-Din |
+| 2.4 | `Kelley-Specific_Only` | Kelley only |
+| 2.5 | `Del-Din-Specific_Only` | Del-Din only |
 
 After Phase 2: tenant `EUR`, all 11 VRFs (incl. `EUR-E`), schema `AFRICOM` with
-`Any` filter under `VRF_Template`, all 266 BDs and 265 EPGs are live on Site1
-and Site2.
+`Any` filter under `VRF_Template`, all 266 BDs and 265 EPGs are live on Kelley
+and Del-Din.
 
 ---
 
@@ -322,12 +322,12 @@ walkthrough including port classification rules and FEX-to-leaf mapping.
 ## Phase 3 — APIC-direct fabric & VMM (`aci-apic/`)
 
 Builds access policies, MCP Instance Policies (per fabric, with per-fabric
-keys), the VMware VMM domains `APCG-VDS1` (on Site1) and `APCK-VDS1`
-(on Site2) that Phase 4's EPGs will bind to, the UCS Fabric Interconnect
+keys), the VMware VMM domains `APCG-VDS1` (on Kelley) and `APCK-VDS1`
+(on Del-Din) that Phase 4's EPGs will bind to, the UCS Fabric Interconnect
 uplink access policies (Design A): `fi-static-vlan-pool` (213 VLANs),
 `phys-fi-domain`, `fi-aaep`, `PC_FI_A`/`PC_FI_B` PC policy groups
 (LACP active), and per-leaf interface/switch profiles for leaves 101/102
-(Site1) and 101/102 (Site2); and the legacy IPv4 infrastructure objects:
+(Kelley) and 101/102 (Del-Din); and the legacy IPv4 infrastructure objects:
 `VLAN_All_Combined` static pool (5 broad ranges, ~2148 VLANs), `PhysDom_ACI_Nexus`
 physical domain, `L3_Dom_ND` routed domain, and `AAEP_ACI_Nexus` (used by all
 N5K migration VPC/PC policy groups). Independent of Phase 2 — could technically
@@ -345,8 +345,8 @@ cd ~/DC/ACI/sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/aci-apic
 
 # 3.2 Sensitive env vars (per shell)
 source scripts/set-apic-password.sh                 # both fabrics, same lab password
-eval "$(./scripts/generate-mcp-key.sh site1)"        # TF_VAR_site1_mcp_key
-eval "$(./scripts/generate-mcp-key.sh site2)"        # TF_VAR_site2_mcp_key
+eval "$(./scripts/generate-mcp-key.sh kelley)"       # TF_VAR_kelley_mcp_key
+eval "$(./scripts/generate-mcp-key.sh deldin)"       # TF_VAR_deldin_mcp_key
 export TF_VAR_vcenter_hostname_ip='198.18.134.80'
 export TF_VAR_vcenter_datacenter='Datacenter'
 export TF_VAR_vcenter_username='administrator'
@@ -362,17 +362,17 @@ make plan
 make apply
 ```
 
-After Phase 3: `APCG-VDS1` exists on Site1 APIC, `APCK-VDS1` exists on Site2
+After Phase 3: `APCG-VDS1` exists on Kelley APIC, `APCK-VDS1` exists on Del-Din
 APIC, both registered against vCenter. Additionally on each APIC:
 `fi-static-vlan-pool` (static, 213 VLANs), `phys-fi-domain`, `fi-aaep`,
 `PC_FI_A` and `PC_FI_B` PC policy groups (LACP active), per-leaf interface
-profiles for the FI uplinks (leaf 152 eth1/6 and leaf 153 eth1/7 on Site1;
-leaf 119 eth1/6 and leaf 191 eth1/7 on Site2), and the legacy IPv4 objects:
+profiles for the FI uplinks (leaf 152 eth1/6 and leaf 153 eth1/7 on Kelley;
+leaf 119 eth1/6 and leaf 191 eth1/7 on Del-Din), and the legacy IPv4 objects:
 `VLAN_All_Combined` static pool, `PhysDom_ACI_Nexus`, `L3_Dom_ND`, and
 `AAEP_ACI_Nexus`.
 
 > **Plan heads-up (first apply after lab YAML update):** The `vmm-host-ports`
-> interface selector in `leaf-101-102-intprof` (Site1 and Site2) will show as
+> interface selector in `leaf-101-102-intprof` (Kelley and Del-Din) will show as
 > a **modify** — port range changes from 1-48 to 8-48. This is expected;
 > ports 1-7 are now reserved for FI uplinks (eth1/6-7) and future use.
 
@@ -412,13 +412,13 @@ make apply
 ```
 
 Then NDO UI → **Application Management → Schemas → AFRICOM-V2 →
-`Tenant_EUR_V2` → Deploy to sites** → Site1 and Site2. **One template here**,
+`Tenant_EUR_V2` → Deploy to sites** → Kelley and Del-Din. **One template here**,
 not three (any older docs that say `Tenant_Policy / Stretched_BDs /
 App_Profiles` reflect an abandoned design).
 
 After Phase 4: 2 VRFs (`VRF-EUR-V2`, `VRF-DMZ-V2`), 39 BDs, 39 EPGs are live on
-Site1 and Site2; each EPG is bound to the per-fabric VMM domain from Phase 3
-(`APCG-VDS1` on Site1, `APCK-VDS1` on Site2), so 39 port-groups should now
+Kelley and Del-Din; each EPG is bound to the per-fabric VMM domain from Phase 3
+(`APCG-VDS1` on Kelley, `APCK-VDS1` on Del-Din), so 39 port-groups should now
 exist on each VDS in vCenter.
 
 ### Phase 4b — ESG layer (re-apply `aci-apic/`)
@@ -486,7 +486,7 @@ again (since this Terraform run added `AppProf-RCC` and 39 IPv6 EPGs into
 
 The "Deferred — re-enable after bindings" stages 6a/6b/6c documented in
 `aci-ndo-ipv6/README_LAB.md` happen **after** our Phase 6, not before.
-**Lab status:** stages 6a/6b/6c are already applied on Site1/Site2 — the
+**Lab status:** stages 6a/6b/6c are already applied on Kelley/Del-Din — the
 `.disabled` files are kept as the replay procedure for production cutover
 and DR rebuilds (see that section's "Status" callout for details).
 
@@ -519,7 +519,7 @@ export NDO_HOST=198.18.133.100
 export NDO_USER=admin
 
 # Read AFRICOM/AppProf-RCC, write a JSON for AFRICOM-V2.
-# Both sites use nodes 101,102 — pass all four node IDs (Site1: 101,102; Site2: 101,102).
+# Both sites use nodes 101,102 — pass all four node IDs (Kelley: 101,102; Del-Din: 101,102).
 ./dump_bindings.py --leaves 101,102,101,102 \
                    --output current_bindings.json --dry-run     # preview
 ./dump_bindings.py --leaves 101,102,101,102 \
@@ -565,13 +565,13 @@ strategy rationale).
 
 | Where | Check |
 |---|---|
-| Site1 APIC GUI — FI uplinks | `Fabric → Access Policies → Pools → VLAN → fi-static-vlan-pool` exists (static, 213 VLANs). `fi-aaep` references both `phys-fi-domain` and `APCG-VDS1`. `Interfaces → Leaf Interfaces → Policy Groups → PC_FI_A` and `PC_FI_B` exist (type PC, LACP active). `Profiles → leaf-101-fi-intprof` and `leaf-102-fi-intprof` exist with `fi-a-uplink`/`fi-b-uplink` selectors on ports eth1/6 and eth1/7 respectively. |
-| Site2 APIC GUI — FI uplinks | Same as Site1. `leaf-101-fi-intprof` (port 6) and `leaf-102-fi-intprof` (port 7). |
-| Site1 APIC GUI — legacy objects | `Pools → VLAN → VLAN_All_Combined` exists (static, 5 ranges: 5-54, 66-67, 80-998, 1000-2176, 2205). `Domains → Physical → PhysDom_ACI_Nexus` references `VLAN_All_Combined`. `Domains → L3 → L3_Dom_ND` references `VLAN_All_Combined`. `Global Policies → AEP → AAEP_ACI_Nexus` references both `PhysDom_ACI_Nexus` and `L3_Dom_ND`. |
-| Site2 APIC GUI — legacy objects | Same names and structure as Site1 — `VLAN_All_Combined`, `PhysDom_ACI_Nexus`, `L3_Dom_ND`, `AAEP_ACI_Nexus`. |
-| Site1 APIC GUI | `Tenants → EUR → Application Profiles → AppProf-NetCentric-V2 / AppProf-DMZ-V2` shows 39 EPGs (36 + 3) |
-| Site1 APIC GUI (ESG layer) | `Tenants → EUR → Application Profiles → AppProf-AppCentric-V2 → Endpoint Security Groups` shows `ESG-All-Internal-V2` (in `VRF-EUR-V2`) and `ESG-All-DMZ-V2` (in `VRF-DMZ-V2`); each ESG's `Operational → Endpoints` lists the same endpoints as the corresponding EPGs sum |
-| Site2 APIC GUI | Same as Site1 — both NDO ANPs (39 EPGs) and the APIC-direct AppCentric ANP (2 ESGs) |
+| Kelley APIC GUI — FI uplinks | `Fabric → Access Policies → Pools → VLAN → fi-static-vlan-pool` exists (static, 213 VLANs). `fi-aaep` references both `phys-fi-domain` and `APCG-VDS1`. `Interfaces → Leaf Interfaces → Policy Groups → PC_FI_A` and `PC_FI_B` exist (type PC, LACP active). `Profiles → leaf-101-fi-intprof` and `leaf-102-fi-intprof` exist with `fi-a-uplink`/`fi-b-uplink` selectors on ports eth1/6 and eth1/7 respectively. |
+| Del-Din APIC GUI — FI uplinks | Same as Kelley. `leaf-101-fi-intprof` (port 6) and `leaf-102-fi-intprof` (port 7). |
+| Kelley APIC GUI — legacy objects | `Pools → VLAN → VLAN_All_Combined` exists (static, 5 ranges: 5-54, 66-67, 80-998, 1000-2176, 2205). `Domains → Physical → PhysDom_ACI_Nexus` references `VLAN_All_Combined`. `Domains → L3 → L3_Dom_ND` references `VLAN_All_Combined`. `Global Policies → AEP → AAEP_ACI_Nexus` references both `PhysDom_ACI_Nexus` and `L3_Dom_ND`. |
+| Del-Din APIC GUI — legacy objects | Same names and structure as Kelley — `VLAN_All_Combined`, `PhysDom_ACI_Nexus`, `L3_Dom_ND`, `AAEP_ACI_Nexus`. |
+| Kelley APIC GUI | `Tenants → EUR → Application Profiles → AppProf-NetCentric-V2 / AppProf-DMZ-V2` shows 39 EPGs (36 + 3) |
+| Kelley APIC GUI (ESG layer) | `Tenants → EUR → Application Profiles → AppProf-AppCentric-V2 → Endpoint Security Groups` shows `ESG-All-Internal-V2` (in `VRF-EUR-V2`) and `ESG-All-DMZ-V2` (in `VRF-DMZ-V2`); each ESG's `Operational → Endpoints` lists the same endpoints as the corresponding EPGs sum |
+| Del-Din APIC GUI | Same as Kelley — both NDO ANPs (39 EPGs) and the APIC-direct AppCentric ANP (2 ESGs) |
 | Each EPG's "Domains" tab | Per-fabric VMM domain (`APCG-VDS1` or `APCK-VDS1`) bound, `Resolution Immediacy = Immediate` |
 | Each EPG's "Static Ports" tab | Phase 6 bindings present with the right leaf/port/VLAN |
 | vCenter | 39 port-groups under each of `APCG-VDS1` / `APCK-VDS1` |
@@ -587,10 +587,10 @@ sites** after the relevant Terraform `apply`.
 | Component | Lab value (today; rotates) | Where to set it |
 |-----------|----------------------------|-----------------|
 | NDO | `https://198.18.133.100`, `admin`, dCloud password | `sac-johbarbe-AFRICOM-terraform-nac-ndo/.env`, `aci-ndo/terraform.tfvars`, `aci-ndo-ipv6/terraform.tfvars`, plus `TF_VAR_ndo_password` env var per shell |
-| Site1 APIC | `https://198.18.134.252` | `aci-apic/terraform.tfvars` + `TF_VAR_site1_apic_password` |
-| Site2 APIC | `https://198.18.134.253` | `aci-apic/terraform.tfvars` + `TF_VAR_site2_apic_password` |
+| Kelley APIC | `https://198.18.134.252` | `aci-apic/terraform.tfvars` + `TF_VAR_kelley_apic_password` |
+| Del-Din APIC | `https://198.18.134.253` | `aci-apic/terraform.tfvars` + `TF_VAR_deldin_apic_password` |
 | vCenter | `198.18.134.80`, `administrator`, `C1sco12345!` | `TF_VAR_vcenter_*` env vars only |
-| MCP key (per fabric) | generate fresh per session, ≥8 chars mixed | `eval "$(./scripts/generate-mcp-key.sh site1)"` etc. |
+| MCP key (per fabric) | generate fresh per session, ≥8 chars mixed | `eval "$(./scripts/generate-mcp-key.sh kelley)"` etc. |
 
 Lab IPs change. If `auth-check` or `terraform plan` returns timeouts or 401s,
 the first thing to verify is whether the IPs in the tfvars files / `.env`

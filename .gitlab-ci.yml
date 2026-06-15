@@ -66,38 +66,38 @@ variables:
     description: "NDO password (Masked)"
   NDO_URL:
     description: "NDO URL"
-  Site1_APIC_URL:
-    description: "Lab Site1 APIC URL (apic-vmware)"
-  Site1_APIC_USERNAME:
-    description: "Lab Site1 APIC username"
-  Site1_APIC_PASSWORD:
-    description: "Lab Site1 APIC password (Masked + Protected)"
-  Site1_MCP_KEY:
-    description: "Lab Site1 MCP Instance Policy key (>=8 chars, mixed; Masked + Protected)"
-  Site2_APIC_URL:
-    description: "Lab Site2 APIC URL"
-  Site2_APIC_USERNAME:
-    description: "Lab Site2 APIC username"
-  Site2_APIC_PASSWORD:
-    description: "Lab Site2 APIC password (Masked + Protected)"
-  Site2_MCP_KEY:
-    description: "Lab Site2 MCP Instance Policy key (Masked + Protected)"
-  Site1_APIC_URL_PROD:
-    description: "Prod Site1 APIC URL (apic-vmware-prod)"
-  Site1_APIC_USERNAME_PROD:
-    description: "Prod Site1 APIC username"
-  Site1_APIC_PASSWORD_PROD:
-    description: "Prod Site1 APIC password (Masked + Protected)"
-  Site1_MCP_KEY_PROD:
-    description: "Prod Site1 MCP Instance Policy key (Masked + Protected)"
-  Site2_APIC_URL_PROD:
-    description: "Prod Site2 APIC URL"
-  Site2_APIC_USERNAME_PROD:
-    description: "Prod Site2 APIC username"
-  Site2_APIC_PASSWORD_PROD:
-    description: "Prod Site2 APIC password (Masked + Protected)"
-  Site2_MCP_KEY_PROD:
-    description: "Prod Site2 MCP Instance Policy key (Masked + Protected)"
+  KELLEY_APIC_URL:
+    description: "Lab Kelley APIC URL (apic-vmware)"
+  KELLEY_APIC_USERNAME:
+    description: "Lab Kelley APIC username"
+  KELLEY_APIC_PASSWORD:
+    description: "Lab Kelley APIC password (Masked + Protected)"
+  KELLEY_MCP_KEY:
+    description: "Lab Kelley MCP Instance Policy key (>=8 chars, mixed; Masked + Protected)"
+  DELDIN_APIC_URL:
+    description: "Lab Del-Din APIC URL"
+  DELDIN_APIC_USERNAME:
+    description: "Lab Del-Din APIC username"
+  DELDIN_APIC_PASSWORD:
+    description: "Lab Del-Din APIC password (Masked + Protected)"
+  DELDIN_MCP_KEY:
+    description: "Lab Del-Din MCP Instance Policy key (Masked + Protected)"
+  KELLEY_APIC_URL_PROD:
+    description: "Prod Kelley APIC URL (apic-vmware-prod)"
+  KELLEY_APIC_USERNAME_PROD:
+    description: "Prod Kelley APIC username"
+  KELLEY_APIC_PASSWORD_PROD:
+    description: "Prod Kelley APIC password (Masked + Protected)"
+  KELLEY_MCP_KEY_PROD:
+    description: "Prod Kelley MCP Instance Policy key (Masked + Protected)"
+  DELDIN_APIC_URL_PROD:
+    description: "Prod Del-Din APIC URL"
+  DELDIN_APIC_USERNAME_PROD:
+    description: "Prod Del-Din APIC username"
+  DELDIN_APIC_PASSWORD_PROD:
+    description: "Prod Del-Din APIC password (Masked + Protected)"
+  DELDIN_MCP_KEY_PROD:
+    description: "Prod Del-Din MCP Instance Policy key (Masked + Protected)"
   VCENTER_HOSTNAME_IP:
     description: "vCenter IP/FQDN (shared by both APIC roots; if your prod vCenter is a different instance, add VCENTER_HOSTNAME_IP_PROD and update apic-vmware-prod/.gitlab-ci.yml)"
   VCENTER_DATACENTER:

@@ -48,6 +48,8 @@ nohup.out
 vault.yml
 vault_pass.txt
 .env
+# Token files (API tokens, session tokens)
+token/
 
 # Generated/binary files
 *.json
@@ -64,6 +66,7 @@ vault_pass.txt
 *.xlsx
 *.docx
 *.pptx
+*.pdf
 
 # Versioned/backup script copies (e.g. generate_ipv6_bindings1.py,
 # parse_ndo_backup_v2.py). Canonical versions have no trailing digit.
@@ -92,3 +95,10 @@ vault_plaintext.yml
 # per fabric per environment, all gitignored). The wildcard covers both lab
 # (-rendered) and production (-prod-rendered) outputs.
 aci-apic/data/nac-aci-*-rendered/
+
+# Staging sub-projects (full Terraform trees; tracked separately when ready)
+africom-aci-apic/
+africom-aci-ndo/
+
+# Utility/exploratory scripts in docs/ that are not part of the deliverable
+docs/build_rcc_object_model.py

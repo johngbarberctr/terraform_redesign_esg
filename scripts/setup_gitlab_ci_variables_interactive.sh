@@ -199,14 +199,14 @@ PY
 if [ "$PROD_MODE" = "1" ]; then
   purge_placeholders \
     GITLAB_TOKEN \
-    Site1_APIC_URL_PROD Site1_APIC_USERNAME_PROD Site1_APIC_PASSWORD_PROD Site1_MCP_KEY_PROD \
-    Site2_APIC_URL_PROD Site2_APIC_USERNAME_PROD Site2_APIC_PASSWORD_PROD Site2_MCP_KEY_PROD
+    KELLEY_APIC_URL_PROD KELLEY_APIC_USERNAME_PROD KELLEY_APIC_PASSWORD_PROD KELLEY_MCP_KEY_PROD \
+    DELDIN_APIC_URL_PROD DELDIN_APIC_USERNAME_PROD DELDIN_APIC_PASSWORD_PROD DELDIN_MCP_KEY_PROD
 else
   purge_placeholders \
     GITLAB_TOKEN TF_HTTP_USERNAME TF_HTTP_PASSWORD \
     NDO_USERNAME NDO_PASSWORD NDO_URL \
-    Site1_APIC_URL Site1_APIC_USERNAME Site1_APIC_PASSWORD Site1_MCP_KEY \
-    Site2_APIC_URL Site2_APIC_USERNAME Site2_APIC_PASSWORD Site2_MCP_KEY \
+    KELLEY_APIC_URL KELLEY_APIC_USERNAME KELLEY_APIC_PASSWORD KELLEY_MCP_KEY \
+    DELDIN_APIC_URL DELDIN_APIC_USERNAME DELDIN_APIC_PASSWORD DELDIN_MCP_KEY \
     VCENTER_HOSTNAME_IP VCENTER_DATACENTER VCENTER_DVS_VERSION \
     VCENTER_USERNAME VCENTER_PASSWORD
 fi
@@ -228,13 +228,13 @@ BANNER
   # Production APIC URLs / usernames. apic-vmware-prod/terraform.tfvars may
   # not exist yet on a fresh machine; in that case auto-discovery is a no-op
   # and the operator is prompted for each value below.
-  default_to Site1_APIC_URL_PROD      "$(read_tf_var aci-redesign/apic-vmware-prod/terraform.tfvars site1_apic_url      || true)"
-  default_to Site1_APIC_USERNAME_PROD "$(read_tf_var aci-redesign/apic-vmware-prod/terraform.tfvars site1_apic_username || true)"
-  default_to Site2_APIC_URL_PROD      "$(read_tf_var aci-redesign/apic-vmware-prod/terraform.tfvars site2_apic_url      || true)"
-  default_to Site2_APIC_USERNAME_PROD "$(read_tf_var aci-redesign/apic-vmware-prod/terraform.tfvars site2_apic_username || true)"
+  default_to KELLEY_APIC_URL_PROD      "$(read_tf_var aci-redesign/apic-vmware-prod/terraform.tfvars site1_apic_url      || true)"
+  default_to KELLEY_APIC_USERNAME_PROD "$(read_tf_var aci-redesign/apic-vmware-prod/terraform.tfvars site1_apic_username || true)"
+  default_to DELDIN_APIC_URL_PROD      "$(read_tf_var aci-redesign/apic-vmware-prod/terraform.tfvars site2_apic_url      || true)"
+  default_to DELDIN_APIC_USERNAME_PROD "$(read_tf_var aci-redesign/apic-vmware-prod/terraform.tfvars site2_apic_username || true)"
   # Sensible username default for prod APIC admin accounts when no tfvars exists.
-  default_to Site1_APIC_USERNAME_PROD "admin"
-  default_to Site2_APIC_USERNAME_PROD "admin"
+  default_to KELLEY_APIC_USERNAME_PROD "admin"
+  default_to DELDIN_APIC_USERNAME_PROD "admin"
 else
   echo ">> Auto-discovering values from on-disk tfvars / .env files..."
 
@@ -247,10 +247,10 @@ else
   default_to NDO_URL      "$(read_tf_var aci-redesign/ndo/terraform.tfvars     ndo_url      || true)"
 
   # APIC URLs / usernames (passwords come from prompts)
-  default_to Site1_APIC_URL      "$(read_tf_var aci-redesign/apic-vmware/terraform.tfvars site1_apic_url      || true)"
-  default_to Site1_APIC_USERNAME "$(read_tf_var aci-redesign/apic-vmware/terraform.tfvars site1_apic_username || true)"
-  default_to Site2_APIC_URL      "$(read_tf_var aci-redesign/apic-vmware/terraform.tfvars site2_apic_url      || true)"
-  default_to Site2_APIC_USERNAME "$(read_tf_var aci-redesign/apic-vmware/terraform.tfvars site2_apic_username || true)"
+  default_to KELLEY_APIC_URL      "$(read_tf_var aci-redesign/apic-vmware/terraform.tfvars site1_apic_url      || true)"
+  default_to KELLEY_APIC_USERNAME "$(read_tf_var aci-redesign/apic-vmware/terraform.tfvars site1_apic_username || true)"
+  default_to DELDIN_APIC_URL      "$(read_tf_var aci-redesign/apic-vmware/terraform.tfvars site2_apic_url      || true)"
+  default_to DELDIN_APIC_USERNAME "$(read_tf_var aci-redesign/apic-vmware/terraform.tfvars site2_apic_username || true)"
 
   # VDS version default per the orchestrator's hint.
   default_to VCENTER_DVS_VERSION "unmanaged"
@@ -296,60 +296,60 @@ if [ "$PROD_MODE" = "1" ]; then
   echo
   echo "  PRODUCTION APIC connection details. If apic-vmware-prod/terraform.tfvars"
   echo "  already exists locally these will be pre-filled; otherwise enter them now."
-  prompt_default Site1_APIC_URL_PROD      "Site1 prod APIC URL (https://...)" ""
-  prompt_default Site1_APIC_USERNAME_PROD "Site1 prod APIC username"          "admin"
-  prompt_default Site2_APIC_URL_PROD      "Site2 prod APIC URL (https://...)" ""
-  prompt_default Site2_APIC_USERNAME_PROD "Site2 prod APIC username"          "admin"
+  prompt_default KELLEY_APIC_URL_PROD      "Kelley prod APIC URL (https://...)" ""
+  prompt_default KELLEY_APIC_USERNAME_PROD "Kelley prod APIC username"          "admin"
+  prompt_default DELDIN_APIC_URL_PROD      "Del-Din prod APIC URL (https://...)" ""
+  prompt_default DELDIN_APIC_USERNAME_PROD "Del-Din prod APIC username"          "admin"
 
-  if [ -z "${Site1_APIC_URL_PROD:-}" ] || [ -z "${Site2_APIC_URL_PROD:-}" ]; then
+  if [ -z "${KELLEY_APIC_URL_PROD:-}" ] || [ -z "${DELDIN_APIC_URL_PROD:-}" ]; then
     echo "!! Both prod APIC URLs are required in --prod mode. Aborting." >&2
     exit 1
   fi
 
   echo
-  echo "  PRODUCTION APIC admin password (used for both Site1 and Site2)."
+  echo "  PRODUCTION APIC admin password (used for both Kelley and Del-Din)."
   prompt_silent _APIC_ADMIN_PASSWORD_PROD "Prod APIC admin password (silent)"
-  default_to    Site1_APIC_PASSWORD_PROD  "${_APIC_ADMIN_PASSWORD_PROD:-}"
-  default_to    Site2_APIC_PASSWORD_PROD  "${_APIC_ADMIN_PASSWORD_PROD:-}"
+  default_to    KELLEY_APIC_PASSWORD_PROD  "${_APIC_ADMIN_PASSWORD_PROD:-}"
+  default_to    DELDIN_APIC_PASSWORD_PROD  "${_APIC_ADMIN_PASSWORD_PROD:-}"
   unset _APIC_ADMIN_PASSWORD_PROD
 
-  if [ -z "${Site1_APIC_PASSWORD_PROD:-}" ] || [ -z "${Site2_APIC_PASSWORD_PROD:-}" ]; then
+  if [ -z "${KELLEY_APIC_PASSWORD_PROD:-}" ] || [ -z "${DELDIN_APIC_PASSWORD_PROD:-}" ]; then
     echo "!! Prod APIC admin password is required in --prod mode. Aborting." >&2
     exit 1
   fi
 
   # 2c. MCP keys -- auto-generate if missing. Distinct key per fabric.
-  if [ -z "${Site1_MCP_KEY_PROD:-}" ]; then
-    Site1_MCP_KEY_PROD=$(generate_mcp_key)
-    export Site1_MCP_KEY_PROD
-    echo "  Site1_MCP_KEY_PROD: auto-generated (length=${#Site1_MCP_KEY_PROD})"
+  if [ -z "${KELLEY_MCP_KEY_PROD:-}" ]; then
+    KELLEY_MCP_KEY_PROD=$(generate_mcp_key)
+    export KELLEY_MCP_KEY_PROD
+    echo "  KELLEY_MCP_KEY_PROD: auto-generated (length=${#KELLEY_MCP_KEY_PROD})"
   fi
-  if [ -z "${Site2_MCP_KEY_PROD:-}" ]; then
-    Site2_MCP_KEY_PROD=$(generate_mcp_key)
-    export Site2_MCP_KEY_PROD
-    echo "  Site2_MCP_KEY_PROD: auto-generated (length=${#Site2_MCP_KEY_PROD})"
+  if [ -z "${DELDIN_MCP_KEY_PROD:-}" ]; then
+    DELDIN_MCP_KEY_PROD=$(generate_mcp_key)
+    export DELDIN_MCP_KEY_PROD
+    echo "  DELDIN_MCP_KEY_PROD: auto-generated (length=${#DELDIN_MCP_KEY_PROD})"
   fi
 else
   # 2b. APIC admin password. Lab default = same as NDO_PASSWORD (common pattern).
   echo
-  echo "  APIC admin password (used for both Site1 and Site2; lab defaults to"
+  echo "  APIC admin password (used for both Kelley and Del-Din; lab defaults to"
   echo "  the same value as NDO_PASSWORD if you press Enter)."
   prompt_silent _APIC_ADMIN_PASSWORD "APIC admin password (silent, Enter = use NDO_PASSWORD)"
-  default_to    Site1_APIC_PASSWORD  "${_APIC_ADMIN_PASSWORD:-${NDO_PASSWORD:-}}"
-  default_to    Site2_APIC_PASSWORD  "${_APIC_ADMIN_PASSWORD:-${NDO_PASSWORD:-}}"
+  default_to    KELLEY_APIC_PASSWORD  "${_APIC_ADMIN_PASSWORD:-${NDO_PASSWORD:-}}"
+  default_to    DELDIN_APIC_PASSWORD  "${_APIC_ADMIN_PASSWORD:-${NDO_PASSWORD:-}}"
   unset _APIC_ADMIN_PASSWORD
 
   # 2c. MCP keys -- auto-generate if missing. Each fabric gets a distinct key
   # so a leak of one fabric's key does not compromise the other.
-  if [ -z "${Site1_MCP_KEY:-}" ]; then
-    Site1_MCP_KEY=$(generate_mcp_key)
-    export Site1_MCP_KEY
-    echo "  Site1_MCP_KEY: auto-generated (length=${#Site1_MCP_KEY})"
+  if [ -z "${KELLEY_MCP_KEY:-}" ]; then
+    KELLEY_MCP_KEY=$(generate_mcp_key)
+    export KELLEY_MCP_KEY
+    echo "  KELLEY_MCP_KEY: auto-generated (length=${#KELLEY_MCP_KEY})"
   fi
-  if [ -z "${Site2_MCP_KEY:-}" ]; then
-    Site2_MCP_KEY=$(generate_mcp_key)
-    export Site2_MCP_KEY
-    echo "  Site2_MCP_KEY: auto-generated (length=${#Site2_MCP_KEY})"
+  if [ -z "${DELDIN_MCP_KEY:-}" ]; then
+    DELDIN_MCP_KEY=$(generate_mcp_key)
+    export DELDIN_MCP_KEY
+    echo "  DELDIN_MCP_KEY: auto-generated (length=${#DELDIN_MCP_KEY})"
   fi
 
   # 2d. vCenter -- nothing on disk, must come from the operator.
@@ -377,14 +377,14 @@ echo
 
 if [ "$PROD_MODE" = "1" ]; then
   declare -a vars=(
-    Site1_APIC_URL_PROD Site1_APIC_USERNAME_PROD Site1_APIC_PASSWORD_PROD Site1_MCP_KEY_PROD
-    Site2_APIC_URL_PROD Site2_APIC_USERNAME_PROD Site2_APIC_PASSWORD_PROD Site2_MCP_KEY_PROD
+    KELLEY_APIC_URL_PROD KELLEY_APIC_USERNAME_PROD KELLEY_APIC_PASSWORD_PROD KELLEY_MCP_KEY_PROD
+    DELDIN_APIC_URL_PROD DELDIN_APIC_USERNAME_PROD DELDIN_APIC_PASSWORD_PROD DELDIN_MCP_KEY_PROD
   )
 else
   declare -a vars=(
     NDO_USERNAME NDO_PASSWORD NDO_URL
-    Site1_APIC_URL Site1_APIC_USERNAME Site1_APIC_PASSWORD Site1_MCP_KEY
-    Site2_APIC_URL Site2_APIC_USERNAME Site2_APIC_PASSWORD Site2_MCP_KEY
+    KELLEY_APIC_URL KELLEY_APIC_USERNAME KELLEY_APIC_PASSWORD KELLEY_MCP_KEY
+    DELDIN_APIC_URL DELDIN_APIC_USERNAME DELDIN_APIC_PASSWORD DELDIN_MCP_KEY
     VCENTER_HOSTNAME_IP VCENTER_DATACENTER VCENTER_DVS_VERSION
     VCENTER_USERNAME VCENTER_PASSWORD
     TF_HTTP_USERNAME TF_HTTP_PASSWORD

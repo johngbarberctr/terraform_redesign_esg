@@ -1,105 +1,248 @@
 # Session Handoff — sac-johbarbe-AFRICOM-terraform-esg-nac-ndo
-**Last updated:** 2026-06-03
-**Session focus:** AFRICOM NIPR design review — adapting this repo for a new customer engagement
+**Last updated:** 2026-06-10
+**Session focus (2026-06-10):** Complete AFRICOM directory framework update (ndo + apic roots)
 
 ---
 
-## What was accomplished this session (2026-06-03)
+## What was accomplished this session (2026-06-10)
 
-### 1. Full design review against AFRICOM CX documents
-Both official Cisco CX deliverables were read in full:
-- `docs/AFRICOM/AFRICOM-NIPR-ACI_Optimization_Final.docx` (Sept 2025, v2.0)
-- `docs/AFRICOM/AFRICOM-NIPR-DC_Resiliency.docx` (March 2026, v1.1)
+### 1. africom-aci-ndo fully updated
+- `main.tf` — comments rewritten for AFR-DEL.Services, `manage_schemas = false` (SAFETY default)
+- `data/nac-ndo/tenant.nac.yaml` — rewritten for AFR-DEL.Services tenant stub
+- `data/nac-ndo/schema-africom-v2.nac.yaml` — DELETED (RCC-E EUR V2 content)
+- `data/nac-ndo/schema-africom-nipr.nac.yaml` — NEW: AFRICOM NIPR 6-template structure
+  (Stretched VRF, Stretched BD, Stretched EPG, Stretched Non-L2, Kelley Unique, Del Din Unique)
+  with TODO stubs throughout pending NDO schema export
+- `.gitlab-ci.yml` — rewritten: state key `africom-aci-ndo`, job names `africom-ndo-*`, paths updated
+- `README.md` — rewritten for AFRICOM NIPR
 
-Key findings extracted, prioritized, and mapped to the redesign.
+### 2. africom-aci-apic fully updated
+- `main.tf` — data dir refs updated (site1→kelley, site2→deldin), comments updated for AFR-DEL.Services
+- `data/nac-aci-site1/` → renamed to `data/nac-aci-kelley/`
+- `data/nac-aci-site2/` → renamed to `data/nac-aci-deldin/`
+- `data/nac-aci-site1-prod/` → renamed to `data/nac-aci-kelley-prod/`
+- `data/nac-aci-site2-prod/` → renamed to `data/nac-aci-deldin-prod/`
+- `data/nac-aci-shared/tenant-eur-esgs.nac.yaml` → renamed and rewritten as `tenant-afrdel-esgs.nac.yaml`
+  (AFR-DEL.Services stub with ESG stubs pending vzAny removal)
+- `data/nac-aci-kelley/access-policies.nac.yaml` — rewritten for NADE02LF101/102, AFRICOM stubs
+- `data/nac-aci-deldin/access-policies.nac.yaml` — rewritten for NAIT03LF101/102/BL103/104, AFRICOM stubs
+- `data/nac-aci-kelley-prod/access-policies.nac.yaml` — rewritten for AFRICOM Kelley prod
+- `data/nac-aci-deldin-prod/access-policies.nac.yaml` — rewritten for AFRICOM Del Din prod
+- `data/nac-aci-shared/README.md` — updated for AFRICOM
+- `.gitlab-ci.yml` — rewritten: state keys `africom-aci-apic`/`africom-aci-apic-prod`, job names `africom-apic-*`, paths updated
+- `README.md` — rewritten for AFRICOM NIPR
 
-### 2. Scope clarification — this repo vs AFRICOM
-The current Terraform was built for the **RCC-E EUR tenant**, not AFRICOM's `AFR-DEL.Services` tenant. The **structure** (two-root split, nac-aci + nac-ndo, ESG APIC-direct, phased migration model) transfers cleanly. The **content** (tenant name, schema name, VRF/BD/EPG names, BD catalog, VLAN ranges) does not and must be rebuilt for AFRICOM.
+### Result
+Both `africom-aci-apic/` and `africom-aci-ndo/` are now fully AFRICOM-specific with zero stale RCC-E references.
+The framework is safe to plan (no-op with manage_schemas=false) but cannot apply until TODO stubs are populated.
 
-AFRICOM-specific facts confirmed this session:
-- **2 sites only**: Kelley (NADE02) and Del Din (NAIT03). Site B is decommissioned — remove all Site B references.
-- **Tenant**: `AFR-DEL.Services`
-- **Current fabric state**: ACI 6.0(9e), ND 3.2.2(m), NDO 4.4.3 — already on target versions
-- **APIC fabric already configured**: access policies, VLAN pools, AAEP, leaf profiles, MCP are all live. The `apic-vmware/` Terraform root is not needed for AFRICOM.
-- **MCP already deployed**: do not re-apply the MCP Instance Policy pattern. It exists on the production fabric.
-- **Scale**: ~32 BDs, ~56 EPGs, 9 VRFs — much smaller than RCC-E's 215/266/11. BD mapping is a spreadsheet afternoon, not a project.
-- **vzAny in provider+consumer mode**: effectively unenforced. The Permit-Any EPG contract was added on top as a transition measure. Both must be addressed before ESG segmentation has any value.
-- **VMM integration**: multiple VDS offline at time of last CX assessment. Credentials expired, management IP on ACI-managed VDS (circular failure). Must be stabilized before Phase 7 ESG work.
+### What was accomplished last session (2026-06-09)
+Document review (5 CX docs), initial AFRICOM directory scaffolding (rsync copy of aci-apic/ and aci-ndo/).
 
-### 3. Documents created (all in docs/AFRICOM/)
-- **`AFRICOM_ACI_Design_Review.pptx`** — 15-slide deck, AFRICOM-only content. No RCC-E/EUR references. Script: `docs/build_africom_design_pptx.py`.
-- **`AFRICOM_Implementation_Plan.md`** — Full phased implementation plan covering Phases 0–7 with detailed steps, verification checklists, rollback procedures, per-step outage risk tables (Appendix D), and plain-English explanations of what each change does (Appendix E).
+---
+
+## Confirmed AFRICOM NIPR Facts (authoritative, current)
+
+### Environment
+| Item | Value |
+|------|-------|
+| ACI version | 6.0(9e) |
+| ND version | 3.2.2(m) |
+| NDO version | 4.4.3 |
+| Sites | **Kelley (NADE02) and Del Din (NAIT03) only** — Site B NOT included |
+| Tenant | `AFR-DEL.Services` |
+| VRF | `AFR-DEL.Services` (same name as tenant) |
+| NDO Schema | `AFRICOM NIPR` |
+| DHCP policy | `AFRICOM-DHCP_Policy` |
+
+### NDO Schema — AFRICOM NIPR (current: 7 templates)
+| Template | Sites |
+|----------|-------|
+| Stretched VRF | Kelley + Del Din |
+| Stretched Bridge Domains | Kelley + Del Din |
+| Stretched EPGs | Kelley + Del Din |
+| Stretched Non-L2 | Kelley + Del Din |
+| Kelley Unique | Kelley only |
+| Del Din Unique | Del Din only |
+| Site B Unique | **DO NOT USE — Site B excluded** |
+
+Future target (CX recommendation): 5 templates — Stretched VRF / Stretched Services / Del Din Unique / Kelley Unique / (Site B Unique if ever needed).
+
+### BD Counts (March 2026, AFR-DEL.Services only)
+| Site | L2 | L3 | Total |
+|------|----|----|-------|
+| Kelley | 3 | 29 | 32 |
+| Del Din | 1 | 27 | 28 |
+
+All L3 BDs: hardware proxy, unicast routing enabled, host-based routing enabled on stretched L3 BDs.
+
+### Tenants
+| Tenant | Purpose |
+|--------|---------|
+| `AFR-DEL.Services` | Production NIPR operational tenant |
+| `666 (PALE)` | Sandbox/test tenant — **not managed by this repo** |
+| `common` | Built-in |
+| `dcnm-default-tn` | Built-in |
+
+### L3Outs (AFR-DEL.Services)
+- Named `Kelley` and `Del Din` — simple site-name L3Outs
+- Each has Site-to-Site connectivity for L3Out failover
+
+### L3Outs (666 tenant — not our concern)
+- `Dev_L3Out-AFR.KEL-Services`
+- `Dev_L3Out-AFR.KEL-VDI`
+- `Dev_L3Out-AFR.DEL-Services`
+
+### vzAny
+- Configured provider+consumer on the VRF — effectively unenforced
+- Must be removed before transitioning to application-centric/ESG mode
+- An EPG-level "Permit-Any" contract is also applied as a transition measure — both must be cleaned up together
+
+### Node Naming
+| Site | Role | Nodes |
+|------|------|-------|
+| Kelley | APIC | NADE02NMP90, NADE02NMP91, NADE02NMP92 |
+| Kelley | Spine | NADE02SP201, NADE02SP202 |
+| Kelley | Leaf | NADE02LF101, NADE02LF102 |
+| Del Din | APIC | NAIT03NMP90, NAIT03NMP91, NAIT03NMP92 |
+| Del Din | Spine | NAIT03SP201, NAIT03SP202 |
+| Del Din | Leaf | NAIT03LF101, NAIT03LF102 |
+| Del Din | Border Leaf | NAIT03BL103, NAIT03BL104 |
+
+### Infrastructure VLANs (NIPR)
+| Site | Infra VLAN |
+|------|-----------|
+| Kelley | 3967 |
+| Del Din | 450 |
+
+### VPC Policies
+- Kelley: `AFR-KEL.L101L102-VPC-FW1`
+- Del Din SIPR: `AFR-DEL.L103L104-vPC-FW1`
+
+### Backup Policies
+- Kelley APIC: 8hr interval local + remote to NADE02NMV07 (Mon & Fri)
+- Del Din APIC: 8hr interval local + remote to NADE02NMV07 (no schedule set)
+
+### Open Issues (from CX documents — confirm before acting)
+| Issue | Impact |
+|-------|--------|
+| vzAny provider+consumer | Must remove before ESG work has value |
+| EPG-level Permit-Any contract | Must remove alongside vzAny |
+| L3Out redundancy (666 tenant L3Outs on single node) | Low |
+| NDO schema template consolidation (7→5 templates) | Medium |
+| BD subnets — multiple subnets per BD in some cases | Medium |
+| VMM integration instability | High — prerequisite for Phase 7 ESG |
+| Rogue EP Control not enabled at Del Din | Low |
+| AlgoSec installed at both sites | Must deactivate before any ACI upgrade |
+| NTP faults at Kelley | Low |
+
+---
+
+## Repo Structure (after this session)
+
+```
+aci-apic/           RCC-E APIC-direct — KEEP AS-IS (hard-won working state)
+aci-ndo/            RCC-E NDO V2 redesign — KEEP AS-IS
+aci-ndo-ipv6/       RCC-E IPv6 — KEEP AS-IS
+africom-aci-apic/   AFRICOM APIC-direct — NEW (copy of aci-apic, AFRICOM content)
+africom-aci-ndo/    AFRICOM NDO — NEW (copy of aci-ndo, AFRICOM content)
+docs/AFRICOM/       AFRICOM CX deliverables + design docs
+```
+
+**Do not modify aci-apic/, aci-ndo/, aci-ndo-ipv6/ — these are preserved RCC-E work.**
+
+---
+
+## What is still TODO in africom dirs
+
+| Item | Blocking on | File(s) to update |
+|------|-------------|-------------------|
+| BD/EPG names and VLANs | NDO schema export (AFRICOM NIPR → Download Schema) | `africom-aci-ndo/data/nac-ndo/schema-africom-nipr.nac.yaml` |
+| Subnet ranges per BD | APIC `moquery -c fvBD` | same schema file |
+| Contract and filter names | NDO schema export | same schema file (Stretched VRF template) |
+| VLAN pool ranges (exact VLANs in use) | APIC or NDO export | `africom-aci-apic/data/nac-aci-kelley*/access-policies.nac.yaml` + deldin |
+| VMM domain names | APIC `moquery -c vmmDomP` | both access-policies files (replace `TODO-VMM-DOMAIN-*`) |
+| Port assignments / FI uplinks | APIC LLDP neighbors / port descriptions | access-policies files (leaf_interface_profiles) |
+| ESG definitions | After BD/EPG catalog confirmed + vzAny removed | `africom-aci-apic/data/nac-aci-shared/tenant-afrdel-esgs.nac.yaml` |
+| `manage_schemas = true` | After BD/EPG stubs populated | `africom-aci-ndo/main.tf` line 67 |
+
+---
+
+## What was accomplished last session (2026-06-08)
+
+### nac-ndo Phase 1 pipeline — now PASSING ✅
+All work was in `sac-johbarbe-AFRICOM-terraform-nac-ndo`. Summary:
+- **Renamed Site1 → Kelley, Site2 → Del-Din** across all data YAML, schema YAML, scripts, CI comments.
+- **Cleared stale GitLab Terraform state** (`ndo-terraform-nac-prod`, project ID 5).
+- **Set `manage_system = false`** in `main.tf`.
+- **Root user PAT confirmed working:** `glpat-gAyPY9az7ywD73y8jefUGm86MQp1OjUH.01.0w0rj3q95`
+- **Templates are NOT yet deployed** to Kelley/Del-Din APIC. `deploy_templates = false` in main.tf.
 
 ---
 
 ## Decisions made and why
 
 | Decision | Rationale |
-|---|---|
-| Work through CX optimization/resiliency findings (Phases 0–6) before starting the ACI redesign (Phase 7) | Routing asymmetry, VMM instability, and schema disorder are prerequisites for a reliable redesign deploy. Building on a broken foundation creates compounding problems. |
-| `apic-vmware/` Terraform root not needed for AFRICOM | APIC fabric (access policies, VLAN pools, VMM domain, MCP) is already configured in production. Deploying this root would risk overwriting live config. |
-| MCP Instance Policy pattern not applicable to AFRICOM | Already deployed with a production key. The pattern exists in this repo because RCC-E was building from scratch. AFRICOM is not. |
-| ESG scope remains NDO-layer + APIC-direct (no change to two-root split) | `nac-ndo ~> 1.2.0` still has no ESG resource. ESG layer still rides `nac-aci@0.7.0` APIC-direct. Same constraint applies to AFRICOM as to RCC-E. |
-| VRF consolidation target left open (do not assume 2 VRFs) | Unknown whether the 9 VRFs carry overlapping IP space. Any overlap blocks consolidation regardless of design intent. Must audit before committing to a VRF count. |
-| 4-template NDO schema target | CX recommendation from Resiliency doc: VRF / Stretched-Services / Kelley-Unique / DelDin-Unique. NDO 4.x auto-restructured the existing schema to 7 templates — consolidating to 4 is Phase 5 of the implementation plan. |
-| Site B removed from all documents and scripts | Site B has been decommissioned. Removed from pptx, removed from implementation plan. |
-| Do not use RCC-E zone names (ESG-AIM, ESG-AIS, etc.) | These were based on EUR tenant VRF names (EUR-AIM, EUR-AIS, etc.) which are RCC-E-specific. AFRICOM's zone taxonomy is unknown and must be defined by the customer team. |
+|----------|-----------|
+| `manage_schemas = false` in africom-aci-ndo/main.tf | **Safety**: schema YAML stubs are not yet populated. Setting true with an empty/partial schema YAML would cause Terraform to DELETE existing production BDs/EPGs from the AFRICOM NIPR schema in NDO. Only flip to true AFTER all BD/EPG stubs are populated from NDO schema export. |
+| Site B excluded from all AFRICOM Terraform | User confirmed: two sites only (Kelley, Del Din) |
+| Preserve aci-apic/, aci-ndo/, aci-ndo-ipv6/ unchanged | Hard-won RCC-E working state; may be needed again |
+| africom dirs copy RCC-E logic/structure | Same module versions, same provider pattern, same CI structure — only content changes |
+| BD/EPG catalog left as stubs | Cannot populate without NDO schema export |
+| Do not manage 666 (PALE) tenant | Sandbox tenant — out of scope |
+| Deleted schema-africom-v2.nac.yaml from africom-aci-ndo | That file contained RCC-E EUR V2 content (VRF-EUR-V2, 39 RCC-E BDs) — not AFRICOM production data. Replaced with schema-africom-nipr.nac.yaml. |
 
 ---
 
 ## Do NOT repeat next session
 
-- **Do not use ESG-AIM, ESG-AIS, ESG-AIV, ESG-AIZ, ESG-AIG, ESG-AIP, ESG-DMZ-Web** or any EUR/RCC-E zone names in AFRICOM context. These were removed from all AFRICOM documents. AFRICOM's zone ESG names must come from the customer's own security zone taxonomy.
-- **Do not reference Site B** (NADJ prefix). It is decommissioned. Two sites only: Kelley and Del Din.
-- **Do not plan to deploy `apic-vmware/` against AFRICOM production**. The fabric is already configured. Touching it risks overwriting live policy.
-- **Do not create `terraform.tfvars` in `aci-apic/`** — still applies from prior session. Makefile uses `lab.tfvars` by default.
-- **Do not add `moved {}` blocks back** to `aci-apic/main.tf` — removed intentionally, fresh state.
-- **Do not conflate RCC-E content (tenant EUR, VRF-EUR-V2, BD-AD-V2, AppProf-NetCentric-V2) with AFRICOM content (tenant AFR-DEL.Services)**. The naming conventions in this repo's YAML files are RCC-E specific. AFRICOM needs new YAML files.
-
----
-
-## What is still in progress / not yet started
-
-| Item | Status | Blocking on |
-|---|---|---|
-| AFRICOM NDO schema YAML | Not started | VRF audit (must know target VRF count/names first) |
-| AFRICOM BD/EPG functional mapping | Not started | VRF audit + AFRICOM team confirmation |
-| Phase 0 pre-change snapshots | Not started | Customer engagement kickoff |
-| Phase 3 firewall BGP fix | Not started | Firewall team coordination |
-| Phase 4 VMM stabilization | Not started | vCenter team coordination |
-| Phase 5 template restructuring | Not started | NDO maintenance window |
-| GitLab CI variable bootstrap | Still broken | PAT with `api` scope + Maintainer role needed (see below) |
-
-### GitLab CI — still incomplete (carried from prior session)
-`setup_gitlab_ci_variables_interactive.sh` failed with HTTP 401. To fix:
-1. Generate new PAT at `http://localhost:8080/-/user_settings/personal_access_tokens` with scope `api` and Maintainer role on the project.
-2. `source .env` first.
-3. Re-run `./scripts/setup_gitlab_ci_variables_interactive.sh` in each repo.
-4. Enter the full GitLab URL with `http://` when prompted.
+- **Do NOT set `manage_schemas = true`** in `africom-aci-ndo/main.tf` before populating BD/EPG stubs from the NDO schema export. Running `terraform apply` with an empty schema YAML and `manage_schemas = true` will delete production BDs/EPGs from the AFRICOM NIPR schema in NDO.
+- **Do not include Site B** in any AFRICOM Terraform. Two sites only: Kelley and Del Din.
+- **Do not modify aci-apic/, aci-ndo/, aci-ndo-ipv6/** — these are preserved RCC-E files.
+- **Do not use VRF-EUR-V2, VRF-DMZ-V2** in AFRICOM context — those are RCC-E V2 redesign VRFs. AFRICOM VRF is `AFR-DEL.Services`.
+- **Do not use EUR tenant** in AFRICOM context. AFRICOM tenant is `AFR-DEL.Services`.
+- **Do not use RCC-E ESG zone names** (ESG-AIM, ESG-AIS, etc.) in AFRICOM context.
+- **schema-africom-v2.nac.yaml no longer exists** — it was deleted because it contained RCC-E EUR V2 content. The AFRICOM schema file is now `schema-africom-nipr.nac.yaml`.
+- **vlans_apic.tf VLAN map (3001–3500)** is RCC-E IPv6, not AFRICOM.
 
 ---
 
 ## Next concrete steps (in order)
 
-1. **Pull the AFRICOM NIPR NDO schema export** — `Application Management → Schemas → AFRICOM NIPR → Download Schema`. Read the VRF names. This single action answers: why 9 VRFs, what are they called, and whether consolidation is safe.
+1. **Pull NDO schema export**: Application Management → Schemas → AFRICOM NIPR → Download Schema (JSON).
+   Unblocks BD/EPG/contract/filter population in africom-aci-ndo.
 
-2. **Check IP overlap across the 9 VRFs** — run `show ip route vrf <name> summary` on each border leaf for all VRFs. Any two VRFs sharing a prefix cannot be merged.
+2. **Populate BD/EPG stubs** in `africom-aci-ndo/data/nac-ndo/schema-africom-nipr.nac.yaml` from schema export.
+   Map each template's BDs/EPGs into the appropriate template section.
 
-3. **Verify NDI license status** — `ND: Infrastructure → License Management`. Needed for Phase 7A (Application Dependency Mapping before contract authoring).
+3. **Populate VLAN pools** in kelley and deldin access-policies files (`moquery -c fvnsEncapBlk`).
 
-4. **Begin Phase 0 of the implementation plan** — pre-change snapshots on both Kelley and Del Din APICs + NDO backup. Zero risk, prerequisite for everything else.
+4. **Confirm VMM domain names** and replace `TODO-VMM-DOMAIN-*` placeholders.
+   Command: `moquery -c vmmDomP` on each APIC.
 
-5. **Start Phase 1 fabric health changes** — all low-risk APIC settings (Rogue EP Control on Del Din, Port Tracking on Kelley, BFD, FISAC, Remote EP Learning). No maintenance window required.
+5. **Set `manage_schemas = true`** in `africom-aci-ndo/main.tf` (line 67) after step 2 is complete.
+   Run `terraform plan -parallelism=3` and review carefully before applying.
 
-6. **Begin new AFRICOM-specific Terraform YAML** — once VRF target is known, write `data/nac-ndo/schema-africom-v2.nac.yaml` with `AFR-DEL.Services` tenant, correct VRF names, and BD/EPG catalog mapped from the AFRICOM NIPR schema. Rename schema to `AFR-SERVICES-V2`.
+6. **vzAny removal** (prerequisite for meaningful ESG policy):
+   - Remove EPG-level Permit-Any contract from all EPGs
+   - Remove vzAny provider+consumer from VRF AFR-DEL.Services in Stretched VRF template
+   - Apply NDO changes + deploy templates
+   - Then populate ESG stubs in `tenant-afrdel-esgs.nac.yaml`
+
+7. **Deploy nac-ndo templates in NDO UI** (RCC-E sac-johbarbe-AFRICOM-terraform-nac-ndo work, still pending from prior session):
+   - `VRF_Template` → Kelley, then Del-Din
+   - `L2_Stretched` → Kelley, then Del-Din
+   - `L2_Non-Stretched` → Kelley, then Del-Din
+   - `Kelley-Specific_Only` → Kelley only
+   - `Del-Din-Specific_Only` → Del-Din only
 
 ---
 
-## Pending TODOs (from previous sessions, still open)
+## Key credentials / IDs (lab only)
 
-- ~~Push `publish` branches to `cx-usps-auto` org on wwwin-github.cisco.com~~ — done 2026-06-02
-- Add legacy objects (`VLAN_All_Combined`, `PhysDom_ACI_Nexus`, `L3_Dom_ND`, `AAEP_ACI_Nexus`) to prod YAML in `nac-aci-site1-prod/` and `nac-aci-site2-prod/` — still open (RCC-E work)
-- Regenerate `fi_bindings.json` with `--vlan-map fi_vlan_map.json` — still open (RCC-E work)
-- Gather Site1 interface data for RCC-E (current `terraform.tfvars.json` entries are for Site2 only) — still open
-- Apply "must be unique" fix to `scripts/deploy_bindings_python_v2_prod.py` — still open
-- Verify `aci-ndo-ipv6` state key in GitLab — still open
+| Item | Value |
+|------|-------|
+| GitLab nac-ndo project ID | 5 |
+| GitLab ESG project ID | 3 |
+| Root user PAT (api scope) | `glpat-gAyPY9az7ywD73y8jefUGm86MQp1OjUH.01.0w0rj3q95` |
+| Project bot PAT (ESG only) | `glpat-zwXHVjIBlmb48eW7XGVvdW86MQp1OjYH...` |

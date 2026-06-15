@@ -287,7 +287,7 @@ The full lab workflow looks roughly like:
 
 ### Deferred — re-enable after bindings
 
-> **Status (lab, Site1 + Site2):** all three stage files are **active** (no `.disabled` suffix). `bds_epgs.tf` manages the VRF, `Any_RCC` contract (vzAny on VRF-RCC), and all BDs/EPGs. `l3outs_ndo.tf` manages the NDO L3Outs and ExtEPGs with the `Any_RCC` contract. `l3outs_apic.tf` manages the OSPF interface policy (`OSPF-IntPol-L3Out`), logical node/interface profiles, and IPv6 SVI path attachments on each APIC. `vlans_apic.tf` creates the `VLAN_All_Combined` static VLAN pool and all 39 encap entries on both APICs.
+> **Status (lab, Kelley + Del-Din):** all three stage files are **active** (no `.disabled` suffix). `bds_epgs.tf` manages the VRF, `Any_RCC` contract (vzAny on VRF-RCC), and all BDs/EPGs. `l3outs_ndo.tf` manages the NDO L3Outs and ExtEPGs with the `Any_RCC` contract. `l3outs_apic.tf` manages the OSPF interface policy (`OSPF-IntPol-L3Out`), logical node/interface profiles, and IPv6 SVI path attachments on each APIC. `vlans_apic.tf` creates the `VLAN_All_Combined` static VLAN pool and all 39 encap entries on both APICs.
 
 Three files form a strict ordered chain. They must be applied in sequence after `bds_epgs.tf` is in NDO and static port bindings have been pushed (workflow step 5). To deactivate one, rename `*.tf` → `*.tf.disabled`; to reactivate, rename back.
 
@@ -325,7 +325,7 @@ apic_password = "C1sco12345"
    ```bash
    terraform plan -var-file=lab.tfvars -refresh=false -parallelism=3 -out=vlans_apic.tfplan
    terraform apply -parallelism=3 vlans_apic.tfplan
-   # Creates: VLAN_All_Combined (static) pool + 39 encap entries on Site1 and Site2
+   # Creates: VLAN_All_Combined (static) pool + 39 encap entries on Kelley and Del-Din
    ```
 
 **Rolling back a stage:** rename `*.tf` → `*.tf.disabled` **before** the next plan. If you skip the rename, Terraform sees the resources as removed from config and plans a destroy against live infrastructure. For stage 6b specifically, if you want to keep the providers loaded but not the resources, re-wrap the resource block in `/* ... */` instead of renaming the file.
@@ -412,7 +412,7 @@ If the rule is missing, your `.gitignore` was clobbered — restore from `git sh
 
 - **Production deployment** — see `README_PROD.md` (forthcoming) and the existing `README.md` GitLab CI/CD section. Lab and prod use different NDO instances, different VRF template names, different state backends.
 - **Modifying the schema** — `bds_epgs.tf` is hand-curated; before touching it, read `NDO_TERRAFORM_PRESENTATION.md` in this directory.
-- **Static port bindings** — handled outside Terraform by `generate_ipv6_bindings3.py`. Run from inside the shared `~/dc_redesign` venv (`source ~/dc_redesign/bin/activate`); see [`README.md`](README.md) "Python Virtual Environment" for the bootstrap. The script's defaults are Design A port-channel bindings only (PC_FI_A/B on Site1 101/102, Site2 101/102); two opt-in flags layer on:
+- **Static port bindings** — handled outside Terraform by `generate_ipv6_bindings3.py`. Run from inside the shared `~/dc_redesign` venv (`source ~/dc_redesign/bin/activate`); see [`README.md`](README.md) "Python Virtual Environment" for the bootstrap. The script's defaults are Design A port-channel bindings only (PC_FI_A/B on Kelley 101/102, Del-Din 101/102); two opt-in flags layer on:
   - `--inherit-from-ipv4` copies binding *shape* from the legacy IPv4 reference EPGs in the same schema. Default OFF because those references carry legacy Design B (`VPC_D*A-B / protpaths`).
   - `--ports-override <file.json>` appends or replaces per-EPG bindings from a JSON file. Use this to add **individual interface** bindings (`type='port'`, e.g. `eth1/x`) — the default code path never emits these. See `ports_override.example.json` in this directory for the file shape; shorthand `{site, leaf, port}` expands to `topology/pod-1/paths-{leaf}/pathep-[{port}]` automatically.
 

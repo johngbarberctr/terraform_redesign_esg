@@ -36,7 +36,7 @@ in a **sibling repo** at `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/`.
 
 | Path | Terraform root? | What it owns | Reference |
 |------|-----------------|--------------|-----------|
-| `aci-redesign/apic-vmware/` | yes (lab APIC) | Per-fabric APIC access policies, MCP, VMware VMM domains for Site1 and Site2 | [`aci-redesign/apic-vmware/README.md`](aci-redesign/apic-vmware/README.md) (+ [`README_LAB.md`](aci-redesign/apic-vmware/README_LAB.md)) |
+| `aci-redesign/apic-vmware/` | yes (lab APIC) | Per-fabric APIC access policies, MCP, VMware VMM domains for Kelley and Del-Din | [`aci-redesign/apic-vmware/README.md`](aci-redesign/apic-vmware/README.md) (+ [`README_LAB.md`](aci-redesign/apic-vmware/README_LAB.md)) |
 | `aci-redesign/apic-vmware-prod/` | yes (prod APIC) | Same shape as `apic-vmware/`, but Design A (UCS-FI) and prod credentials, separate state | [`aci-redesign/apic-vmware-prod/README.md`](aci-redesign/apic-vmware-prod/README.md) |
 | `aci-redesign/ndo/` | yes (lab NDO redesign) | Schema `AFRICOM-V2`, single template `Tenant_EUR_V2` (2 VRFs, 39 BDs/EPGs, 2 contracts; all tenant-scoped objects suffixed `-V2` to coexist with the legacy `AFRICOM` schema in tenant `EUR`) | [`aci-redesign/ndo/README.md`](aci-redesign/ndo/README.md) (+ [`README_LAB.md`](aci-redesign/ndo/README_LAB.md)) |
 | `ndo-terraform-ipv6/` | yes (IPv6 RCC layer) | `AppProf-RCC` ANP + 39 IPv6 EPGs + L3Outs into existing `L2_Stretched` template | [`ndo-terraform-ipv6/README.md`](ndo-terraform-ipv6/README.md) (+ [`README_LAB.md`](ndo-terraform-ipv6/README_LAB.md)) |
@@ -50,7 +50,7 @@ The sibling repo is the foundational layer:
 
 | Sibling repo | What it owns |
 |---|---|
-| `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/` (separate git repo) | Tenant `EUR`, schema `AFRICOM` with 5 templates (`VRF_Template`, `L2_Stretched`, `L2_Non-Stretched`, `Site1-Specific_Only`, `Site2-Specific_Only`), 11 prod VRFs, 266 BDs, 265 EPGs, 13 L3Outs, 812 VPC static-port bindings |
+| `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/` (separate git repo) | Tenant `EUR`, schema `AFRICOM` with 5 templates (`VRF_Template`, `L2_Stretched`, `L2_Non-Stretched`, `Kelley-Specific_Only`, `Del-Din-Specific_Only`), 11 prod VRFs, 266 BDs, 265 EPGs, 13 L3Outs, 812 VPC static-port bindings |
 
 That stack creates the `Any` filter under `AFRICOM/VRF_Template` that
 `aci-redesign/ndo/`'s schema cross-references. **It must be deployed
@@ -145,9 +145,9 @@ file.
 
 | Project | Per-project CI file | Apply targets | Manual NDO-UI step after apply? | Live in CI today? |
 |---------|---------------------|---------------|--------------------------------|------|
-| `aci-redesign/apic-vmware/` | [`aci-redesign/apic-vmware/.gitlab-ci.yml`](aci-redesign/apic-vmware/.gitlab-ci.yml) | Lab APIC fabrics (Site1 + Site2) | No — APIC has it | Dormant — file untracked; activate per [Enabling and disabling per-project pipelines](#enabling-and-disabling-per-project-pipelines) |
+| `aci-redesign/apic-vmware/` | [`aci-redesign/apic-vmware/.gitlab-ci.yml`](aci-redesign/apic-vmware/.gitlab-ci.yml) | Lab APIC fabrics (Kelley + Del-Din) | No — APIC has it | Dormant — file untracked; activate per [Enabling and disabling per-project pipelines](#enabling-and-disabling-per-project-pipelines) |
 | `aci-redesign/apic-vmware-prod/` | [`aci-redesign/apic-vmware-prod/.gitlab-ci.yml`](aci-redesign/apic-vmware-prod/.gitlab-ci.yml) | Prod APIC fabrics | No — APIC has it | Dormant — file untracked |
-| `aci-redesign/ndo/` | [`aci-redesign/ndo/.gitlab-ci.yml`](aci-redesign/ndo/.gitlab-ci.yml) | NDO schema `AFRICOM-V2` | **Yes** — Deploy `Tenant_EUR_V2` to Site1/Site2 | **Yes** |
+| `aci-redesign/ndo/` | [`aci-redesign/ndo/.gitlab-ci.yml`](aci-redesign/ndo/.gitlab-ci.yml) | NDO schema `AFRICOM-V2` | **Yes** — Deploy `Tenant_EUR_V2` to Kelley/Del-Din | **Yes** |
 | `ndo-terraform-ipv6/` | [`ndo-terraform-ipv6/.gitlab-ci.yml`](ndo-terraform-ipv6/.gitlab-ci.yml) | NDO schema `AFRICOM / L2_Stretched` (extends) | **Yes** — Re-deploy `L2_Stretched` | **Yes** |
 
 The sibling foundational stack lives in its own repo with its own root CI:
@@ -217,14 +217,14 @@ them onto the `TF_VAR_*` variables Terraform expects.
 |----------|---------|--------------------|
 | `NDO_USERNAME` / `NDO_URL` | NDO connection (used by `aci-redesign/ndo/` and `ndo-terraform-ipv6/`) | No |
 | `NDO_PASSWORD` | NDO password | Yes |
-| `Site1_APIC_URL` / `Site1_APIC_USERNAME` | Lab Site1 APIC | No |
-| `Site1_APIC_PASSWORD` / `Site1_MCP_KEY` | Lab Site1 secrets | Yes |
-| `Site2_APIC_URL` / `Site2_APIC_USERNAME` | Lab Site2 APIC | No |
-| `Site2_APIC_PASSWORD` / `Site2_MCP_KEY` | Lab Site2 secrets | Yes |
-| `Site1_APIC_URL_PROD` / `Site1_APIC_USERNAME_PROD` | Prod Site1 APIC (only in prod GitLab) | No |
-| `Site1_APIC_PASSWORD_PROD` / `Site1_MCP_KEY_PROD` | Prod Site1 secrets | Yes |
-| `Site2_APIC_URL_PROD` / `Site2_APIC_USERNAME_PROD` | Prod Site2 APIC | No |
-| `Site2_APIC_PASSWORD_PROD` / `Site2_MCP_KEY_PROD` | Prod Site2 secrets | Yes |
+| `KELLEY_APIC_URL` / `KELLEY_APIC_USERNAME` | Lab Kelley APIC | No |
+| `KELLEY_APIC_PASSWORD` / `KELLEY_MCP_KEY` | Lab Kelley secrets | Yes |
+| `DELDIN_APIC_URL` / `DELDIN_APIC_USERNAME` | Lab Del-Din APIC | No |
+| `DELDIN_APIC_PASSWORD` / `DELDIN_MCP_KEY` | Lab Del-Din secrets | Yes |
+| `KELLEY_APIC_URL_PROD` / `KELLEY_APIC_USERNAME_PROD` | Prod Kelley APIC (only in prod GitLab) | No |
+| `KELLEY_APIC_PASSWORD_PROD` / `KELLEY_MCP_KEY_PROD` | Prod Kelley secrets | Yes |
+| `DELDIN_APIC_URL_PROD` / `DELDIN_APIC_USERNAME_PROD` | Prod Del-Din APIC | No |
+| `DELDIN_APIC_PASSWORD_PROD` / `DELDIN_MCP_KEY_PROD` | Prod Del-Din secrets | Yes |
 | `VCENTER_HOSTNAME_IP` / `VCENTER_DATACENTER` / `VCENTER_DVS_VERSION` | vCenter (shared between lab/prod APIC roots; if prod has a different vCenter instance, add `_PROD` variants) | No |
 | `VCENTER_USERNAME` / `VCENTER_PASSWORD` | vCenter creds | Yes |
 | `GITLAB_TOKEN` | MR comments (optional) | Yes |
@@ -295,9 +295,9 @@ Re-run any time — only variables whose env var is set are touched.
 #### Provisioning the `_PROD` APIC variables (production cutover)
 
 `apic-vmware-prod/.gitlab-ci.yml` reads 8 `_PROD`-suffixed APIC variables
-(`Site1_APIC_URL_PROD`, `Site1_APIC_USERNAME_PROD`,
-`Site1_APIC_PASSWORD_PROD`, `Site1_MCP_KEY_PROD`, and the four matching
-`Site2_*_PROD`). There are two patterns for populating them; both are
+(`KELLEY_APIC_URL_PROD`, `KELLEY_APIC_USERNAME_PROD`,
+`KELLEY_APIC_PASSWORD_PROD`, `KELLEY_MCP_KEY_PROD`, and the four matching
+`DELDIN_*_PROD`). There are two patterns for populating them; both are
 supported by the same scripts.
 
 **Pattern A — separate production GitLab instance (recommended).**
@@ -330,10 +330,10 @@ var that flips it into the same prod-only set:
 
 ```bash
 PROD=1 \
-Site1_APIC_URL_PROD=https://... Site1_APIC_USERNAME_PROD=admin \
-Site1_APIC_PASSWORD_PROD='...' Site1_MCP_KEY_PROD='...' \
-Site2_APIC_URL_PROD=https://... Site2_APIC_USERNAME_PROD=admin \
-Site2_APIC_PASSWORD_PROD='...' Site2_MCP_KEY_PROD='...' \
+KELLEY_APIC_URL_PROD=https://... KELLEY_APIC_USERNAME_PROD=admin \
+KELLEY_APIC_PASSWORD_PROD='...' KELLEY_MCP_KEY_PROD='...' \
+DELDIN_APIC_URL_PROD=https://... DELDIN_APIC_USERNAME_PROD=admin \
+DELDIN_APIC_PASSWORD_PROD='...' DELDIN_MCP_KEY_PROD='...' \
 GITLAB_TOKEN=... \
   ./scripts/setup_gitlab_ci_variables.sh
 ```
@@ -473,5 +473,5 @@ Excluded via `.gitignore` — must be created locally:
 | `vault.yml` / `vault_pass.txt` | Ansible Vault |
 | `.env` | Per-stack credential block (e.g. `sac-johbarbe-AFRICOM-terraform-nac-ndo`) |
 | `backend.hcl` / `local_override.tf` | Local backend config (e.g. `ndo-terraform-ipv6`) |
-| `data/nac-aci-{site1,site2}-rendered/` | VMM YAML rendered from `TF_VAR_vcenter_*` |
+| `data/nac-aci-{kelley,deldin}-rendered/` | VMM YAML rendered from `TF_VAR_vcenter_*` |
 | `*.json` (generated) | Bindings JSONs from `dump_bindings.py` / `generate_fi_bindings.py` |
