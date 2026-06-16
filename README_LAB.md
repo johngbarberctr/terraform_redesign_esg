@@ -96,7 +96,7 @@ at the per-stack README for details.
 | # | What | Where | Time | Manual? |
 |---|------|-------|------|---------|
 | 0 *(optional)* | Bootstrap the two GitLab projects' CI/CD variables (prerequisite for CI-driven runs only) | `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/` + `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/` | ~5 min total | One script per repo, mostly auto-discovered |
-| 1 | Build foundational NDO state (tenant `EUR`, schema `AFRICOM`, 5 prod templates) | `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/` | ~10 min plan/apply | Terraform |
+| 1 | Build foundational NDO state (tenant `AFR-DEL.Services`, schema `AFRICOM`, 5 prod templates) | `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/` | ~10 min plan/apply | Terraform |
 | 2 | Deploy 5 templates to Kelley/Del-Din (in strict order) | NDO UI | ~15 min total | **Manual UI** |
 | 2.5 | Push legacy N5K static port bindings to AFRICOM EPGs | `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/scripts/` | ~2 min | Python (`deploy_bindings_python_v2.py`) |
 | 3 | APIC fabric/access policies, MCP, VMware VMM domains | `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/aci-apic/` | ~5 min apply | Terraform (both fabrics in one root) |
@@ -200,7 +200,7 @@ cd ~/DC/ACI/sac-johbarbe-AFRICOM-terraform-esg-nac-ndo
 
 ## Phase 1 — Foundational NDO build (`sac-johbarbe-AFRICOM-terraform-nac-ndo`)
 
-This repo creates **tenant `EUR`**, **schema `AFRICOM`** with five templates
+This repo creates **tenant `AFR-DEL.Services`**, **schema `AFRICOM`** with five templates
 (`VRF_Template`, `L2_Stretched`, `L2_Non-Stretched`, `Kelley-Specific_Only`,
 `Del-Din-Specific_Only`), 11 prod VRFs, 266 BDs, 265 EPGs, 13 L3Outs, and 812 VPC
 static-port bindings. Phase 4 in `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/aci-ndo/` cross-
@@ -257,7 +257,7 @@ click **Deploy to sites** in this order, **waiting for green** between steps:
 | 2.4 | `Kelley-Specific_Only` | Kelley only |
 | 2.5 | `Del-Din-Specific_Only` | Del-Din only |
 
-After Phase 2: tenant `EUR`, all 11 VRFs (incl. `EUR-E`), schema `AFRICOM` with
+After Phase 2: tenant `AFR-DEL.Services`, all 11 VRFs (incl. `EUR-E`), schema `AFRICOM` with
 `Any` filter under `VRF_Template`, all 266 BDs and 265 EPGs are live on Kelley
 and Del-Din.
 
@@ -387,7 +387,7 @@ This is where the cross-schema reference to `AFRICOM/VRF_Template/Any` (built
 in Phase 1, deployed in Phase 2) actually resolves. Schema `AFRICOM-V2`
 contains a **single template** `Tenant_EUR_V2` (2 VRFs, 39 BDs, 39 EPGs,
 2 ANPs, 2 contracts; all tenant-scoped objects suffixed `-V2` to coexist
-with the legacy `AFRICOM` schema in tenant `EUR` — see
+with the legacy `AFRICOM` schema in tenant `AFR-DEL.Services` — see
 [`docs/DESIGN.md` → Naming convention](docs/DESIGN.md#naming-convention);
 no static ports — those come in Phase 6).
 
@@ -407,7 +407,7 @@ make init    # only first time
 make plan    # expect: 1 schema (AFRICOM-V2), 1 template (Tenant_EUR_V2),
              #         2 VRFs (-V2), 39 BDs (-V2), 2 ANPs (-V2),
              #         39 EPGs (-V2), 2 contracts (-V2).
-             # NO mso_tenant create (manage_tenants=false; EUR is from Phase 1).
+             # NO mso_tenant create (manage_tenants=false; AFR-DEL.Services is from Phase 1).
 make apply
 ```
 
@@ -569,13 +569,13 @@ strategy rationale).
 | Del-Din APIC GUI — FI uplinks | Same as Kelley. `leaf-101-fi-intprof` (port 6) and `leaf-102-fi-intprof` (port 7). |
 | Kelley APIC GUI — legacy objects | `Pools → VLAN → VLAN_All_Combined` exists (static, 5 ranges: 5-54, 66-67, 80-998, 1000-2176, 2205). `Domains → Physical → PhysDom_ACI_Nexus` references `VLAN_All_Combined`. `Domains → L3 → L3_Dom_ND` references `VLAN_All_Combined`. `Global Policies → AEP → AAEP_ACI_Nexus` references both `PhysDom_ACI_Nexus` and `L3_Dom_ND`. |
 | Del-Din APIC GUI — legacy objects | Same names and structure as Kelley — `VLAN_All_Combined`, `PhysDom_ACI_Nexus`, `L3_Dom_ND`, `AAEP_ACI_Nexus`. |
-| Kelley APIC GUI | `Tenants → EUR → Application Profiles → AppProf-NetCentric-V2 / AppProf-DMZ-V2` shows 39 EPGs (36 + 3) |
-| Kelley APIC GUI (ESG layer) | `Tenants → EUR → Application Profiles → AppProf-AppCentric-V2 → Endpoint Security Groups` shows `ESG-All-Internal-V2` (in `VRF-EUR-V2`) and `ESG-All-DMZ-V2` (in `VRF-DMZ-V2`); each ESG's `Operational → Endpoints` lists the same endpoints as the corresponding EPGs sum |
+| Kelley APIC GUI | `Tenants → AFR-DEL.Services → Application Profiles → AppProf-NetCentric-V2 / AppProf-DMZ-V2` shows 39 EPGs (36 + 3) |
+| Kelley APIC GUI (ESG layer) | `Tenants → AFR-DEL.Services → Application Profiles → AppProf-AppCentric-V2 → Endpoint Security Groups` shows `ESG-All-Internal-V2` (in `VRF-EUR-V2`) and `ESG-All-DMZ-V2` (in `VRF-DMZ-V2`); each ESG's `Operational → Endpoints` lists the same endpoints as the corresponding EPGs sum |
 | Del-Din APIC GUI | Same as Kelley — both NDO ANPs (39 EPGs) and the APIC-direct AppCentric ANP (2 ESGs) |
 | Each EPG's "Domains" tab | Per-fabric VMM domain (`APCG-VDS1` or `APCK-VDS1`) bound, `Resolution Immediacy = Immediate` |
 | Each EPG's "Static Ports" tab | Phase 6 bindings present with the right leaf/port/VLAN |
 | vCenter | 39 port-groups under each of `APCG-VDS1` / `APCK-VDS1` |
-| Phase 5 Phase-Two outcome (if done) | `AppProf-RCC` ANP visible in `Tenants → EUR → Application Profiles` with 39 IPv6 EPGs |
+| Phase 5 Phase-Two outcome (if done) | `AppProf-RCC` ANP visible in `Tenants → AFR-DEL.Services → Application Profiles` with 39 IPv6 EPGs |
 
 If anything is missing on the APIC: re-check that you clicked **Deploy to
 sites** after the relevant Terraform `apply`.

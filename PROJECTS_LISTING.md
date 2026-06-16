@@ -1,139 +1,176 @@
 # Projects Listing — Mac DC workspaces
 
-One-off reference. Lists every project across `~/DC/`: Mac path, git remotes,
-purpose, and what it pushes where. Companion to `PROJECT_MAP.md`, which
-focuses on CI/runners and file paths.
+One-off reference. Every repo under `~/DC/`: Mac path, git remotes, purpose,
+and what it pushes where. Companion to **`PROJECT_MAP.md`**, which covers CI
+runners, variables, and scripts in depth.
 
-> **Heads-up on IPs in this document.** Lab APIC, NDO, and vCenter IPs shown
-> below are point-in-time snapshots from when this file was written. Lab
-> infrastructure gets re-IP'd periodically. The **operative** IPs for any
-> given project are the values in that project's `terraform.tfvars`,
-> `ndo.nac.yaml`, or `.env` file — not these tables. Always cross-check
-> before relying on any IP listed here. As of 2026-05-04, the lab APICs are
-> Site1 = `198.18.134.252`, Site2 = `198.18.134.253`.
+> **IP addresses in this document** are point-in-time snapshots. Lab
+> infrastructure gets re-IP'd periodically. The operative IPs for any project
+> are always in that project's `terraform.tfvars`, `*.nac.yaml`, or `.env` file.
+> As of 2026-06-15: lab APICs are Site1 `198.18.134.252` / Site2 `198.18.134.253`,
+> NDO `198.18.133.100`.
+
+> **Path rename.** The repo formerly at `~/DC/ACI/terraform-esg/` is now
+> `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/`. Any stale reference
+> to the old name points to the same directory.
 
 ---
 
 ## ACI projects
 
-### 1. `terraform-esg` — IaC monorepo
+---
 
-|                            |                                                                                          |
-| -------------------------- | ---------------------------------------------------------------------------------------- |
-| **Mac path**               | `/Users/johbarbe/DC/ACI/terraform-esg/`                                                  |
-| **Git remotes**            | `localhost:8080/root/terraform_redesign_esg` (GitLab), `github.com/johngbarberctr/terraform_redesign_esg` (origin) |
-| **Cursor workspace label** | `LAB - ESG Terraform (ndo-terraform + aci-redesign)`                                     |
-| **Purpose**                | Holds two distinct Terraform projects in one repo.                                       |
+### 1. `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo` — ESG redesign + AFRICOM NIPR IaC
 
-**Subproject `aci-redesign/`** -- the IPv4 redesign work.
-Two Terraform roots:
+|                             |                                                                                             |
+| --------------------------- | ------------------------------------------------------------------------------------------- |
+| **Mac path**                | `/Users/johbarbe/DC/ACI/sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/`                        |
+| **Git remotes**             | `localhost:8080/root/terraform_redesign_esg` (GitLab) · `github.com/johngbarberctr/terraform_redesign_esg` (origin) |
+| **Cursor workspace label**  | `LAB - ESG Terraform`                                                                       |
+| **Start here**              | `README.md` (repo overview) · `README_LAB.md` (lab deployment runbook)                     |
+| **AFRICOM NIPR start here** | `africom-aci-apic/README.md` · `docs/AFRICOM/AFRICOM_Implementation_Plan.md`               |
 
-| Root            | Owns                                                                                                              |
-| --------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `apic-vmware/`  | APIC access/fabric policies, VMware VMM domain (one per fabric), MCP instance policy. Also the **ESG layer**: ANP `AppProf-AppCentric-V2` + `ESG-All-Internal-V2` (VRF-EUR-V2) + `ESG-All-DMZ-V2` (VRF-DMZ-V2), loaded from `data/nac-aci-shared/tenant-eur-esgs.nac.yaml` -- ESGs ride the `nac-aci@0.7.0` wrapper because `nac-ndo`/`mso` provider don't model `endpoint_security_groups`. |
-| `ndo/`          | Tenant `EUR` (referenced), 2 VRFs (VRF-EUR-V2 / VRF-DMZ-V2 with vzAny+permit-all), 39 BDs, 39 EPGs across `AppProf-NetCentric-V2` (36) + `AppProf-DMZ-V2` (3). |
+This is the primary IaC monorepo. It contains four distinct Terraform roots plus
+shared scripts and the AFRICOM NIPR implementation documentation.
 
-Six data dirs:
+#### Terraform roots
 
-| Dir                              | Purpose                                                              |
-| -------------------------------- | -------------------------------------------------------------------- |
-| `data/nac-aci-site1/`            | Site1 lab access policy (lab simulator topology)                     |
-| `data/nac-aci-site2/`            | Site2 lab access policy (lab simulator topology)                     |
-| `data/nac-aci-shared/`           | cross-fabric APIC policy: nac-aci module toggles (`modules.nac.yaml`) AND the V2 ESG layer (`tenant-eur-esgs.nac.yaml` -- ANP `AppProf-AppCentric-V2` + 2 ESGs, loaded by both Site1 and Site2 modules) |
-| `data/nac-aci-site1-prod/`       | Site1 **prod** access policy (Design A: UCS-FI direct attach, no vPC) |
-| `data/nac-aci-site2-prod/`       | Site2 **prod** access policy (Design A)                              |
-| `data/nac-ndo/`                  | NDO schema (`AFRICOM-V2`, template `Tenant_EUR_V2`) -- shared lab + prod |
+| Root | README | Owns | Targets |
+|------|--------|------|---------|
+| `aci-apic/` | `aci-apic/README.md` | ESG redesign: APIC access/fabric policies, VMM domain, MCP, ESG layer (`AppProf-AppCentric-V2`) for both lab and prod | Lab APICs + prod APICs |
+| `aci-ndo/` | `aci-ndo/README.md` | IPv4 redesign NDO schema (`AFRICOM-V2`): 2 VRFs, 39 BDs, 39 EPGs | Lab + prod NDO |
+| `aci-ndo-ipv6/` | `aci-ndo-ipv6/README.md` | IPv6 RCC NDO layer (`VRF-RCC`, schema `AFRICOM`) | Lab NDO |
+| **`africom-aci-apic/`** | **`africom-aci-apic/README.md`** | **AFRICOM NIPR APIC-direct: access/fabric policies + Phase 1–2 implementation settings for Kelley (NADE02) and Del Din (NAIT03)** | AFRICOM NIPR lab + prod APICs |
+| **`africom-aci-ndo/`** | `africom-aci-ndo/README.md` | **AFRICOM NIPR V2 NDO schema** (AFR-SERVICES-V2) | AFRICOM NIPR NDO |
 
-Targets: lab APICs `198.18.134.253` / `198.18.134.254` and NDO `198.18.133.100`.
+#### AFRICOM NIPR data directories (under `africom-aci-apic/data/`)
 
-**Subproject `ndo-terraform/`** -- the IPv6 RCC NDO/MSO Terraform
-(39 BDs/EPGs in `VRF-RCC`, schema `AFRICOM`). Lab-only via NDO. Helper scripts
-(`generate_ipv6_bindings*.py`) generate static port bindings. Lives next to
-`aci-redesign/` but is logically a separate stack.
+| Directory | Contains |
+|-----------|----------|
+| `nac-aci-shared/` | `modules.nac.yaml` (MCP submodule disable) · `tenant-afrdel-esgs.nac.yaml` (ESG stubs) · `phase1-fabric-settings.nac.yaml` (BFD + Remote EP Learning) |
+| `nac-aci-kelley/` | Kelley access policies · `phase1-kelley-settings.nac.yaml` (Port Tracking) |
+| `nac-aci-kelley-prod/` | Kelley prod overrides |
+| `nac-aci-deldin/` | Del Din access policies · `phase1-deldin-settings.nac.yaml` (Rogue EP Control) |
+| `nac-aci-deldin-prod/` | Del Din prod overrides |
+| `nac-aci-kelley-rendered/` | gitignored — VMM YAML generated by `scripts/render-vmm-yaml.sh kelley` |
+| `nac-aci-deldin-rendered/` | gitignored — VMM YAML generated by `scripts/render-vmm-yaml.sh deldin` |
 
-**Other dirs**: `docs/` (architecture/reports for the IPv6 build),
-`scripts/` (cross-project helpers), `backups/` (state snapshots),
-`data/` (legacy/archived NAC YAML).
+#### AFRICOM NIPR implementation automation (under `scripts/`)
 
-### 2. `ndo-terraform` (sibling folder) — IPv4 NAC ansible helper
+| File | Phase | What it does |
+|------|-------|-------------|
+| `scripts/validate_fabric.py` | 0 | Read-only health checks (cluster, faults, EPG/BD/VRF counts, BGP peers + prefix counts, VMM) **plus** optional Phase 0 write actions: APIC config snapshot (0.1), NDO backup (0.2), NDO schema export (0.6). Saves a timestamped baseline JSON for pre/post drift comparison. |
+| `scripts/baseline/` | 0 | Baseline JSON artifacts + NDO schema exports. gitignored by default — save to CI artifacts instead. |
 
-|                            |                                                                                          |
-| -------------------------- | ---------------------------------------------------------------------------------------- |
-| **Mac path**               | `/Users/johbarbe/DC/ACI/ndo-terraform/`                                                  |
-| **Git remotes**            | **none** (not a git repo -- files only)                                                  |
-| **Cursor workspace label** | `LAB - IPv4 NAC`                                                                         |
-| **Purpose**                | Old-style ansible+python tooling for IPv4 lab static-port-binding pushes against NDO.    |
-| **Files**                  | `setup_fabric_policies_africom.yml` (ansible), `deploy_bindings_python_v2.py`, `selective_bindings_del.py`, `vault.yml`. |
-| **Status**                 | Pre-NAC tooling. Superseded for the redesign by `terraform-esg/aci-redesign/scripts/deploy_bindings.py`. Keep around for IPv6 lab binding pushes that haven't been migrated to nac-ndo yet. |
+#### AFRICOM NIPR documentation (under `docs/AFRICOM/`)
+
+| File | What it is |
+|------|-----------|
+| `AFRICOM_Implementation_Plan.md` | Full 7-phase implementation plan with steps, risk assessments, verification checklists, and rollback procedures for every change |
+| `AFRICOM_Implementation_Plan.docx` | DOCX version of the above (auto-generated from MD) |
+| `AFRICOM_ACI_Design_Review.pptx` | CX design review presentation with current state, findings, and target architecture |
+
+#### Other directories
+
+| Directory | Purpose |
+|-----------|---------|
+| `docs/` | Architecture, CX assessment docs, implementation artifacts |
+| `scripts/` | Shared Python helpers: binding deploy, FI parity check, validate fabric |
+| `backups/` | State snapshots (gitignored) |
+
+#### CI pipelines
+
+| File | Covers | Key trigger |
+|------|--------|-------------|
+| `.gitlab-ci.yml` | Umbrella — includes all per-project files | any push / MR |
+| `aci-apic/.gitlab-ci.yml` | ESG redesign APIC | `PROJECT=apic-vmware` or changes to `aci-apic/**` |
+| `aci-ndo/.gitlab-ci.yml` | IPv4 redesign NDO | `PROJECT=aci-redesign-ndo` |
+| `aci-ndo-ipv6/.gitlab-ci.yml` | IPv6 RCC NDO | `PROJECT=aci-ndo-ipv6` |
+| `africom-aci-apic/.gitlab-ci.yml` | **AFRICOM NIPR Phase 0–2** | `PROJECT=africom-apic` or changes to `africom-aci-apic/**` |
+
+---
+
+### 2. `sac-johbarbe-AFRICOM-terraform-nac-ndo` — AFRICOM NIPR foundational NDO stack
+
+|                             |                                                                                             |
+| --------------------------- | ------------------------------------------------------------------------------------------- |
+| **Mac path**                | `/Users/johbarbe/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/`                            |
+| **Git remotes**             | `localhost:8080/root/ndo_terraform` (GitLab)                                                |
+| **Cursor workspace label**  | `LAB - IPv4 NAC Terraform (PROD)`                                                           |
+| **Start here**              | `README_LAB.md`                                                                             |
+| **Purpose**                 | NAC-based Terraform for the AFRICOM NIPR NDO foundational stack. Manages the existing AFRICOM NIPR tenant objects that pre-date the ESG redesign. This is **Phase 1** in its own canonical runbook and is a prerequisite for the ESG redesign work in repo 1. |
+| **Relationship to repo 1**  | Sibling repo. Repo 1 (`sac-johbarbe-AFRICOM-terraform-esg-nac-ndo`) builds on top of what this repo lays down. Do not edit this repo during active ESG/Phase 7 work without coordinating with the team. |
+
+---
 
 ### 3. `ndo-terraform-nac` — IPv6 RCC production NDO build
 
-|                            |                                                                                          |
-| -------------------------- | ---------------------------------------------------------------------------------------- |
-| **Mac path**               | `/Users/johbarbe/DC/ACI/ndo-terraform-nac/`                                              |
-| **Git remotes**            | `localhost:8080/root/ndo_terraform` (GitLab), `localhost:8080/Administrator/ndo_terraform` (origin) |
-| **Cursor workspace labels**| `LAB - IPv4 NAC Terraform` (root) and `PROD - IPv6 RCC (136.215.4.96)` (sub-dir)         |
-| **Purpose**                | NAC-style Terraform for NDO at multiple sites. Houses the canonical IPv6 RCC build under `136.215.4.96/` (39 BDs, 39 EPGs in `VRF-RCC`, L3Outs, External EPGs). |
-| **Other layout**           | `data/`, `data-ipv6/`, `schemas/`, `ndo/`, plus a Robot Framework test harness (`log.html`, `report.html`, `output.xml`). |
-| **Production target**      | NDO at `136.215.4.96`.                                                                   |
-| **Note**                   | Confusingly similar name to `ndo-terraform` (item 2) -- entirely separate repos.          |
+|                             |                                                                                             |
+| --------------------------- | ------------------------------------------------------------------------------------------- |
+| **Mac path**                | `/Users/johbarbe/DC/ACI/ndo-terraform-nac/`                                                 |
+| **Git remotes**             | `localhost:8080/root/ndo_terraform` · `localhost:8080/Administrator/ndo_terraform`          |
+| **Cursor workspace labels** | `LAB - IPv4 NAC Terraform` (root) · `PROD - IPv6 RCC (136.215.4.96)` (sub-dir)             |
+| **Purpose**                 | NAC-style Terraform for NDO at multiple production sites. Houses the canonical IPv6 RCC build under `136.215.4.96/` (39 BDs, 39 EPGs in `VRF-RCC`, L3Outs, External EPGs). |
+| **Production target**       | NDO at `136.215.4.96`                                                                       |
+| **Note**                    | Similar name to the old `ndo-terraform` helper folder — entirely separate repo and purpose. |
+
+---
+
+### 4. `ndo-terraform` (folder, not a git repo) — IPv4 NAC ansible helper
+
+|                             |                                                                                             |
+| --------------------------- | ------------------------------------------------------------------------------------------- |
+| **Mac path**                | `/Users/johbarbe/DC/ACI/ndo-terraform/`                                                     |
+| **Git remotes**             | **none** — files only                                                                       |
+| **Purpose**                 | Legacy ansible + Python tooling for IPv4 lab static-port-binding pushes against NDO. |
+| **Status**                  | Pre-NAC tooling. Superseded for the redesign by `scripts/deploy_bindings.py` in repo 1. Keep for IPv6 lab binding pushes not yet migrated to nac-ndo. |
 
 ---
 
 ## NXOS projects
 
-### 4. `n5k` (top-level) — N5K snake-bindings extraction & deployment
+---
 
-|                            |                                                                                          |
-| -------------------------- | ---------------------------------------------------------------------------------------- |
-| **Mac path**               | `/Users/johbarbe/DC/NXOS/n5k/`                                                           |
-| **Git remotes**            | `localhost:8080/root/n5k_replacement` (GitLab), `github.com/johbarbe/n5k_replacement` (origin) |
-| **Cursor workspace labels**| `LAB - N5K Migration & Leaf Replacement` (root) and `PROD - N5K Migration & Leaf Replacement` (sub-dir) |
-| **Purpose**                | Pulls VLAN/PO/INT data from N5Ks (`APCK-D*-INT.txt`, `*-PO.txt`, `*-VL.txt`), processes it into NDO static bindings, and pushes to NDO. |
-| **Tooling mix**            | ansible (`process_all_switches*.yml`, `configure_apic_fabric*.yml`, `get_active_*.yml`), Python (`deploy_bindings_python_v2.py`, `selective_bindings_del.py`), per-switch raw dump artefacts. |
-| **GitLab CI**              | `.gitlab-ci.yml` at repo root drives validate / process-data / dry-run / deploy / remove on a shell runner (`apckw059aau0096`). |
+### 5. `sac-johbarbe-AFRICOM-nxos-n5k` — N5K snake-bindings extraction & deployment
 
-### 5. `aci-lf-rplc` (LAB and PRODUCTION) — leaf-replacement bindings tool
-
-|                            |                                                                                          |
-| -------------------------- | ---------------------------------------------------------------------------------------- |
-| **Mac paths**              | `/Users/johbarbe/DC/NXOS/n5k/Snake/LAB/aci-lf-rplc/` and `/Users/johbarbe/DC/NXOS/n5k/Snake/PRODUCTION/aci-lf-rplc/` |
-| **Git remotes**            | sub-dirs of the `n5k_replacement` repo above -- same remotes                              |
-| **Purpose**                | Successor to `n5k/` that replaces N5K-derived bindings with bindings sourced directly from an APIC EPG export (`epg_data.json`). |
-| **Files**                  | `deploy_bindings_python.py`, `selective_bindings_del.py`, `process_data_LF.yml`, `epg_data.json`, `ansible.cfg`. |
-| **RHEL counterpart**       | `~/aci-lf-rplc/` on the RHEL GitLab/runner host. The Mac→RHEL copy contract is just the `.gitlab-ci.yml` (see `PROJECT_MAP.md`). |
-| **Status**                 | Out of scope for the IPv4 ACI redesign work -- do not edit during that effort.            |
+|                             |                                                                                             |
+| --------------------------- | ------------------------------------------------------------------------------------------- |
+| **Mac path**                | `/Users/johbarbe/DC/NXOS/sac-johbarbe-AFRICOM-nxos-n5k/`                                   |
+| **Git remotes**             | `localhost:8080/root/n5k_replacement` · `github.com/johbarbe/n5k_replacement`              |
+| **Cursor workspace label**  | `LAB - N5K Migration & Leaf Replacement`                                                    |
+| **Purpose**                 | Pulls VLAN/PO/INT data from N5Ks, processes it into NDO static bindings, pushes to NDO.   |
+| **Tooling**                 | ansible (`process_all_switches*.yml`, `configure_apic_fabric*.yml`, `get_active_*.yml`), Python (`deploy_bindings_python_v2.py`, `selective_bindings_del.py`) |
+| **CI**                      | `.gitlab-ci.yml` at repo root — validate / process-data / dry-run / deploy / remove on shell runner |
 
 ---
 
-## Cursor workspaces (.code-workspace files)
+### 6. `aci-lf-rplc` (LAB and PRODUCTION) — leaf-replacement bindings tool
 
-| Workspace        | File                                                                              | Folders mapped                                                                       |
-| ---------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| `ACI_LAB`        | `/Users/johbarbe/DC/ACI/terraform-esg/ACI_LAB.code-workspace`                     | terraform-esg, ndo-terraform-nac, sac-johbarbe-AFRICOM-terraform-nac-ndo, n5k, n5k/.../aci-lf-rplc   |
-| `ACI_PRODUCTION` | `/Users/johbarbe/DC/ACI/terraform-esg/ACI_PRODUCTION.code-workspace`              | ndo-terraform-nac/136.215.4.96, n5k/Snake/PRODUCTION                                |
-
----
-
-## What runs where
-
-| Goal                                                | Project                | Path                                                              | Driver                                              |
-| --------------------------------------------------- | ---------------------- | ----------------------------------------------------------------- | --------------------------------------------------- |
-| Push IPv4 redesign to lab APICs (access/fabric/VMM) | aci-redesign           | `terraform-esg/aci-redesign/apic-vmware/`                         | `make plan && make apply`                           |
-| Push IPv4 redesign tenant content to NDO            | aci-redesign           | `terraform-esg/aci-redesign/ndo/`                                 | `make plan && make apply` (then click Deploy in UI) |
-| Push IPv4 EPG static bindings                       | aci-redesign           | `terraform-esg/aci-redesign/scripts/deploy_bindings.py`           | python after NDO deploy                             |
-| Push IPv6 RCC tenant to lab NDO                     | ndo-terraform          | `terraform-esg/ndo-terraform/`                                    | terraform                                           |
-| Push IPv6 RCC tenant to **prod** NDO                | ndo-terraform-nac      | `ndo-terraform-nac/136.215.4.96/`                                 | terraform                                           |
-| Push N5K-derived bindings to NDO (legacy)           | n5k                    | `NXOS/n5k/`                                                       | ansible + `deploy_bindings_python_v2.py` (or CI)    |
-| Push EPG-export-derived bindings (current)          | aci-lf-rplc            | `NXOS/n5k/Snake/{LAB,PRODUCTION}/aci-lf-rplc/`                    | ansible + `deploy_bindings_python.py`               |
-| Push IPv4 lab fabric policies (legacy ansible flow) | ndo-terraform (sibling)| `ACI/ndo-terraform/`                                              | ansible                                             |
+|                             |                                                                                             |
+| --------------------------- | ------------------------------------------------------------------------------------------- |
+| **Mac paths**               | `/Users/johbarbe/DC/NXOS/n5k/Snake/LAB/aci-lf-rplc/` · `/Users/johbarbe/DC/NXOS/n5k/Snake/PRODUCTION/aci-lf-rplc/` |
+| **Git remotes**             | Sub-dirs of `n5k_replacement` repo above — same remotes                                    |
+| **Purpose**                 | Successor to `n5k/` — replaces N5K-derived bindings with bindings sourced directly from an APIC EPG export (`epg_data.json`). |
+| **Files**                   | `deploy_bindings_python.py`, `selective_bindings_del.py`, `process_data_LF.yml`, `epg_data.json` |
+| **RHEL counterpart**        | `~/aci-lf-rplc/` on the RHEL runner host. Only the `.gitlab-ci.yml` is copied Mac→RHEL.   |
+| **Status**                  | Out of scope during active AFRICOM ESG redesign work — do not edit concurrently.           |
 
 ---
 
-## GitLab projects (on RHEL `localhost:8080`)
+## Cursor Workspaces Summary
 
-| GitLab project                  | Local Mac path                                                            | Repo on RHEL                                |
-| ------------------------------- | ------------------------------------------------------------------------- | ------------------------------------------- |
-| `root/terraform_redesign_esg`   | `terraform-esg/`                                                          | `~/Documents/terraform_redesign_esg`        |
-| `root/ndo_terraform`            | `ndo-terraform-nac/`                                                      | `~/ndo_terraform_nac`                       |
-| `root/n5k_replacement`          | `NXOS/n5k/` (and its `Snake/{LAB,PRODUCTION}/aci-lf-rplc` subdirs)        | `~/nxos/n5k/` and `~/aci-lf-rplc/`          |
+| Workspace | File location | Folders mapped |
+|-----------|--------------|----------------|
+| `ACI_LAB` | `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/ACI_LAB.code-workspace` | `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/`, `sac-johbarbe-AFRICOM-terraform-nac-ndo/`, `sac-johbarbe-AFRICOM-nxos-n5k/` |
+| `ACI_PRODUCTION` | `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/ACI_PRODUCTION.code-workspace` | `ndo-terraform-nac/136.215.4.96/`, `n5k/Snake/PRODUCTION/` |
+| `rcc-e` | `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/rcc-e.code-workspace` | RCC-E specific folders |
+
+---
+
+## GitLab projects on RHEL (`localhost:8080`)
+
+| GitLab project | Mac path | RHEL path |
+|----------------|----------|-----------|
+| `root/terraform_redesign_esg` | `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/` | `~/Documents/terraform_redesign_esg` |
+| `root/ndo_terraform` | `sac-johbarbe-AFRICOM-terraform-nac-ndo/` | `~/ndo_terraform_nac` |
+| `root/n5k_replacement` | `NXOS/sac-johbarbe-AFRICOM-nxos-n5k/` and sub-dirs | `~/nxos/n5k/` and `~/aci-lf-rplc/` |

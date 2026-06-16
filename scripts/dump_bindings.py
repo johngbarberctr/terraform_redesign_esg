@@ -49,7 +49,7 @@ ANP routing:
   --dmz-epgs "EPG-D64-PROXY-V2,EPG-FWEB-PROXY-V2,EPG-RWEB-PROXY-V2"
   Everything not in --dmz-epgs lands under the netcentric ANP.
 
-  Note: a third ANP, AppProf-AppCentric-V2, exists in tenant EUR but is
+  Note: a third ANP, AppProf-AppCentric-V2, exists in tenant AFR-DEL.Services but is
   managed APIC-direct (../data/nac-aci-shared/tenant-eur-esgs.nac.yaml)
   and only holds the two Phase-2 ESGs. It contains NO EPGs, so it is
   never a binding target -- bindings always go to the NDO-managed

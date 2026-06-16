@@ -38,7 +38,7 @@ in a **sibling repo** at `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/`.
 |------|-----------------|--------------|-----------|
 | `aci-redesign/apic-vmware/` | yes (lab APIC) | Per-fabric APIC access policies, MCP, VMware VMM domains for Kelley and Del-Din | [`aci-redesign/apic-vmware/README.md`](aci-redesign/apic-vmware/README.md) (+ [`README_LAB.md`](aci-redesign/apic-vmware/README_LAB.md)) |
 | `aci-redesign/apic-vmware-prod/` | yes (prod APIC) | Same shape as `apic-vmware/`, but Design A (UCS-FI) and prod credentials, separate state | [`aci-redesign/apic-vmware-prod/README.md`](aci-redesign/apic-vmware-prod/README.md) |
-| `aci-redesign/ndo/` | yes (lab NDO redesign) | Schema `AFRICOM-V2`, single template `Tenant_EUR_V2` (2 VRFs, 39 BDs/EPGs, 2 contracts; all tenant-scoped objects suffixed `-V2` to coexist with the legacy `AFRICOM` schema in tenant `EUR`) | [`aci-redesign/ndo/README.md`](aci-redesign/ndo/README.md) (+ [`README_LAB.md`](aci-redesign/ndo/README_LAB.md)) |
+| `aci-redesign/ndo/` | yes (lab NDO redesign) | Schema `AFRICOM-V2`, single template `Tenant_EUR_V2` (2 VRFs, 39 BDs/EPGs, 2 contracts; all tenant-scoped objects suffixed `-V2` to coexist with the legacy `AFRICOM` schema in tenant `AFR-DEL.Services`) | [`aci-redesign/ndo/README.md`](aci-redesign/ndo/README.md) (+ [`README_LAB.md`](aci-redesign/ndo/README_LAB.md)) |
 | `ndo-terraform-ipv6/` | yes (IPv6 RCC layer) | `AppProf-RCC` ANP + 39 IPv6 EPGs + L3Outs into existing `L2_Stretched` template | [`ndo-terraform-ipv6/README.md`](ndo-terraform-ipv6/README.md) (+ [`README_LAB.md`](ndo-terraform-ipv6/README_LAB.md)) |
 | `aci-redesign/scripts/` | no (Python tools) | Bindings push helpers (`dump_bindings.py`, `deploy_bindings.py`, `generate_fi_bindings.py`) | [`aci-redesign/scripts/README.md`](aci-redesign/scripts/README.md) |
 | `aci-redesign/data/` | no (NAC YAML inputs) | Per-fabric YAML consumed by the four Terraform roots above | [`aci-redesign/data/_archive/README.md`](aci-redesign/data/_archive/README.md), [`nac-aci-shared/README.md`](aci-redesign/data/nac-aci-shared/README.md) |
@@ -50,7 +50,7 @@ The sibling repo is the foundational layer:
 
 | Sibling repo | What it owns |
 |---|---|
-| `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/` (separate git repo) | Tenant `EUR`, schema `AFRICOM` with 5 templates (`VRF_Template`, `L2_Stretched`, `L2_Non-Stretched`, `Kelley-Specific_Only`, `Del-Din-Specific_Only`), 11 prod VRFs, 266 BDs, 265 EPGs, 13 L3Outs, 812 VPC static-port bindings |
+| `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/` (separate git repo) | Tenant `AFR-DEL.Services`, schema `AFRICOM` with 5 templates (`VRF_Template`, `L2_Stretched`, `L2_Non-Stretched`, `Kelley-Specific_Only`, `Del-Din-Specific_Only`), 11 prod VRFs, 266 BDs, 265 EPGs, 13 L3Outs, 812 VPC static-port bindings |
 
 That stack creates the `Any` filter under `AFRICOM/VRF_Template` that
 `aci-redesign/ndo/`'s schema cross-references. **It must be deployed
@@ -154,7 +154,7 @@ The sibling foundational stack lives in its own repo with its own root CI:
 
 | Sibling repo | Per-project CI file | Apply targets | Manual NDO-UI step? |
 |--------------|---------------------|---------------|---------------------|
-| `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/` | `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/.gitlab-ci.yml` | NDO tenant `EUR` + schema `AFRICOM` (5 templates) | **Yes** — Deploy 5 templates in strict order |
+| `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/` | `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/.gitlab-ci.yml` | NDO tenant `AFR-DEL.Services` + schema `AFRICOM` (5 templates) | **Yes** — Deploy 5 templates in strict order |
 
 ### How to trigger a single-project pipeline
 
@@ -162,9 +162,16 @@ The sibling foundational stack lives in its own repo with its own root CI:
   the shared inputs it consumes, e.g. `aci-redesign/data/nac-ndo/` for
   the redesign NDO project). The `rules: changes:` in each per-project
   file scopes the pipeline to that project alone.
-- **Manual** — GitLab UI → **Run pipeline** → set the `PROJECT` variable
+- **Manual (UI)** — GitLab UI → **Run pipeline** → set the `PROJECT` variable
   to one of: `apic-vmware`, `apic-vmware-prod`, `aci-redesign-ndo`,
   `ndo-terraform-ipv6`. Only that project's jobs queue up.
+- **Manual (empty commit)** — triggers the full pipeline without touching any
+  project files, useful when re-running from a clean working tree:
+
+  ```bash
+  git commit --allow-empty -m "chore: trigger pipeline"
+  git push gitlab main
+  ```
 
 `apply` jobs are **always** `when: manual` regardless of how the
 pipeline was triggered. No project ever auto-applies. After clicking
@@ -453,7 +460,7 @@ is gitignored too.
 
 | Project | GitLab repo | Purpose |
 |---|---|---|
-| `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/` | `root/ndo_terraform` | **Phase 1** of the deployment runbook in this repo's `README_LAB.md` — foundational NDO-NAC stack (tenant `EUR`, schema `AFRICOM`, 5 templates, 812 VPC bindings) |
+| `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/` | `root/ndo_terraform` | **Phase 1** of the deployment runbook in this repo's `README_LAB.md` — foundational NDO-NAC stack (tenant `AFR-DEL.Services`, schema `AFRICOM`, 5 templates, 812 VPC bindings) |
 | `~/DC/NXOS/n5k/` | `root/n5k_replacement` | N5K switch migration and ACI leaf replacement (separate workflow) |
 | `~/DC/NXOS/n5k/Snake/{LAB,PRODUCTION}/aci-lf-rplc/` | sub-dirs of `n5k_replacement` | Leaf-replacement bindings tool (post-migration) |
 

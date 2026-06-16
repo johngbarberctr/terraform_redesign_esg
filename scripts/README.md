@@ -1,12 +1,102 @@
-# aci-redesign / scripts
+# scripts — Operational helpers
 
-Operational helpers for the V2 (consolidated) tenant redesign. None of these
-are run by Terraform itself -- they are post-deploy / cutover utilities.
+Operational Python tools for the ESG redesign and AFRICOM NIPR implementation.
+None of these are run by Terraform itself — they are pre/post-deploy and
+cutover utilities.
 
-For the canonical end-to-end deployment runbook (how all of this fits together
-with the Terraform roots and manual NDO deploys), see
-[`../../README_LAB.md`](../../README_LAB.md). This README is the **CLI
-reference** for the three Python scripts.
+> **Not the same as `africom-aci-apic/scripts/`**, which contains Terraform
+> shell helpers (`render-vmm-yaml.sh`, `auth-check.sh`, etc.) called during
+> `make plan/apply`. This directory is for standalone Python operational tools.
+
+For the canonical end-to-end deployment runbook see
+[`../README_LAB.md`](../README_LAB.md). For the AFRICOM NIPR implementation
+plan see [`../docs/AFRICOM/AFRICOM_Implementation_Plan.md`](../docs/AFRICOM/AFRICOM_Implementation_Plan.md).
+
+---
+
+## Script index
+
+| Script | Purpose |
+|--------|---------|
+| `validate_fabric.py` | **AFRICOM NIPR Phase 0** — fabric health checks + optional APIC snapshot, NDO backup, schema export. Run before and after every implementation phase. See below. |
+| `deploy_bindings.py` | Deploy V2 EPG static port bindings to NDO (PATCH-based, idempotent) |
+| `dump_bindings.py` | Export existing NDO binding paths to JSON (seed file for `deploy_bindings.py`) |
+| `check_fi_bindings_parity.py` | Verify FI binding manifest (`fi_epg_manifest.json`) matches the NDO V2 schema |
+| `generate_fi_bindings.py` | Regenerate `fi_epg_manifest.json` from the NDO V2 schema |
+| `deploy_bindings_rcc.py` | Deploy bindings for the IPv6 RCC tenant (variant of `deploy_bindings.py`) |
+| `check_rcc_bindings.py` | Verify RCC bindings |
+| `get_epg_endpoints.py` | Pull per-EPG endpoint lists from APIC |
+| `analyze_bd_mapping.py` | Analyse BD-to-EPG mappings in the redesign schema |
+| `ndo_bd_egp_mappings.py` | Dump NDO BD↔EPG associations |
+| `parse_ndo_backup.py` / `parse_ndo_backup_v2.py` | Parse NDO backup JSON for offline analysis |
+| `generate_ipv6_bindings1/2.py` | Generate static port bindings for the IPv6 RCC layer |
+| `clear_migration_state.py` | Reset migration state tracking (use with care) |
+| `test_fi_bindings.py` | Unit tests for FI binding generation |
+
+---
+
+## validate_fabric.py — AFRICOM NIPR Phase 0
+
+`validate_fabric.py` requires **no pip packages** — stdlib only.
+All other scripts in this directory require a venv (see below).
+
+### Quick reference
+
+```bash
+# Full Phase 0 — before a change window:
+# Creates APIC snapshots, NDO backup, schema export, saves health baseline.
+python3 scripts/validate_fabric.py \
+  --phase0 \
+  --artifacts-dir scripts/baseline/pre-phase1 \
+  --label pre-phase1
+
+# Health check only (read-only, safe any time):
+python3 scripts/validate_fabric.py -o scripts/baseline/quick-check.json
+
+# Post-change drift report:
+python3 scripts/validate_fabric.py \
+  --compare scripts/baseline/pre-phase1/baseline.json \
+  -o scripts/baseline/post-phase1/baseline.json
+
+# Skip NDO (when ND is unreachable):
+python3 scripts/validate_fabric.py --skip-ndo
+```
+
+### Flags
+
+| Flag | What it does |
+|------|-------------|
+| `--phase0` | Enable all three write actions (equivalent to `--snapshot --backup-ndo --export-schema`) |
+| `--snapshot` | 0.1 — trigger APIC config snapshot on both sites |
+| `--backup-ndo` | 0.2 — trigger NDO backup to the configured remote location |
+| `--export-schema` | 0.6 — save AFRICOM NIPR schema JSON to `--artifacts-dir` |
+| `--compare <file>` | Diff current results against a saved baseline |
+| `--artifacts-dir <dir>` | Directory for schema export + baseline JSON (default: `scripts/baseline/<timestamp>/`) |
+| `--output / -o <file>` | Override the baseline JSON output path |
+| `--skip-ndo` | Skip all NDO checks and actions |
+| `--label <string>` | Label used in snapshot/backup names (default: timestamp) |
+
+### Credentials
+
+All read from environment variables (same pattern as `deploy_bindings.py`):
+
+```bash
+export KELLEY_APIC_URL=https://...
+export KELLEY_APIC_USERNAME=admin
+export KELLEY_APIC_PASSWORD=...
+export DELDIN_APIC_URL=https://...
+export DELDIN_APIC_USERNAME=admin
+export DELDIN_APIC_PASSWORD=...
+export NDO_URL=https://...
+export NDO_USERNAME=admin
+export NDO_PASSWORD=...
+```
+
+In GitLab CI these are provided as masked variables. Set `PHASE0_FULL=true`
+in the **Run Pipeline** dialog to activate the write actions in the
+`phase0-validate-africom` job.
+
+---
 
 ---
 

@@ -311,7 +311,7 @@ class NDOIPv6BindingGenerator:
             epg_config = {
                 'epg_name': epg_name,
                 'vlan': str(vlan_counter),
-                'tenant': 'EUR',
+                'tenant': 'AFR-DEL.Services',
                 'app_profile': 'AppProf-RCC',
                 'bd_name': bd_name,
                 'template': template,

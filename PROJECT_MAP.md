@@ -1,147 +1,154 @@
 # Master Reference — ACI / NXOS Infrastructure as Code
 
-Everything in one place. Saved at: `/Users/johbarbe/DC/ACI/terraform-esg/PROJECT_MAP.md`
+Quick-reference for servers, paths, CI jobs, runners, and scripts.
+Companion to **`PROJECTS_LISTING.md`** (one row per repo with purpose + remotes).
+
+> **Path note.** The repo formerly at `~/DC/ACI/terraform-esg/` was cloned/moved to
+> `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/`. All paths below use the
+> current name. If you see the old name anywhere else, treat it as stale.
 
 ---
 
 ## Servers
 
-| Server | Hostname | Purpose |
-|--------|----------|---------|
-| Mac (local) | your laptop | Development, editing code |
-| RHEL 8 (GitLab + projects) | the RHEL server | GitLab instance, project repos |
-| Runner host | `apckw059aau0096` | Runs CI/CD jobs (shell executor) |
-| NDO (LAB) | `198.18.133.100` | Cisco NDO — LAB environment |
+| Server | Hostname / IP | Purpose |
+|--------|--------------|---------|
+| Mac (local) | your laptop | Development, editing IaC |
+| RHEL 8 (GitLab + repos) | the RHEL server | GitLab instance, bare repos |
+| CI runner host | `apckw059aau0096` | Runs CI/CD jobs (shell executor) |
+| NDO / ND (LAB) | `198.18.133.100` | Cisco Nexus Dashboard + NDO — lab |
+| Kelley APIC (LAB) | see `africom-aci-apic/lab.tfvars` | NADE02 lab APIC |
+| Del Din APIC (LAB) | see `africom-aci-apic/lab.tfvars` | NAIT03 lab APIC |
 
 ---
 
 ## GitLab Projects (on RHEL server)
 
-| Project | GitLab URL | RHEL Path | What it does |
-|---------|-----------|-----------|-------------|
-| terraform_redesign_esg | `web.git.mil/root/terraform_redesign_esg` | — | NDO Terraform (IPv6/ESG) + ACI Redesign |
-| ndo_terraform | `web.git.mil/root/ndo_terraform` | — | NAC-based Terraform for NDO |
-| n5k_replacement | `web.git.mil/root/n5k_replacement` | `~/nxos/n5k/` | N5K snake bindings (Python + Ansible) |
-| aci-lf-rplc | (new project on web.git.mil) | `~/aci-lf-rplc/` | Leaf replacement bindings (Python + Ansible) |
+| GitLab project | Mac path | What it does |
+|----------------|----------|-------------|
+| `root/terraform_redesign_esg` | `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/` | ESG redesign + AFRICOM NIPR APIC & NDO IaC (this repo) |
+| `root/ndo_terraform` | `sac-johbarbe-AFRICOM-terraform-nac-ndo/` | AFRICOM NIPR foundational NDO NAC stack |
+| `root/n5k_replacement` | `NXOS/sac-johbarbe-AFRICOM-nxos-n5k/` | N5K snake bindings (Python + Ansible) |
+| `root/aci-lf-rplc` | `NXOS/n5k/Snake/PRODUCTION/aci-lf-rplc/` | Leaf replacement bindings (Python + Ansible) |
 
 ---
 
-## Mac — File Locations
+## Mac — Workspace Files
 
-### Workspaces
-
-| Workspace file | Where it is |
-|---------------|------------|
-| ACI_LAB | `/Users/johbarbe/DC/ACI/terraform-esg/ACI_LAB.code-workspace` |
-| ACI_PRODUCTION | `/Users/johbarbe/DC/ACI/terraform-esg/ACI_PRODUCTION.code-workspace` |
-
-### ACI_LAB workspace folders
-
-| Folder name in Cursor | Mac path |
-|-----------------------|---------|
-| LAB - ESG Terraform | `/Users/johbarbe/DC/ACI/terraform-esg/` |
-| LAB - IPv4 NAC | `/Users/johbarbe/DC/ACI/ndo-terraform/` |
-| LAB - IPv4 NAC Terraform | `/Users/johbarbe/DC/ACI/ndo-terraform-nac/` |
-| LAB - IPv4 NAC Terraform (PROD) | `/Users/johbarbe/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/` |
-| LAB - N5K Migration & Leaf Replacement | `/Users/johbarbe/DC/NXOS/n5k/` |
-| LAB - ACI Leaf Replacement | `/Users/johbarbe/DC/NXOS/n5k/Snake/PRODUCTION/aci-lf-rplc/` |
-
-### ACI_PRODUCTION workspace folders
-
-| Folder name in Cursor | Mac path |
-|-----------------------|---------|
-| PROD - IPv6 RCC (136.215.4.96) | `/Users/johbarbe/DC/ACI/ndo-terraform-nac/136.215.4.96/` |
-| PROD - N5K Migration & Leaf Replacement | `/Users/johbarbe/DC/NXOS/n5k/Snake/PRODUCTION/` |
-
-### Where are the .gitlab-ci.yml files on Mac?
-
-| Project | Mac path |
-|---------|---------|
-| terraform_redesign_esg | `/Users/johbarbe/DC/ACI/terraform-esg/.gitlab-ci.yml` |
-| n5k (RHEL version) | `/Users/johbarbe/DC/NXOS/n5k/.gitlab-ci.yml` |
-| aci-lf-rplc (RHEL version) | `/Users/johbarbe/DC/NXOS/n5k/Snake/LAB/aci-lf-rplc/.gitlab-ci.yml` |
+| Workspace file | Path |
+|----------------|------|
+| `ACI_LAB` | `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/ACI_LAB.code-workspace` |
+| `ACI_PRODUCTION` | `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/ACI_PRODUCTION.code-workspace` |
+| `rcc-e` | `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/rcc-e.code-workspace` |
 
 ---
 
-## RHEL Server — File Locations
+## Mac — Key File Locations
 
-### aci-lf-rplc project (`~/aci-lf-rplc/`)
+### This repo (`sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/`)
 
-```
-~/aci-lf-rplc/
-├── .gitlab-ci.yml              ← CI pipeline
-├── .gitignore
-├── ansible.cfg
-├── deploy_bindings_python.py   ← deploys bindings to NDO
-├── selective_bindings_del.py   ← removes bindings from NDO
-├── process_data_LF.yml         ← generates terraform.tfvars.json from epg_data.json
-├── epg_data.json               ← INPUT: ACI EPG export
-├── vault.yml                   ← encrypted NDO password (gitignored)
-└── .vault_pass                 ← vault password file (gitignored)
-```
+| What | Path | README |
+|------|------|--------|
+| Repo root README | `README.md` | — |
+| Lab deployment runbook | `README_LAB.md` | — |
+| **AFRICOM NIPR implementation plan** | `docs/AFRICOM/AFRICOM_Implementation_Plan.md` | — |
+| AFRICOM design review deck (PPTX) | `docs/AFRICOM/AFRICOM_ACI_Design_Review.pptx` | — |
+| AFRICOM implementation plan (DOCX) | `docs/AFRICOM/AFRICOM_Implementation_Plan.docx` | — |
+| **APIC direct — ESG redesign (lab + prod)** | `aci-apic/` | `aci-apic/README.md` |
+| NDO schema — IPv4 redesign | `aci-ndo/` | `aci-ndo/README.md` |
+| NDO schema — IPv6 RCC layer | `aci-ndo-ipv6/` | `aci-ndo-ipv6/README.md` |
+| **APIC direct — AFRICOM NIPR (Kelley + Del Din)** | `africom-aci-apic/` | `africom-aci-apic/README.md` ← **start here for AFRICOM NIPR work** |
+| NDO schema — AFRICOM NIPR V2 | `africom-aci-ndo/` | `africom-aci-ndo/README.md` |
+| Phase 0 validation + automation script | `scripts/validate_fabric.py` | `africom-aci-apic/README.md` |
+| FI binding parity check | `scripts/check_fi_bindings_parity.py` | — |
+| Static port binding deploy | `scripts/deploy_bindings.py` | — |
+| Root CI pipeline (umbrella) | `.gitlab-ci.yml` | `README.md` |
+| AFRICOM NIPR CI pipeline | `africom-aci-apic/.gitlab-ci.yml` | `africom-aci-apic/README.md` |
 
-### n5k project (`~/nxos/n5k/`)
+### Sibling repo (`sac-johbarbe-AFRICOM-terraform-nac-ndo/`)
 
-```
-~/nxos/n5k/
-├── .gitlab-ci.yml              ← CI pipeline
-├── deploy_bindings_python_v2.py ← deploys bindings to NDO (v2, PC/VPC)
-├── selective_bindings_del.py    ← removes bindings from NDO
-├── process_data.yml             ← generates terraform.tfvars.json from switch data
-├── get_active_ports.yml         ← gathers port info from NX-OS switches
-├── get_active_pc_ports5.yml     ← gathers port-channel info from NX-OS switches
-├── setup_fabric_policies_africom.yml ← configures ACI fabric policies
-├── merge_tfvars.py              ← merges multiple tfvars JSON files
-├── ansible.cfg
-├── inventory.ini
-├── switch_interfaces.txt                      ← INPUT: from NX-OS
-├── nxos_vlan_brief_formatted.txt              ← INPUT: from NX-OS
-├── nxos_multiline_active_su_port_channels.txt ← INPUT: from NX-OS
-├── vault.yml                    ← encrypted NDO password (gitignored)
-└── vault_pass.txt               ← vault password file (gitignored)
-```
+| What | Path |
+|------|------|
+| Foundational NDO NAC stack | repo root |
+| NAC YAML data | `data/` |
+| CI pipeline | `.gitlab-ci.yml` |
+| Lab runbook | `README_LAB.md` |
 
----
+### NXOS repos
 
-## Copying files from Mac to RHEL server
-
-Only these 2 files need to be copied:
-
-| Mac path | RHEL destination |
-|----------|-----------------|
-| `/Users/johbarbe/DC/NXOS/n5k/Snake/LAB/aci-lf-rplc/.gitlab-ci.yml` | `~/aci-lf-rplc/.gitlab-ci.yml` |
-| `/Users/johbarbe/DC/NXOS/n5k/.gitlab-ci.yml` | `~/nxos/n5k/.gitlab-ci.yml` |
+| What | Path |
+|------|------|
+| N5K snake bindings | `NXOS/sac-johbarbe-AFRICOM-nxos-n5k/` |
+| Leaf replacement (LAB) | `NXOS/n5k/Snake/LAB/aci-lf-rplc/` |
+| Leaf replacement (PROD) | `NXOS/n5k/Snake/PRODUCTION/aci-lf-rplc/` |
 
 ---
 
-## CI/CD Pipelines
+## AFRICOM NIPR Implementation Plan — Automation Map
 
-### Pipeline flow (same for both projects)
+Where to find the automation for each implementation phase.
 
-```
-validate → process-data → dry-run → deploy
-                                       ↓
-                                    remove (manual)
-```
+| Phase | What | Tool | Location |
+|-------|------|------|----------|
+| **0** — Pre-change validation | Health checks, APIC snapshot, NDO backup, schema export | Python | `scripts/validate_fabric.py` |
+| **1.1** — Rogue EP Control (Del Din) | NAC YAML → Terraform | `africom-aci-apic/data/nac-aci-deldin/phase1-deldin-settings.nac.yaml` |
+| **1.2** — Port Tracking (Kelley) | NAC YAML → Terraform | `africom-aci-apic/data/nac-aci-kelley/phase1-kelley-settings.nac.yaml` |
+| **1.3** — BFD on fabric interfaces | NAC YAML → Terraform | `africom-aci-apic/data/nac-aci-shared/phase1-fabric-settings.nac.yaml` |
+| **1.4** — FISAC Permissive → Strict | **Manual only** (no API) | See `docs/AFRICOM/AFRICOM_Implementation_Plan.md §1.4` |
+| **1.5** — Disable Remote EP Learning | NAC YAML → Terraform | `africom-aci-apic/data/nac-aci-shared/phase1-fabric-settings.nac.yaml` |
+| **2** — Access policy cleanup | NAC YAML → Terraform (pending VLAN audit) | `africom-aci-apic/data/nac-aci-{kelley,deldin}/` |
+| **3** — Firewall & routing | **Manual only** (firewall/router config) | See `docs/AFRICOM/AFRICOM_Implementation_Plan.md §3` |
+| **4** — VMM stabilization | **Manual only** (vCenter/AD) | See `docs/AFRICOM/AFRICOM_Implementation_Plan.md §4` |
+| **5** — NDO schema cleanup | **Manual only** (NDO GUI — Move between templates has no REST API) | See `docs/AFRICOM/AFRICOM_Implementation_Plan.md §5` |
+| **6** — ND HA & backup | Partial: backup creds/schedule via NAC YAML; node add is manual | `africom-aci-apic/data/nac-aci-shared/` |
+| **7B** — Deploy V2 schema | NDO Terraform | `africom-aci-ndo/` |
+| **7C** — Lift-and-shift ESGs | NAC YAML → Terraform | `africom-aci-apic/data/nac-aci-shared/tenant-afrdel-esgs.nac.yaml` |
+| **7D** — BD-by-BD migration | Python script (extend deploy_bindings.py pattern) | `scripts/deploy_bindings.py` + per-BD manual gate in CI |
+| **7G** — vzAny removal | NDO Terraform with hard manual gate | `africom-aci-ndo/` |
 
-- **validate**: checks Python syntax
-- **process-data**: runs Ansible playbook to generate terraform.tfvars.json
-- **dry-run**: runs deploy script with --dry-run (preview only, no changes)
-- **deploy**: runs deploy script live (main branch only)
-- **remove**: manual trigger to remove bindings (main branch only)
+---
 
-### CI/CD Variables (GitLab → project → Settings → CI/CD → Variables)
+## .gitlab-ci.yml Files
 
-Set these in BOTH the aci-lf-rplc and n5k projects:
+| CI file | Stage | Trigger |
+|---------|-------|---------|
+| `.gitlab-ci.yml` (umbrella) | Orchestrates all sub-projects | push / MR |
+| `aci-apic/.gitlab-ci.yml` | ESG redesign APIC (lab + prod) | changes to `aci-apic/**` or `PROJECT=apic-vmware` |
+| `aci-ndo/.gitlab-ci.yml` | IPv4 redesign NDO schema | changes to `aci-ndo/**` or `PROJECT=aci-redesign-ndo` |
+| `aci-ndo-ipv6/.gitlab-ci.yml` | IPv6 RCC NDO layer | changes to `aci-ndo-ipv6/**` or `PROJECT=aci-ndo-ipv6` |
+| `africom-aci-apic/.gitlab-ci.yml` | **AFRICOM NIPR APIC** (Phase 0–2) | changes to `africom-aci-apic/**` or `PROJECT=africom-apic` |
 
-| Variable | Value | Check "Mask" |
-|----------|-------|-------------|
-| `NDO_HOST` | NDO hostname or IP | No |
-| `NDO_USERNAME` | NDO username | No |
-| `NDO_PASSWORD` | NDO password | Yes |
-| `VAULT_PASS` | Ansible vault password | Yes |
+Apply jobs are **always manual** (`when: manual`). Nothing auto-applies.
 
-You can copy `NDO_USERNAME` and `NDO_PASSWORD` from the IPv6 project. `NDO_HOST` is just the hostname/IP (not the full URL like `NDO_URL`). `VAULT_PASS` is new — it's the password you used when running `ansible-vault encrypt`.
+---
+
+## CI/CD Variables (GitLab → Settings → CI/CD → Variables)
+
+### AFRICOM NIPR (new — set for `africom-apic` jobs)
+
+| Variable | Notes |
+|----------|-------|
+| `KELLEY_APIC_URL` | Kelley APIC `https://...` |
+| `KELLEY_APIC_USERNAME` | usually `admin` |
+| `KELLEY_APIC_PASSWORD` | **Masked** |
+| `DELDIN_APIC_URL` | Del Din APIC `https://...` |
+| `DELDIN_APIC_USERNAME` | usually `admin` |
+| `DELDIN_APIC_PASSWORD` | **Masked** |
+| `NDO_URL` | Nexus Dashboard `https://...` |
+| `NDO_USERNAME` | NDO username |
+| `NDO_PASSWORD` | **Masked** |
+| `PHASE0_FULL` | Set to `true` in Run Pipeline dialog before a change window to enable APIC snapshots + NDO backup + schema export |
+| `KELLEY_APIC_URL_PROD` … `DELDIN_APIC_PASSWORD_PROD` | Prod variants — same pattern, `_PROD` suffix, **Masked + Protected** |
+
+### ESG redesign + IPv6 (existing)
+
+| Variable | Notes |
+|----------|-------|
+| `KELLEY_MCP_KEY` / `DELDIN_MCP_KEY` | MCP instance policy key ≥8 chars, **Masked** |
+| `VCENTER_HOSTNAME_IP` / `VCENTER_DATACENTER` / `VCENTER_DVS_VERSION` | VMM domain prereqs |
+| `VCENTER_USERNAME` / `VCENTER_PASSWORD` | **Masked + Protected** |
+| `GITLAB_TOKEN` | User access token for MR comments, **Masked** |
+| `NDO_USERNAME` / `NDO_PASSWORD` / `NDO_URL` | Shared with AFRICOM validate jobs |
 
 ---
 
@@ -152,19 +159,15 @@ You can copy `NDO_USERNAME` and `NDO_PASSWORD` from the IPv6 project. `NDO_HOST`
 | Runner name | `aci-automation-runner` |
 | Executor | Shell (NOT Docker) |
 | Runner host | `apckw059aau0096` |
-| Runner binary | `~/gitlab-runner/gitlab-runner` (on runner host) |
-| Runs as | Background process (no systemd, no sudo) |
+| Runner binary | `~/gitlab-runner/gitlab-runner` |
+| Runs as | Background process (no systemd) |
 
 ### Share the runner with new projects
 
-The runner is registered to the IPv6 project. To use it for aci-lf-rplc and n5k:
+1. IPv6 project → Settings → CI/CD → Runners → pencil icon → uncheck **Lock to current projects**
+2. Each new project → Settings → CI/CD → Runners → enable `aci-automation-runner`
 
-1. In GitLab, go to the IPv6 project → Settings → CI/CD → Runners
-2. Click the pencil icon on `aci-automation-runner`
-3. Uncheck "Lock to current projects"
-4. Go to each new project → Settings → CI/CD → Runners → enable it
-
-### Start / restart the runner
+### Start / restart
 
 ```bash
 ssh apckw059aau0096
@@ -173,106 +176,63 @@ nohup ~/gitlab-runner/gitlab-runner run &
 ps aux | grep gitlab-runner
 ```
 
-Shows online in GitLab within 30 seconds. Re-run after any server reboot.
+### Shell runner rules (important — Docker rules do NOT apply here)
 
-### Shell runner rules (important!)
-
-Because this is a shell runner, CI files MUST follow these rules:
-
-1. No `image:` line (that's Docker only)
+1. No `image:` line
 2. No `---` at the top of the file
-3. No `description:` or `value:` sub-keys under variables
-4. Use `only:` not `rules:`
-5. Inline everything in each job (no `extends:`)
+3. No `description:` / `value:` sub-keys under `variables:`
+4. Use `only:` not `rules:` (or omit — defaults to any branch)
+5. Inline everything (no `extends:`)
 
 ---
 
 ## Scripts Quick Reference
 
-### Deploying bindings
+### AFRICOM NIPR implementation
 
-| Project | Command | What it does |
-|---------|---------|-------------|
-| aci-lf-rplc | `python3 deploy_bindings_python.py terraform.tfvars.json --dry-run` | Preview deployment |
-| aci-lf-rplc | `python3 deploy_bindings_python.py terraform.tfvars.json` | Live deployment |
-| n5k | `python3 deploy_bindings_python_v2.py terraform.tfvars.json --dry-run` | Preview deployment |
-| n5k | `python3 deploy_bindings_python_v2.py terraform.tfvars.json` | Live deployment |
+| Command | What it does |
+|---------|-------------|
+| `python3 scripts/validate_fabric.py` | Phase 0 health check only (read-only) |
+| `python3 scripts/validate_fabric.py --phase0 --artifacts-dir scripts/baseline/pre-phase1` | Full Phase 0: health check + APIC snapshot + NDO backup + schema export |
+| `python3 scripts/validate_fabric.py --compare scripts/baseline/pre-phase1/baseline.json` | Post-change drift report |
+| `python3 scripts/validate_fabric.py --skip-ndo` | Skip NDO checks (when ND is unreachable) |
 
-### Removing bindings
+### ESG redesign binding scripts
 
-| Project | Command | What it does |
-|---------|---------|-------------|
-| both | `python3 selective_bindings_del.py --generate terraform.tfvars.json` | Generate removal file |
-| both | `python3 selective_bindings_del.py bindings_to_remove.json --dry-run` | Preview removal |
-| both | `python3 selective_bindings_del.py bindings_to_remove.json` | Live removal |
+| Command | What it does |
+|---------|-------------|
+| `python3 scripts/deploy_bindings.py` | Deploy V2 EPG static port bindings to NDO |
+| `python3 scripts/dump_bindings.py` | Export existing NDO binding paths (used to seed V2) |
+| `python3 scripts/check_fi_bindings_parity.py` | Verify FI binding manifest matches NDO schema |
+| `python3 scripts/generate_fi_bindings.py` | Regenerate FI binding manifest from schema |
 
-### Generating data
-
-| Project | Command | What it does |
-|---------|---------|-------------|
-| aci-lf-rplc | `ansible-playbook process_data_LF.yml` | Transform epg_data.json → terraform.tfvars.json |
-| n5k | `ansible-playbook process_data.yml` | Transform switch data → terraform.tfvars.json |
-| n5k | `ansible-playbook get_active_ports.yml` | Gather port info from NX-OS switches |
-| n5k | `ansible-playbook get_active_pc_ports5.yml` | Gather port-channel info from NX-OS switches |
-
----
-
-## Vault files
-
-Both projects use ansible-vault to store the NDO password.
-
-| Project | Vault file | Password file | How to create |
-|---------|-----------|---------------|--------------|
-| aci-lf-rplc | `vault.yml` | `.vault_pass` | see below |
-| n5k | `vault.yml` | `vault_pass.txt` | see below |
-
-### Creating vault files manually
+### Terraform workflow (AFRICOM NIPR APIC)
 
 ```bash
-# Write your vault password to the password file
-echo "your_vault_password" > .vault_pass    # aci-lf-rplc
-echo "your_vault_password" > vault_pass.txt  # n5k
+cd africom-aci-apic
+bash scripts/render-vmm-yaml.sh kelley    # generates gitignored VMM YAML
+bash scripts/render-vmm-yaml.sh deldin
+make plan                                  # lab.tfvars
+make apply
 
-# Create and encrypt the vault file
-echo "ndo_password: \"your_ndo_password\"" > /tmp/plain.yml
-ansible-vault encrypt --vault-password-file .vault_pass --output vault.yml /tmp/plain.yml
-rm /tmp/plain.yml
+# Prod:
+make plan   TFVARS_FILE=prod.tfvars
+make apply
 ```
-
-In CI, this is done automatically using the `VAULT_PASS` and `NDO_PASSWORD` variables.
 
 ---
 
-## terraform_redesign_esg (for reference)
+## What runs where
 
-This is the IPv6/ESG Terraform project — separate from aci-lf-rplc and n5k.
-
-| Detail | Value |
-|--------|-------|
-| Mac path | `/Users/johbarbe/DC/ACI/terraform-esg/` |
-| CI file | `/Users/johbarbe/DC/ACI/terraform-esg/.gitlab-ci.yml` |
-| CI handles | `ndo-terraform/` (NDO Terraform) and `aci-redesign/` (ACI APIC direct) |
-| Pipeline docs | `/Users/johbarbe/DC/ACI/terraform-esg/ndo-terraform/PIPELINE_SETUP.md` |
-
-### CI/CD Variables for this project
-
-| Variable | Purpose |
-|----------|---------|
-| `NDO_USERNAME` / `NDO_PASSWORD` / `NDO_URL` | NDO credentials |
-| `APIC_USERNAME` / `APIC_PASSWORD` / `APIC_URL` | APIC credentials |
-| `TF_HTTP_USERNAME` / `TF_HTTP_PASSWORD` | GitLab state backend |
-| `GITLAB_TOKEN` | MR comments |
-
-### IPv4 redesign — current state (post-NDO cutover)
-
-| Aspect | Lab | Prod (pending Terraform root) |
-|--------|-----|-------------------------------|
-| APIC data dirs | `data/nac-aci-site1/`, `data/nac-aci-site2/`, `data/nac-aci-shared/` | `data/nac-aci-site1-prod/`, `data/nac-aci-site2-prod/` (Design A: UCS-FI direct attach, no vPC) |
-| VMM domains | `APCG-VDS1` (Site1) + `APCK-VDS1` (Site2), each adopts the matching pre-existing VDS in shared vCenter | same names |
-| `dvs_version` | `unmanaged` (only safe value with vCenter 7.x/8.x against the `netascode/nac-aci` 0.7.0 validator) | same |
-| Dynamic VLAN pool | `vmm-vlan-pool` 3501-3967 | same |
-| Static VLAN pool | -- | `fi-static-vlan-pool` (213 VLANs in 93 ranges, sourced from live prod NDO) |
-| FI uplink PGs | -- | `PC_FI_A` (eth1/6), `PC_FI_B` (eth1/7); `mac-pinning` (mode `mac-pin`); single-leaf, no vPC |
-| Terraform roots | `apic-vmware/` (lab) + `ndo/` (lab+prod schema) | `apic-vmware-prod/` not yet created |
-
-NDO schema `data/nac-ndo/schema-africom-v2.nac.yaml` is shared between lab and prod (same EPG model). The split is purely on the APIC access-policy side.
+| Goal | Repo / path | Driver |
+|------|-------------|--------|
+| AFRICOM NIPR health check + Phase 0 automation | `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/scripts/validate_fabric.py` | `python3` direct or CI `phase0-validate-africom` job |
+| AFRICOM NIPR Phase 1–2 APIC settings | `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/africom-aci-apic/` | `make plan && make apply` or CI `phase1-*-africom` jobs |
+| AFRICOM NIPR V2 NDO schema | `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/africom-aci-ndo/` | `make plan && make apply` (then Deploy in NDO UI) |
+| AFRICOM NIPR foundational NDO stack | `sac-johbarbe-AFRICOM-terraform-nac-ndo/` | `terraform plan && terraform apply` |
+| ESG redesign APIC (lab + prod) | `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/aci-apic/` | `make plan && make apply` or CI |
+| ESG redesign NDO schema | `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/aci-ndo/` | `make plan && make apply` (then Deploy) |
+| IPv6 RCC NDO layer | `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/aci-ndo-ipv6/` | `make plan && make apply` |
+| V2 EPG static port bindings | `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/scripts/deploy_bindings.py` | `python3` after NDO deploy |
+| N5K-derived bindings (legacy) | `NXOS/sac-johbarbe-AFRICOM-nxos-n5k/` | ansible + `deploy_bindings_python_v2.py` or CI |
+| Leaf replacement bindings | `NXOS/n5k/Snake/{LAB,PRODUCTION}/aci-lf-rplc/` | ansible + `deploy_bindings_python.py` |

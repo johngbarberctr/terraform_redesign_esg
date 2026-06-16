@@ -58,7 +58,7 @@ variables:
   # the operator a hint of what's required, even before any included
   # file has rendered.
   PROJECT:
-    description: "Manually trigger one project's jobs only. One of: apic-vmware | apic-vmware-prod | aci-redesign-ndo | aci-ndo-ipv6. Leave empty for changes-driven runs."
+    description: "Manually trigger one project's jobs only. One of: apic-vmware | apic-vmware-prod | aci-redesign-ndo | aci-ndo-ipv6 | africom-apic | africom-apic-prod. Leave empty for changes-driven runs."
     value: ""
   NDO_USERNAME:
     description: "NDO username (used by aci-redesign/ndo and ndo-terraform-ipv6)"
@@ -115,6 +115,16 @@ variables:
   # authenticates with the per-job CI token. No PAT to manage, no expiry.
   GITLAB_TOKEN:
     description: "User access token for MR comments (Masked)"
+  # ── AFRICOM NIPR implementation pipeline variables ─────────────────────────
+  # Used by africom-aci-apic/.gitlab-ci.yml Phase 0 validate jobs.
+  # NDO creds are shared with aci-redesign-ndo / aci-ndo-ipv6 if the same
+  # NDO instance is used; rename with _PROD suffix for production targets.
+  NDO_URL:
+    description: "NDO / Nexus Dashboard URL (https://...) — used by africom-apic validate and NDO Terraform roots"
+  NDO_USERNAME:
+    description: "NDO username — used by africom-apic validate job"
+  NDO_PASSWORD:
+    description: "NDO password (Masked) — used by africom-apic validate job"
 
 # Shared template extended by every per-project job.
 .tf-job:
@@ -137,6 +147,12 @@ include:
   - local: aci-ndo-ipv6/.gitlab-ci.yml
     rules:
       - exists: [aci-ndo-ipv6/.gitlab-ci.yml]
+  # AFRICOM NIPR implementation pipeline (Phases 0-2).
+  # Jobs are gated by PROJECT=africom-apic or by changes to africom-aci-apic/**
+  # / scripts/validate_fabric.py. Apply jobs are always manual.
+  - local: africom-aci-apic/.gitlab-ci.yml
+    rules:
+      - exists: [africom-aci-apic/.gitlab-ci.yml]
 
 # ============================================
 # Cross-project: FI-binding parity check

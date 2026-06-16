@@ -52,7 +52,7 @@ class APICEndpointQuery:
             print(f"❌ Failed to authenticate: {e}")
             return False
     
-    def get_tenant_epgs(self, tenant="EUR"):
+    def get_tenant_epgs(self, tenant="AFR-DEL.Services"):
         """Get all EPGs in a tenant"""
         url = f"{self.base_url}/api/node/class/fvAEPg.json"
         params = {
@@ -140,7 +140,7 @@ class APICEndpointQuery:
         except Exception as e:
             return []
     
-    def run_full_report(self, tenant="EUR", target_epgs=None):
+    def run_full_report(self, tenant="AFR-DEL.Services", target_epgs=None):
         """Generate full endpoint report"""
         if not self.login():
             return
@@ -223,7 +223,7 @@ def main():
     parser.add_argument('--apic', required=True, help='APIC IP address')
     parser.add_argument('--username', default='admin', help='APIC username')
     parser.add_argument('--password', required=True, help='APIC password')
-    parser.add_argument('--tenant', default='EUR', help='Tenant name (default: EUR)')
+    parser.add_argument('--tenant', default='AFR-DEL.Services', help='Tenant name (default: AFR-DEL.Services)')
     parser.add_argument('--epg-filter', nargs='*', help='Filter to specific EPGs (partial match)')
     
     args = parser.parse_args()
