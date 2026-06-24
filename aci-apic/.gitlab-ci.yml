@@ -239,10 +239,7 @@ apply-apic-vmware-prod:
   dependencies:
     - plan-apic-vmware-prod
   needs:
-    - plan-apic-vmware-prod
+    - job: plan-apic-vmware-prod
+      optional: true
   when: manual
-  rules:
-    - if: $CI_COMMIT_BRANCH == "main"
-      changes:
-        - aci-apic/**/*
-    - if: $PROJECT == "apic-vmware-prod"
+  rules: *apic-vmware-prod-rules
