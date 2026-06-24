@@ -18,16 +18,16 @@
 # aci-redesign/README.md sections 4-5.
 #
 # IP HEADS-UP: lab APIC IPs change periodically. The values below are the
-# current (2026-05-04) lab assignment: Kelley=198.18.134.252, Del-Din=.253.
+# current (2026-06-24) lab assignment: Kelley=198.18.134.253, Del-Din=.254.
 # If `make auth-check` returns HTTP 000 (no response) or a connect timeout,
 # the IP is stale -- update both URLs here to match the current lab.
 # HTTP 401 means the IP is correct but the password is wrong; use
 # `source scripts/set-apic-password.sh` to set it cleanly.
 
-kelley_apic_url      = "https://198.18.134.252"
+kelley_apic_url      = "https://198.18.134.253"
 kelley_apic_username = "admin"
 
-deldin_apic_url      = "https://198.18.134.253"
+deldin_apic_url      = "https://198.18.134.254"
 deldin_apic_username = "admin"
 
 manage_tenants = true
