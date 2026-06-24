@@ -96,12 +96,12 @@ at the per-stack README for details.
 | # | What | Where | Time | Manual? |
 |---|------|-------|------|---------|
 | 0 *(optional)* | Bootstrap the two GitLab projects' CI/CD variables (prerequisite for CI-driven runs only) | `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/` + `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/` | ~5 min total | One script per repo, mostly auto-discovered |
-| 1 | Build foundational NDO state (tenant `AFR-DEL.Services`, schema `AFRICOM`, 5 prod templates) | `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/` | ~10 min plan/apply | Terraform |
-| 2 | Deploy 5 templates to Kelley/Del-Din (in strict order) | NDO UI | ~15 min total | **Manual UI** |
+| 1 | Build foundational NDO state (tenant `AFR-DEL.Services`, schema `AFRICOM`, 4 templates) | `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/` | ~10 min plan/apply | Terraform |
+| 2 | Deploy 4 templates to Kelley/Del-Din (in strict order) | NDO UI | ~15 min total | **Manual UI** |
 | 2.5 | Push legacy N5K static port bindings to AFRICOM EPGs | `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/scripts/` | ~2 min | Python (`deploy_bindings_python_v2.py`) |
 | 3 | APIC fabric/access policies, MCP, VMware VMM domains | `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/aci-apic/` | ~5 min apply | Terraform (both fabrics in one root) |
 | 4 | V2 redesign tenant tree (schema `AFRICOM-V2`, template `Tenant_EUR_V2`; all tenant-scoped objects suffixed `-V2`) | `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/aci-ndo/` | ~5 min apply + UI deploy | Terraform + manual UI |
-| 5 *(optional)* | IPv6 RCC layer (adds `AppProf-RCC` to existing `L2_Stretched`) | `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/aci-ndo-ipv6/` | ~30 min apply at `-parallelism=3` | Terraform + manual UI re-deploy |
+| 5 *(optional)* | IPv6 RCC layer (adds `AppProf-RCC` to existing `Stretched_Services`) | `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/aci-ndo-ipv6/` | ~30 min apply at `-parallelism=3` | Terraform + manual UI re-deploy |
 | 6 | Static port bindings (post-deploy push not modeled in NAC YAML) | `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/scripts/` | ~2 min | Python + manual UI re-deploy |
 | 7 | Verify on APICs and vCenter | APIC GUI + vCenter | as needed | Manual |
 
@@ -200,12 +200,11 @@ cd ~/DC/ACI/sac-johbarbe-AFRICOM-terraform-esg-nac-ndo
 
 ## Phase 1 — Foundational NDO build (`sac-johbarbe-AFRICOM-terraform-nac-ndo`)
 
-This repo creates **tenant `AFR-DEL.Services`**, **schema `AFRICOM`** with five templates
-(`VRF_Template`, `L2_Stretched`, `L2_Non-Stretched`, `Kelley-Specific_Only`,
-`Del-Din-Specific_Only`), 11 prod VRFs, 266 BDs, 265 EPGs, 13 L3Outs, and 812 VPC
-static-port bindings. Phase 4 in `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/aci-ndo/` cross-
-references `AFRICOM / VRF_Template / Any` (the filter), so this phase has to
-land first.
+This repo creates **tenant `AFR-DEL.Services`**, **schema `AFRICOM`** with four templates
+(`VRF`, `Stretched_Services`, `Kelley_Unique`, `Del_Din_Unique`),
+1 VRF (`AFR-PROD`), 266 BDs, 265 EPGs, 2 L3Outs (`L3Out-Kelley`, `L3Out-Del-Din`), and 812 VPC static-port bindings.
+Phase 4 in `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/aci-ndo/` cross-references
+`AFRICOM / VRF / Any` (the filter), so this phase has to land first.
 
 ```bash
 cd ~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo
@@ -243,7 +242,7 @@ and `README_LAB.md` (lab toggle).
 ## Phase 2 — Manual NDO-UI deploy of `AFRICOM` templates
 
 Strict order. Cross-template VRF dependencies will break the deploy if you skip
-ahead — error message is "VRF EUR-X must be deployed on Fabric Del-Din before
+ahead — error message is "VRF AFR-PROD must be deployed on Fabric Del-Din before
 BD type … can be deployed".
 
 NDO UI → **Application Management → Schemas → AFRICOM** → for each template,
@@ -251,14 +250,13 @@ click **Deploy to sites** in this order, **waiting for green** between steps:
 
 | # | Template | Sites |
 |---|----------|-------|
-| 2.1 | `VRF_Template` | Kelley, then Del-Din |
-| 2.2 | `L2_Stretched` | Kelley, then Del-Din |
-| 2.3 | `L2_Non-Stretched` | Kelley, then Del-Din |
-| 2.4 | `Kelley-Specific_Only` | Kelley only |
-| 2.5 | `Del-Din-Specific_Only` | Del-Din only |
+| 2.1 | `VRF` | Kelley, then Del-Din |
+| 2.2 | `Stretched_Services` | Kelley, then Del-Din |
+| 2.3 | `Kelley_Unique` | Kelley only |
+| 2.4 | `Del_Din_Unique` | Del-Din only |
 
-After Phase 2: tenant `AFR-DEL.Services`, all 11 VRFs (incl. `EUR-E`), schema `AFRICOM` with
-`Any` filter under `VRF_Template`, all 266 BDs and 265 EPGs are live on Kelley
+After Phase 2: tenant `AFR-DEL.Services`, VRF `AFR-PROD`, schema `AFRICOM` with
+`Any` filter under `VRF`, all 266 BDs and 265 EPGs are live on Kelley
 and Del-Din.
 
 ---
@@ -383,7 +381,7 @@ Details: `aci-apic/README_LAB.md` (lab daily-driver),
 
 ## Phase 4 — V2 (consolidated) tenant tree (`aci-ndo/`)
 
-This is where the cross-schema reference to `AFRICOM/VRF_Template/Any` (built
+This is where the cross-schema reference to `AFRICOM/VRF/Any` (built
 in Phase 1, deployed in Phase 2) actually resolves. Schema `AFRICOM-V2`
 contains a **single template** `Tenant_EUR_V2` (2 VRFs, 39 BDs, 39 EPGs,
 2 ANPs, 2 contracts; all tenant-scoped objects suffixed `-V2` to coexist
@@ -442,7 +440,7 @@ Details: `aci-apic/data/nac-aci-shared/tenant-eur-esgs.nac.yaml` (the ESG YAML i
 
 Only do this phase if you need the IPv6 RCC EPGs (`EPG-NAC`, `EPG-CFG-MGMT`,
 `EPG-RCC-DNS`, … 39 in total) under a new ANP `AppProf-RCC` inside the
-existing `L2_Stretched` template, **and/or** you intend to use Phase 6
+existing `Stretched_Services` template, **and/or** you intend to use Phase 6
 Path A (`dump_bindings.py`) which reads from `AFRICOM/AppProf-RCC` to seed
 IPv4 bindings.
 
@@ -466,8 +464,8 @@ read -rs TF_VAR_ndo_password && export TF_VAR_ndo_password
 
 # 5.3 Init + plan + apply.
 #     - `-var-file=lab.tfvars` is REQUIRED: it sets mso_domain="local" +
-#       mso_platform="nd" + vrf_template_name="VRF_Template". Omitting it
-#       falls back to the variables.tf defaults (null/null/VRF_Template),
+#       mso_platform="nd" + vrf_template_name="VRF". Omitting it
+#       falls back to the variables.tf defaults (null/null/VRF),
 #       which makes the mso provider speak legacy-MSO 3.x to a Nexus
 #       Dashboard NDO and fail with `HTTP Request failed with status code
 #       200 after 3 attempts`. (For prod cutover use `prod.tfvars`.)
@@ -480,9 +478,9 @@ terraform plan -var-file=lab.tfvars -refresh=false -parallelism=3 -out=plan.tfpl
 terraform apply -parallelism=3 plan.tfplan
 ```
 
-Then NDO UI → schema `AFRICOM` → template `L2_Stretched` → **Deploy to sites**
+Then NDO UI → schema `AFRICOM` → template `Stretched_Services` → **Deploy to sites**
 again (since this Terraform run added `AppProf-RCC` and 39 IPv6 EPGs into
-`L2_Stretched`).
+`Stretched_Services`).
 
 The "Deferred — re-enable after bindings" stages 6a/6b/6c documented in
 `aci-ndo-ipv6/README_LAB.md` happen **after** our Phase 6, not before.
