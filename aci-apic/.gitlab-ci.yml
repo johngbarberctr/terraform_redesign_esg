@@ -17,14 +17,13 @@
 #   Manual: GitLab UI -> Run pipeline -> set PROJECT=apic-vmware (lab)
 #           or PROJECT=apic-vmware-prod (prod)
 #
-# Required GitLab CI/CD variables (set via scripts/setup_gitlab_ci_variables.sh):
-#   Lab:  Site1_APIC_URL, Site1_APIC_USERNAME, Site1_APIC_PASSWORD (Masked),
-#         Site2_APIC_URL, Site2_APIC_USERNAME, Site2_APIC_PASSWORD (Masked)
-#         (Site1=Kelley, Site2=Del-Din)
-#   Prod: Site1_APIC_URL_PROD, Site1_APIC_USERNAME_PROD,
-#         Site1_APIC_PASSWORD_PROD (Masked+Protected),
-#         Site2_APIC_URL_PROD, Site2_APIC_USERNAME_PROD,
-#         Site2_APIC_PASSWORD_PROD (Masked+Protected)
+# Required GitLab CI/CD variables:
+#   Lab:  KELLEY_APIC_URL, KELLEY_APIC_USERNAME, KELLEY_APIC_PASSWORD (Masked),
+#         DELDIN_APIC_URL, DELDIN_APIC_USERNAME, DELDIN_APIC_PASSWORD (Masked)
+#   Prod: KELLEY_APIC_URL_PROD, KELLEY_APIC_USERNAME_PROD,
+#         KELLEY_APIC_PASSWORD_PROD (Masked+Protected),
+#         DELDIN_APIC_URL_PROD, DELDIN_APIC_USERNAME_PROD,
+#         DELDIN_APIC_PASSWORD_PROD (Masked+Protected)
 #   Both: VCENTER_HOSTNAME_IP, VCENTER_DATACENTER, VCENTER_DVS_VERSION,
 #         VCENTER_USERNAME, VCENTER_PASSWORD (Masked+Protected)
 #         GITLAB_API_URL (defaults to ${CI_API_V4_URL})
@@ -52,16 +51,16 @@
   TF_HTTP_UNLOCK_METHOD: DELETE
   TF_HTTP_USERNAME: "gitlab-ci-token"
   TF_HTTP_PASSWORD: "${CI_JOB_TOKEN}"
-  TF_VAR_kelley_apic_url: "${Site1_APIC_URL}"
-  TF_VAR_kelley_apic_username: "${Site1_APIC_USERNAME}"
-  TF_VAR_kelley_apic_password: "${Site1_APIC_PASSWORD}"
+  TF_VAR_kelley_apic_url: "${KELLEY_APIC_URL}"
+  TF_VAR_kelley_apic_username: "${KELLEY_APIC_USERNAME}"
+  TF_VAR_kelley_apic_password: "${KELLEY_APIC_PASSWORD}"
   TF_VAR_kelley_apic_insecure: "true"
-  # TF_VAR_kelley_mcp_key: "${Site1_MCP_KEY}"  # MCP already in APIC
-  TF_VAR_deldin_apic_url: "${Site2_APIC_URL}"
-  TF_VAR_deldin_apic_username: "${Site2_APIC_USERNAME}"
-  TF_VAR_deldin_apic_password: "${Site2_APIC_PASSWORD}"
+  # TF_VAR_kelley_mcp_key: "${KELLEY_MCP_KEY}"  # MCP already in APIC
+  TF_VAR_deldin_apic_url: "${DELDIN_APIC_URL}"
+  TF_VAR_deldin_apic_username: "${DELDIN_APIC_USERNAME}"
+  TF_VAR_deldin_apic_password: "${DELDIN_APIC_PASSWORD}"
   TF_VAR_deldin_apic_insecure: "true"
-  # TF_VAR_deldin_mcp_key: "${Site2_MCP_KEY}"  # MCP already in APIC
+  # TF_VAR_deldin_mcp_key: "${DELDIN_MCP_KEY}"  # MCP already in APIC
   TF_VAR_vcenter_hostname_ip: "${VCENTER_HOSTNAME_IP}"
   TF_VAR_vcenter_datacenter: "${VCENTER_DATACENTER}"
   TF_VAR_vcenter_dvs_version: "${VCENTER_DVS_VERSION}"
@@ -157,16 +156,16 @@ apply-apic-vmware:
   TF_HTTP_UNLOCK_METHOD: DELETE
   TF_HTTP_USERNAME: "gitlab-ci-token"
   TF_HTTP_PASSWORD: "${CI_JOB_TOKEN}"
-  TF_VAR_kelley_apic_url: "${Site1_APIC_URL_PROD}"
-  TF_VAR_kelley_apic_username: "${Site1_APIC_USERNAME_PROD}"
-  TF_VAR_kelley_apic_password: "${Site1_APIC_PASSWORD_PROD}"
+  TF_VAR_kelley_apic_url: "${KELLEY_APIC_URL_PROD}"
+  TF_VAR_kelley_apic_username: "${KELLEY_APIC_USERNAME_PROD}"
+  TF_VAR_kelley_apic_password: "${KELLEY_APIC_PASSWORD_PROD}"
   TF_VAR_kelley_apic_insecure: "true"
-  # TF_VAR_kelley_mcp_key: "${Site1_MCP_KEY_PROD}"  # MCP already in APIC
-  TF_VAR_deldin_apic_url: "${Site2_APIC_URL_PROD}"
-  TF_VAR_deldin_apic_username: "${Site2_APIC_USERNAME_PROD}"
-  TF_VAR_deldin_apic_password: "${Site2_APIC_PASSWORD_PROD}"
+  # TF_VAR_kelley_mcp_key: "${KELLEY_MCP_KEY_PROD}"  # MCP already in APIC
+  TF_VAR_deldin_apic_url: "${DELDIN_APIC_URL_PROD}"
+  TF_VAR_deldin_apic_username: "${DELDIN_APIC_USERNAME_PROD}"
+  TF_VAR_deldin_apic_password: "${DELDIN_APIC_PASSWORD_PROD}"
   TF_VAR_deldin_apic_insecure: "true"
-  # TF_VAR_deldin_mcp_key: "${Site2_MCP_KEY_PROD}"  # MCP already in APIC
+  # TF_VAR_deldin_mcp_key: "${DELDIN_MCP_KEY_PROD}"  # MCP already in APIC
   TF_VAR_vcenter_hostname_ip: "${VCENTER_HOSTNAME_IP}"
   TF_VAR_vcenter_datacenter: "${VCENTER_DATACENTER}"
   TF_VAR_vcenter_dvs_version: "${VCENTER_DVS_VERSION}"
