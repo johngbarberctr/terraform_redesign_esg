@@ -11,7 +11,7 @@
 > (`BD-AD`, `EPG-APP-SVR`, `VRF-EUR`, `Any_VRF-EUR`, `AppProf-NetCentric`,
 > ...) are kept un-suffixed for design-readability. The actual NDO/ACI
 > objects deployed by `aci-redesign/ndo/` carry a generational `-V2` suffix
-> (`BD-AD-V2`, `EPG-APP-SVR-V2`, `VRF-EUR-V2`, `Any_VRF-EUR-V2`,
+> (`BD-AD-V2`, `EPG-APP-SVR-V2`, `VRF-AFR-DEL.Services-V2`, `Any_VRF-AFR-DEL.Services-V2`,
 > `AppProf-NetCentric-V2`, ...). The suffix exists because the legacy
 > `AFRICOM` schema (managed by `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/`) deploys
 > into the **same tenant `EUR`**, and ACI requires unique object names per
@@ -68,10 +68,10 @@ schema and allowing the legacy `AFRICOM` schema to be retired.
 |-----------|-------|
 | Tenant | EUR (unchanged -- the legacy `AFRICOM` schema also deploys into this tenant) |
 | Schema | `AFRICOM-V2` (single template `Tenant_EUR_V2`) |
-| VRFs | **2** -- `VRF-EUR` (internal) + `VRF-DMZ` (proxy segments). Deployed names: `VRF-EUR-V2`, `VRF-DMZ-V2`. |
+| VRFs | **2** -- `VRF-EUR` (internal) + `VRF-DMZ` (proxy segments). Deployed names: `VRF-AFR-DEL.Services-V2`, `VRF-DMZ-V2`. |
 | Bridge Domains | **39** (descriptive: `BD-AD`, `BD-APP-SVR`, `BD-CFG-MGMT`, ...). Deployed names: same with `-V2` suffix. |
 | EPGs | **39** (1:1 with BDs: `EPG-AD`, `EPG-APP-SVR`, `EPG-CFG-MGMT`, ...). Deployed names: same with `-V2` suffix. |
-| Contracts | vzAny permit-all on each VRF (initial), tightened via ESGs later. Deployed names: `Any_VRF-EUR-V2`, `Any_VRF-DMZ-V2`. |
+| Contracts | vzAny permit-all on each VRF (initial), tightened via ESGs later. Deployed names: `Any_VRF-AFR-DEL.Services-V2`, `Any_VRF-DMZ-V2`. |
 | ESGs | `ESG-All-Internal-V2` (selects all 36 EPGs in `AppProf-NetCentric-V2`) + `ESG-All-DMZ-V2` (selects all 3 EPGs in `AppProf-DMZ-V2`), both under a third ANP `AppProf-AppCentric-V2`. The two ESGs land APIC-direct via the `nac-aci@0.7.0` wrapper (loaded by `apic-vmware/main.tf` from `data/nac-aci-shared/tenant-eur-esgs.nac.yaml` for both Site1 and Site2), because `nac-ndo ~> 1.2.0` and the upstream Cisco `mso` provider `~> 1.7.x` do not model `endpoint_security_groups`. vzAny+permit-all on each VRF keeps both ESGs reachability-neutral. |
 | VMM Domains | **Per-fabric**: `APCG-VDS1` on Site1, `APCK-VDS1` on Site2. Each adopts the existing per-fabric VDS in vCenter (`dvs_version: unmanaged`). Replaces the legacy single shared `VMM1` domain. |
 | Address families | IPv4 today; IPv6 (currently in `VRF-RCC` / `AppProf-RCC`) folded in later as additional subnets on the same `BD-*-V2` objects. |
@@ -87,10 +87,10 @@ schema and allowing the legacy `AFRICOM` schema to be retired.
 Tenant: EUR
 │
 ├── Filter: Any (cross-referenced from AFRICOM / VRF_Template / Any -- not redefined here)
-├── Contract: Any_VRF-EUR  (scope: context)              [deployed as Any_VRF-EUR-V2]
+├── Contract: Any_VRF-EUR  (scope: context)              [deployed as Any_VRF-AFR-DEL.Services-V2]
 ├── Contract: Any_VRF-DMZ  (scope: context)              [deployed as Any_VRF-DMZ-V2]
 │
-├── VRF-EUR (Internal)  ─── vzAny: Any_VRF-EUR          [deployed as VRF-EUR-V2]
+├── VRF-EUR (Internal)  ─── vzAny: Any_VRF-EUR          [deployed as VRF-AFR-DEL.Services-V2]
 │   │
 │   ├── 36 Bridge Domains (22 with IPv4 subnets today, 14 placeholders ready for IPv6)
 │   │   BD-ACAS-MGMT, BD-ACAS-SCANNERS, BD-AD, BD-ADM-DCO, BD-ADFS,
@@ -182,7 +182,7 @@ No host, VM, or switch needs an IP change. The ACI gateway address stays the sam
 
 | Phase | What | Security posture |
 |-------|------|------------------|
-| **Phase 1 (complete)** | vzAny permit-all on VRF-EUR-V2 and VRF-DMZ-V2; 39 EPGs in `AppProf-NetCentric-V2` + `AppProf-DMZ-V2` (NDO-managed) | Open -- all EPGs in a VRF can communicate freely |
+| **Phase 1 (complete)** | vzAny permit-all on VRF-AFR-DEL.Services-V2 and VRF-DMZ-V2; 39 EPGs in `AppProf-NetCentric-V2` + `AppProf-DMZ-V2` (NDO-managed) | Open -- all EPGs in a VRF can communicate freely |
 | **Phase 2 (in flight)** | Two lift-and-shift ESGs (`ESG-All-Internal-V2`, `ESG-All-DMZ-V2`) under `AppProf-AppCentric-V2` (APIC-direct via `nac-aci`); EPG-only selectors today; vzAny preserves reachability | Classification ready -- no policy change yet |
 | **Phase 3 (future)** | Split each ESG into zone-specific groups (e.g. `ESG-AIM-V2`, `ESG-AIS-V2`, `ESG-DMZ-Apps-V2`) by adding `tag_selectors` (vCenter custom-attribute) and trimming `epg_selectors` | Segmentation by function |
 | **Phase 4 (future)** | Replace VRF-level vzAny with explicit ESG-to-ESG contracts on the only flows that need to exist | Micro-segmentation |
@@ -268,10 +268,10 @@ The lab is greenfield (built from scratch). Production requires coexistence:
 
 | Phase | Action | Risk | Mitigation |
 |-------|--------|------|------------|
-| 1 | Create `VRF-EUR-V2`, `VRF-DMZ-V2` alongside existing 11 VRFs | None | New VRFs are empty |
+| 1 | Create `VRF-AFR-DEL.Services-V2`, `VRF-DMZ-V2` alongside existing 11 VRFs | None | New VRFs are empty |
 | 2 | Create 39 new BDs (`BD-*-V2`) with descriptive names | None | New BDs have no endpoints |
 | 3 | Create vzAny contracts (NDO) and the lift-and-shift ESGs `ESG-All-Internal-V2` + `ESG-All-DMZ-V2` under `AppProf-AppCentric-V2` (APIC-direct via `nac-aci`) | None | Classification ready, vzAny+permit-all keeps the ESGs reachability-neutral |
-| 4 | Migrate EPGs from old VRFs to `VRF-EUR-V2` / `VRF-DMZ-V2` | **Brief traffic loss per subnet** | Per-subnet maintenance windows; endpoints re-learn |
+| 4 | Migrate EPGs from old VRFs to `VRF-AFR-DEL.Services-V2` / `VRF-DMZ-V2` | **Brief traffic loss per subnet** | Per-subnet maintenance windows; endpoints re-learn |
 | 5 | Consolidate L3Outs (13 → ~4) | **Routing re-convergence** | Coordinate with firewall/WAN teams |
 | 6 | Rename EPGs/BDs from numeric to descriptive | Cosmetic only | Can be done anytime |
 | 7 | Decommission old VRFs, contracts, L3Outs (and the legacy `AFRICOM` schema once empty) | None (if all migrated) | Validate no orphaned objects |

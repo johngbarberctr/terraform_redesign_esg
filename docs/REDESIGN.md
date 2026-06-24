@@ -5,7 +5,7 @@
 > **For per-stack details:** each subdirectory has its own `README.md` (reference) and `README_LAB.md` (lab daily-driver).
 
 This directory holds the **V2 (consolidated) tenant redesign** — four pieces
-that together provision a 2-VRF tenant tree (`VRF-EUR-V2` + `VRF-DMZ-V2`)
+that together provision a 2-VRF tenant tree (`VRF-AFR-DEL.Services-V2` + `VRF-DMZ-V2`)
 with 39 BDs/EPGs across the Site1 and Site2 ACI fabrics. Tenant-scoped
 objects carry a `-V2` suffix so the redesign coexists with the legacy
 `AFRICOM` schema in tenant `EUR` during the parallel-run period; see
@@ -63,7 +63,7 @@ against the lab) and that all the YAML changes have merged to `main`.
 | Layer | What changes | Source of truth |
 | --- | --- | --- |
 | APIC access/fabric policies | New `fi-static-vlan-pool`, `fi-aaep`, `phys-fi-domain`, `PC_FI_A` / `PC_FI_B` policy groups, leaf 101/102 (Site1) and 101/102 (Site2) split between VMM ports (8-48) and FI uplinks (eth1/6, eth1/7), per-fabric VMM domain (`APCG-VDS1`, `APCK-VDS1`). | `apic-vmware-prod/` (Terraform) reading `data/nac-aci-{site1,site2}-prod/`. |
-| APIC tenant tree (VRFs/BDs/EPGs/contracts) | Tenant `EUR`: 2 VRFs (`VRF-EUR-V2`, `VRF-DMZ-V2`), 39 BDs (suffixed `-V2`), 39 EPGs (suffixed `-V2`), vzAny + 2 cross-VRF contracts, EPGs bound to per-fabric VMM domains. | `ndo/` (Terraform) reading `data/nac-ndo/schema-africom-v2.nac.yaml`. NDO pushes to both APICs. |
+| APIC tenant tree (VRFs/BDs/EPGs/contracts) | Tenant `EUR`: 2 VRFs (`VRF-AFR-DEL.Services-V2`, `VRF-DMZ-V2`), 39 BDs (suffixed `-V2`), 39 EPGs (suffixed `-V2`), vzAny + 2 cross-VRF contracts, EPGs bound to per-fabric VMM domains. | `ndo/` (Terraform) reading `data/nac-ndo/schema-africom-v2.nac.yaml`. NDO pushes to both APICs. |
 | Static port bindings (non-VMM EPGs) | `EPG-LB-V2`, `EPG-LMR-V2`, `EPG-VHOST-MGMT-V2` plus any prod bare-metal endpoints. | `scripts/deploy_bindings.py` reading a curated JSON file. |
 | L3Outs / external EPGs | **No change in this cutover.** They remain in the legacy IPv6 schema and continue to attach to VRFs by name; both schemas share the same VRF objects on the APICs. | `~/DC/ACI/terraform-esg/ndo-terraform-ipv6/` (legacy IPv6 layer). |
 | UCS / vCenter | FI uplinks physically re-cabled from N5K to ACI leaves; ESXi host VDS uplinks moved to the new APIC-managed `APCG-VDS1` / `APCK-VDS1`. | UCS team + virtualisation team. Out of scope for this repo. |
@@ -203,7 +203,7 @@ vzAny+permit-all on both VRFs (set in Stage 2's NDO schema) makes this purely ad
 
 **Verify:**
 
-- APIC GUI on each fabric: `Tenants → EUR → Application Profiles → AppProf-AppCentric-V2 → Endpoint Security Groups` shows `ESG-All-Internal-V2` (in `VRF-EUR-V2`) and `ESG-All-DMZ-V2` (in `VRF-DMZ-V2`).
+- APIC GUI on each fabric: `Tenants → EUR → Application Profiles → AppProf-AppCentric-V2 → Endpoint Security Groups` shows `ESG-All-Internal-V2` (in `VRF-AFR-DEL.Services-V2`) and `ESG-All-DMZ-V2` (in `VRF-DMZ-V2`).
 - For each ESG, `Operational → Endpoints` lists endpoints; counts should equal the sum of the corresponding EPG endpoint counts.
 - Spot-check 2-3 endpoints — they appear under both their original EPG (`AppProf-NetCentric-V2/EPG-…-V2` or `AppProf-DMZ-V2/EPG-…-V2`) and an ESG.
 

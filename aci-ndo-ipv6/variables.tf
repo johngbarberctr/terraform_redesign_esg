@@ -16,9 +16,9 @@ variable "ndo_url" {
 
 
 variable "vrf_template_name" {
-  description = "Template name for VRF resources (VRF_Template for lab, UpgradeTemplate1 for production)"
+  description = "Template name for VRF resources (VRF for lab AFRICOM schema, UpgradeTemplate1 for production)"
   type        = string
-  default     = "VRF_Template"
+  default     = "VRF"
 }
 
 variable "mso_domain" {

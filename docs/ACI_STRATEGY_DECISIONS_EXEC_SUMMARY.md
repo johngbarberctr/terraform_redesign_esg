@@ -18,7 +18,7 @@ The redesign aligns with Cisco's current ACI design guidance (BRKDCN-2984), the 
 | | Legacy AFRICOM | V2 redesign |
 |---|---|---|
 | Tenants | 1 (`EUR`) | 1 (same `EUR`) |
-| VRFs | 11 | 2 (`VRF-EUR-V2`, `VRF-DMZ-V2`) |
+| VRFs | 11 | 2 (`VRF-AFR-DEL.Services-V2`, `VRF-DMZ-V2`) |
 | BDs | 215 (`BD-V0005`…) | 39 (descriptive, e.g. `BD-AD-V2`) |
 | EPGs | 266 | 39 + 3 DMZ |
 | ESGs | 0 | 2 today (lift-and-shift), more planned |

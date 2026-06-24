@@ -8,7 +8,7 @@
 #     on Site1 and Site2 because this YAML is loaded by both
 #     module.aci_site1 and module.aci_site2 in apic-vmware/main.tf).
 #   * Two Endpoint Security Groups:
-#       - ESG-All-Internal-V2 in VRF-EUR-V2  -> selects every EPG in
+#       - ESG-All-Internal-V2 in VRF-AFR-DEL.Services-V2  -> selects every EPG in
 #         AppProf-NetCentric-V2 (36 internal EPGs).
 #       - ESG-All-DMZ-V2      in VRF-DMZ-V2  -> selects every EPG in
 #         AppProf-DMZ-V2      (3 DMZ EPGs).
@@ -66,7 +66,7 @@
 #        Recommended if the manual description has operational meaning.
 #
 # vzAny interaction:
-#   The two VRFs (VRF-EUR-V2 and VRF-DMZ-V2) already have vzAny
+#   The two VRFs (VRF-AFR-DEL.Services-V2 and VRF-DMZ-V2) already have vzAny
 #   permit-all configured in the NDO schema (vzany: true plus the
 #   Any_VRF-*-V2 contracts). vzAny applies to ESG endpoints exactly
 #   like EPG endpoints, so creating the ESGs below does NOT change
@@ -106,12 +106,12 @@ apic:
 
             # ─── ESG-All-Internal-V2 ────────────────────────────────────────
             # Lift-and-shift Phase 2: every EPG in AppProf-NetCentric-V2
-            # joins this ESG. vzAny on VRF-EUR-V2 keeps reachability
+            # joins this ESG. vzAny on VRF-AFR-DEL.Services-V2 keeps reachability
             # unchanged. Phase 3 will split this into per-zone ESGs by
             # adding tag_selectors and removing matching epg_selectors.
             - name: ESG-All-Internal-V2
-              description: "Phase 2: every internal EPG (NetCentric ANP) joins this ESG. vzAny permit-all on VRF-EUR-V2 preserves reachability."
-              vrf: VRF-EUR-V2
+              description: "Phase 2: every internal EPG (NetCentric ANP) joins this ESG. vzAny permit-all on VRF-AFR-DEL.Services-V2 preserves reachability."
+              vrf: VRF-AFR-DEL.Services-V2
               shutdown: false
               intra_esg_isolation: false
               preferred_group: false

@@ -5,8 +5,8 @@
 # from the 4.3.1 templates overview). Everything for the redesign lives in
 # one template:
 #
-#   - 2 VRFs (VRF-EUR-V2, VRF-DMZ-V2) with vzAny enforced
-#   - 2 contracts (Any_VRF-EUR-V2, Any_VRF-DMZ-V2), filter cross-ref to
+#   - 2 VRFs (VRF-AFR-DEL.Services-V2, VRF-DMZ-V2) with vzAny enforced
+#   - 2 contracts (Any_VRF-AFR-DEL.Services-V2, Any_VRF-DMZ-V2), filter cross-ref to
 #     AFRICOM/VRF_Template/Any (filter names are unique per tenant)
 #   - 39 stretched BDs (l2_stretch=true is the default in nac-ndo)
 #   - 2 ANPs (AppProf-NetCentric-V2, AppProf-DMZ-V2) with 39 EPGs total
@@ -59,7 +59,7 @@
 #     sac-johbarbe-AFRICOM-terraform-nac-ndo stack). NDO enforces unique object names per
 #     tenant, so the two contracts below cross-reference that existing filter.
 #   * L3Outs and External EPGs are NOT declared in this schema. North-south
-#     routing for VRF-EUR-V2 and VRF-DMZ-V2 is provided by the L3Outs that
+#     routing for VRF-AFR-DEL.Services-V2 and VRF-DMZ-V2 is provided by the L3Outs that
 #     already exist in the legacy IPv6 schema (managed by ../../ndo-terraform/
 #     and sac-johbarbe-AFRICOM-terraform-nac-ndo). Eventually the redesign will own its own
 #     L3Outs (different VRF names, different EPG-to-L3Out scoping); when that
@@ -71,7 +71,7 @@
 #     ../nac-aci-shared/tenant-eur-esgs.nac.yaml (loaded by both Kelley and
 #     Del-Din modules in ../../apic-vmware/main.tf), under the third ANP
 #     AppProf-AppCentric-V2. Phase 2 ships two lift-and-shift ESGs:
-#       - ESG-All-Internal-V2 (VRF-EUR-V2)  -> selects all 36 EPGs in
+#       - ESG-All-Internal-V2 (VRF-AFR-DEL.Services-V2)  -> selects all 36 EPGs in
 #         AppProf-NetCentric-V2 (declared below).
 #       - ESG-All-DMZ-V2      (VRF-DMZ-V2)  -> selects all 3 EPGs in
 #         AppProf-DMZ-V2 (declared below).
@@ -110,13 +110,13 @@ ndo:
           # VRFs and contracts (vzAny permit-all between EPGs in the VRF)
           # ─────────────────────────────────────────────────────────────────────
           vrfs:
-            - name: VRF-EUR-V2
+            - name: VRF-AFR-DEL.Services-V2
               vzany: true
               contracts:
                 providers:
-                  - name: Any_VRF-EUR-V2
+                  - name: Any_VRF-AFR-DEL.Services-V2
                 consumers:
-                  - name: Any_VRF-EUR-V2
+                  - name: Any_VRF-AFR-DEL.Services-V2
               sites:
                 - name: Kelley
                 - name: Del-Din
@@ -133,7 +133,7 @@ ndo:
                 - name: Del-Din
 
           contracts:
-            - name: Any_VRF-EUR-V2
+            - name: Any_VRF-AFR-DEL.Services-V2
               scope: context
               type: bothWay
               filters:
@@ -150,7 +150,7 @@ ndo:
                   template: VRF_Template
 
           # ─────────────────────────────────────────────────────────────────────
-          # Bridge Domains (39 total: 36 in VRF-EUR-V2, 3 in VRF-DMZ-V2)
+          # Bridge Domains (39 total: 36 in VRF-AFR-DEL.Services-V2, 3 in VRF-DMZ-V2)
           # All BDs are L2-stretched (default behaviour in nac-ndo).
           # VRF refs are in-template, so no schema/template fields needed.
           #
@@ -164,12 +164,12 @@ ndo:
 
             # ── BD-ACAS-MGMT-V2 (no legacy IPv4 predecessor) ─────────────────
             - name: BD-ACAS-MGMT-V2
-              vrf: { name: VRF-EUR-V2 }
+              vrf: { name: VRF-AFR-DEL.Services-V2 }
 
             # ── BD-ACAS-SCANNERS-V2 ──────────────────────────────────────────
             # From: BD-V0174 (APCG_ACAS), BD-V0474 (APCK_RETINA), BD-V0099
             - name: BD-ACAS-SCANNERS-V2
-              vrf: { name: VRF-EUR-V2 }
+              vrf: { name: VRF-AFR-DEL.Services-V2 }
               subnets:
                 - ip: 136.215.194.1/27
                   scope: public
@@ -179,7 +179,7 @@ ndo:
             # ── BD-AD-V2 ─────────────────────────────────────────────────────
             # From: BD-V0172 (APCG_AD), BD-V0322, BD-V0222
             - name: BD-AD-V2
-              vrf: { name: VRF-EUR-V2 }
+              vrf: { name: VRF-AFR-DEL.Services-V2 }
               subnets:
                 - ip: 136.215.193.1/26
                   scope: public
@@ -191,19 +191,19 @@ ndo:
             # ── BD-ADM-DCO-V2 ────────────────────────────────────────────────
             # From: BD-V0481 (DCOD_IDS)
             - name: BD-ADM-DCO-V2
-              vrf: { name: VRF-EUR-V2 }
+              vrf: { name: VRF-AFR-DEL.Services-V2 }
               subnets:
                 - ip: 155.155.230.97/28
                   scope: public
 
             # ── BD-ADFS-V2 (no legacy IPv4 predecessor) ──────────────────────
             - name: BD-ADFS-V2
-              vrf: { name: VRF-EUR-V2 }
+              vrf: { name: VRF-AFR-DEL.Services-V2 }
 
             # ── BD-APP-SVR-V2 ────────────────────────────────────────────────
             # Absorbs 45 legacy BDs -- largest consolidation.
             - name: BD-APP-SVR-V2
-              vrf: { name: VRF-EUR-V2 }
+              vrf: { name: VRF-AFR-DEL.Services-V2 }
               subnets:
                 - ip: 155.155.236.65/26
                   scope: public
@@ -273,7 +273,7 @@ ndo:
             # ── BD-BACKUP-SVR-V2 ─────────────────────────────────────────────
             # From: BD-V0544, V0144, V0444, V0809 (EMC_RECOVERPOINT)
             - name: BD-BACKUP-SVR-V2
-              vrf: { name: VRF-EUR-V2 }
+              vrf: { name: VRF-AFR-DEL.Services-V2 }
               subnets:
                 - ip: 155.155.234.129/27
                   scope: public
@@ -286,11 +286,11 @@ ndo:
 
             # ── BD-C2C-SCANNERS-V2 (no legacy IPv4 predecessor) ──────────────
             - name: BD-C2C-SCANNERS-V2
-              vrf: { name: VRF-EUR-V2 }
+              vrf: { name: VRF-AFR-DEL.Services-V2 }
 
             # ── BD-CFG-MGMT-V2 ───────────────────────────────────────────────
             - name: BD-CFG-MGMT-V2
-              vrf: { name: VRF-EUR-V2 }
+              vrf: { name: VRF-AFR-DEL.Services-V2 }
               subnets:
                 - ip: 155.155.20.1/25
                   scope: public
@@ -324,7 +324,7 @@ ndo:
             # ── BD-DB-SVR-V2 ─────────────────────────────────────────────────
             # From: BD-V0250, V0350, V0445, V0141, V0532, V0140, V0293, V0441
             - name: BD-DB-SVR-V2
-              vrf: { name: VRF-EUR-V2 }
+              vrf: { name: VRF-AFR-DEL.Services-V2 }
               subnets:
                 - ip: 155.155.80.1/25
                   scope: public
@@ -345,20 +345,20 @@ ndo:
 
             # ── BD-DHCP-SVR-V2 (no legacy IPv4 predecessor) ──────────────────
             - name: BD-DHCP-SVR-V2
-              vrf: { name: VRF-EUR-V2 }
+              vrf: { name: VRF-AFR-DEL.Services-V2 }
 
             # ── BD-DNS-MGMT-V2 (no subnets in legacy config) ─────────────────
             - name: BD-DNS-MGMT-V2
-              vrf: { name: VRF-EUR-V2 }
+              vrf: { name: VRF-AFR-DEL.Services-V2 }
 
             # ── BD-E911-SVR-V2 (no legacy IPv4 predecessor) ──────────────────
             - name: BD-E911-SVR-V2
-              vrf: { name: VRF-EUR-V2 }
+              vrf: { name: VRF-AFR-DEL.Services-V2 }
 
             # ── BD-FILE-SVR-V2 ───────────────────────────────────────────────
             # From: BD-V0150, V0450, V0550
             - name: BD-FILE-SVR-V2
-              vrf: { name: VRF-EUR-V2 }
+              vrf: { name: VRF-AFR-DEL.Services-V2 }
               subnets:
                 - ip: 136.215.165.1/25
                   scope: public
@@ -369,16 +369,16 @@ ndo:
 
             # ── BD-FMWR-SVR-V2 (no legacy IPv4 predecessor) ──────────────────
             - name: BD-FMWR-SVR-V2
-              vrf: { name: VRF-EUR-V2 }
+              vrf: { name: VRF-AFR-DEL.Services-V2 }
 
             # ── BD-GEF-MGMT-V2 (9 legacy GEF BDs, all L2-only) ───────────────
             - name: BD-GEF-MGMT-V2
-              vrf: { name: VRF-EUR-V2 }
+              vrf: { name: VRF-AFR-DEL.Services-V2 }
 
             # ── BD-LB-V2 ─────────────────────────────────────────────────────
             # From: BD-V0591, V0191, V0491
             - name: BD-LB-V2
-              vrf: { name: VRF-EUR-V2 }
+              vrf: { name: VRF-AFR-DEL.Services-V2 }
               subnets:
                 - ip: 155.155.240.1/26
                   scope: public
@@ -389,12 +389,12 @@ ndo:
 
             # ── BD-LMR-V2 (no legacy IPv4 predecessor) ───────────────────────
             - name: BD-LMR-V2
-              vrf: { name: VRF-EUR-V2 }
+              vrf: { name: VRF-AFR-DEL.Services-V2 }
 
             # ── BD-MECM-V2 ───────────────────────────────────────────────────
             # From: BD-V0171 (SCCMHost), V0176, V0476, V0473, V0173, V0170
             - name: BD-MECM-V2
-              vrf: { name: VRF-EUR-V2 }
+              vrf: { name: VRF-AFR-DEL.Services-V2 }
               subnets:
                 - ip: 136.215.192.129/27
                   scope: public
@@ -411,24 +411,24 @@ ndo:
 
             # ── BD-NAC-V2 (no legacy IPv4 predecessor) ───────────────────────
             - name: BD-NAC-V2
-              vrf: { name: VRF-EUR-V2 }
+              vrf: { name: VRF-AFR-DEL.Services-V2 }
 
             # ── BD-NMS-V2 ────────────────────────────────────────────────────
             # From: BD-V0014 (ACI_OOBM), BD-V0256 (Army_Metering_Public)
             - name: BD-NMS-V2
-              vrf: { name: VRF-EUR-V2 }
+              vrf: { name: VRF-AFR-DEL.Services-V2 }
               subnets:
                 - ip: 206.39.28.249/29
                   scope: public
 
             # ── BD-OCSP-V2 (no legacy IPv4 predecessor) ──────────────────────
             - name: BD-OCSP-V2
-              vrf: { name: VRF-EUR-V2 }
+              vrf: { name: VRF-AFR-DEL.Services-V2 }
 
             # ── BD-PATCH-V2 ──────────────────────────────────────────────────
             # From: BD-V0471 (APCK_PATCH)
             - name: BD-PATCH-V2
-              vrf: { name: VRF-EUR-V2 }
+              vrf: { name: VRF-AFR-DEL.Services-V2 }
               subnets:
                 - ip: 136.215.64.129/27
                   scope: public
@@ -436,39 +436,39 @@ ndo:
             # ── BD-PKI-SRV-V2 ────────────────────────────────────────────────
             # From: BD-V0522 (APCE_RCERT)
             - name: BD-PKI-SRV-V2
-              vrf: { name: VRF-EUR-V2 }
+              vrf: { name: VRF-AFR-DEL.Services-V2 }
               subnets:
                 - ip: 155.155.230.129/26
                   scope: public
 
             # ── BD-PRINT-SVR-V2 (no legacy IPv4 predecessor) ─────────────────
             - name: BD-PRINT-SVR-V2
-              vrf: { name: VRF-EUR-V2 }
+              vrf: { name: VRF-AFR-DEL.Services-V2 }
 
             # ── BD-RCC-DCO-V2 (no legacy IPv4 predecessor) ───────────────────
             - name: BD-RCC-DCO-V2
-              vrf: { name: VRF-EUR-V2 }
+              vrf: { name: VRF-AFR-DEL.Services-V2 }
 
             # ── BD-RCC-DNS-V2 (no legacy IPv4 predecessor) ───────────────────
             - name: BD-RCC-DNS-V2
-              vrf: { name: VRF-EUR-V2 }
+              vrf: { name: VRF-AFR-DEL.Services-V2 }
 
             # ── BD-RCC-SVR-V2 (no legacy IPv4 predecessor) ───────────────────
             - name: BD-RCC-SVR-V2
-              vrf: { name: VRF-EUR-V2 }
+              vrf: { name: VRF-AFR-DEL.Services-V2 }
 
             # ── BD-RCC-UNIX-V2 (no legacy IPv4 predecessor) ──────────────────
             - name: BD-RCC-UNIX-V2
-              vrf: { name: VRF-EUR-V2 }
+              vrf: { name: VRF-AFR-DEL.Services-V2 }
 
             # ── BD-SMTP-SVR-V2 (no legacy IPv4 predecessor) ──────────────────
             - name: BD-SMTP-SVR-V2
-              vrf: { name: VRF-EUR-V2 }
+              vrf: { name: VRF-AFR-DEL.Services-V2 }
 
             # ── BD-SYSLOG-V2 ─────────────────────────────────────────────────
             # From: BD-V0540 (APCE_POLL_LOG), BD-V0575 (ARCSIGHT)
             - name: BD-SYSLOG-V2
-              vrf: { name: VRF-EUR-V2 }
+              vrf: { name: VRF-AFR-DEL.Services-V2 }
               subnets:
                 - ip: 155.155.234.1/26
                   scope: public
@@ -479,12 +479,12 @@ ndo:
 
             # ── BD-SYSMAN-V2 (no legacy IPv4 predecessor) ────────────────────
             - name: BD-SYSMAN-V2
-              vrf: { name: VRF-EUR-V2 }
+              vrf: { name: VRF-AFR-DEL.Services-V2 }
 
             # ── BD-VHOST-MGMT-V2 ─────────────────────────────────────────────
             # From: BD-V0820 (APCW_SRVR_MGMT)
             - name: BD-VHOST-MGMT-V2
-              vrf: { name: VRF-EUR-V2 }
+              vrf: { name: VRF-AFR-DEL.Services-V2 }
               subnets:
                 - ip: 136.207.132.1/24
                   scope: public
@@ -492,7 +492,7 @@ ndo:
             # ── BD-VVOIP-MGMT-V2 ─────────────────────────────────────────────
             # From: BD-V0860, V0160, V0163, V0863, V0161, V0861, V0178, V0478, V0179
             - name: BD-VVOIP-MGMT-V2
-              vrf: { name: VRF-EUR-V2 }
+              vrf: { name: VRF-AFR-DEL.Services-V2 }
               subnets:
                 - ip: 136.207.176.1/26
                   scope: public
@@ -512,14 +512,14 @@ ndo:
             # ── BD-VVOIP-PROXY-V2 ────────────────────────────────────────────
             # From: BD-V0220 (ENTERPRISE_CALL_CENTER)
             - name: BD-VVOIP-PROXY-V2
-              vrf: { name: VRF-EUR-V2 }
+              vrf: { name: VRF-AFR-DEL.Services-V2 }
               subnets:
                 - ip: 155.155.82.1/27
                   scope: public
 
             # ── BD-WEB-SVR-V2 ────────────────────────────────────────────────
             - name: BD-WEB-SVR-V2
-              vrf: { name: VRF-EUR-V2 }
+              vrf: { name: VRF-AFR-DEL.Services-V2 }
               subnets:
                 - ip: 206.39.28.129/27
                   scope: public
@@ -576,7 +576,7 @@ ndo:
           # ─────────────────────────────────────────────────────────────────────
           application_profiles:
 
-            # ── AppProf-NetCentric-V2 (VRF-EUR-V2) -- 36 EPGs ────────────────
+            # ── AppProf-NetCentric-V2 (VRF-AFR-DEL.Services-V2) -- 36 EPGs ────────────────
             # Network-centric layer: one EPG per BD per legacy VLAN/subnet
             # group. The Phase-2 ESGs in ../nac-aci-shared/tenant-eur-esgs.
             # nac.yaml (under the APIC-direct AppProf-AppCentric-V2 ANP)

@@ -62,18 +62,18 @@
 
 ### A2. VRF count and boundaries
 
-**Today** ✅ in V2, ✅ in legacy — Legacy AFRICOM has **11 VRFs**. V2 has **2 VRFs**: `VRF-EUR-V2` (internal + L2 DMZ where the gateway is external) and `VRF-DMZ-V2` (routed proxy DMZ requiring true routing isolation).
+**Today** ✅ in V2, ✅ in legacy — Legacy AFRICOM has **11 VRFs**. V2 has **2 VRFs**: `VRF-AFR-DEL.Services-V2` (internal + L2 DMZ where the gateway is external) and `VRF-DMZ-V2` (routed proxy DMZ requiring true routing isolation).
 
-**Recommendation:** Keep the 2-VRF V2 layout. Use `VRF-EUR-V2` for everything where ESGs and contracts are sufficient for segmentation. Reserve `VRF-DMZ-V2` for proxy segments that need a hard L3 boundary with the rest of the estate. Do not re-introduce per-zone or per-application VRFs in V2.
+**Recommendation:** Keep the 2-VRF V2 layout. Use `VRF-AFR-DEL.Services-V2` for everything where ESGs and contracts are sufficient for segmentation. Reserve `VRF-DMZ-V2` for proxy segments that need a hard L3 boundary with the rest of the estate. Do not re-introduce per-zone or per-application VRFs in V2.
 
 **Source:** BRKDCN slides 22-29 ("VRFs add operational complexity without security value when ESGs+contracts handle segmentation"); NextGen ("combine VRFs where possible"); DESIGN. Note this is more aggressive than Sharman (kept 7 VRFs) and WWT-Long (kept 8-9). The Sharman position predates ESG multi-site shipping; it is now superseded.
 
 **Open questions for the team:**
-- [ ] Does anyone object to collapsing the 9 internal legacy VRFs (`EUR-AIM`, `EUR-AIS`, `EUR-AIV`, `EUR-AIZ`, `EUR-AIG`, `EUR-AIP`, `EUR-AOV-UC-DMZ`, `EUR-ARMY-ENT-SVR-DMZ`, `EUR-GSN-Test`, plus the catch-all) into the single `VRF-EUR-V2`?
+- [ ] Does anyone object to collapsing the 9 internal legacy VRFs (`EUR-AIM`, `EUR-AIS`, `EUR-AIV`, `EUR-AIZ`, `EUR-AIG`, `EUR-AIP`, `EUR-AOV-UC-DMZ`, `EUR-ARMY-ENT-SVR-DMZ`, `EUR-GSN-Test`, plus the catch-all) into the single `VRF-AFR-DEL.Services-V2`?
 - [ ] Are any of the legacy VRFs carrying overlapping IP ranges that would prevent the merge? (Spot-check: do any two VRFs hold the same prefix?)
-- [ ] Does `VRF-DMZ-V2` need to stay logically isolated from `VRF-EUR-V2` at routing, or is contract-based isolation acceptable longer-term?
+- [ ] Does `VRF-DMZ-V2` need to stay logically isolated from `VRF-AFR-DEL.Services-V2` at routing, or is contract-based isolation acceptable longer-term?
 
-**Risk if not decided:** Phase 2 lift-and-shift cannot complete. ESG-All-Internal-V2 assumes everything internal lives in `VRF-EUR-V2`.
+**Risk if not decided:** Phase 2 lift-and-shift cannot complete. ESG-All-Internal-V2 assumes everything internal lives in `VRF-AFR-DEL.Services-V2`.
 
 **Decision:** _________________________________________  **Re-visit:** _________
 
@@ -210,7 +210,7 @@
 
 ### A10. Application Profile separation (NetCentric / DMZ / AppCentric)
 
-**Today** ✅ — Three Application Profiles inside `VRF-EUR-V2` and `VRF-DMZ-V2`:
+**Today** ✅ — Three Application Profiles inside `VRF-AFR-DEL.Services-V2` and `VRF-DMZ-V2`:
 - `AppProf-NetCentric-V2` — 36 internal EPGs (1:1 with internal BDs)
 - `AppProf-DMZ-V2` — 3 DMZ EPGs (1:1 with DMZ BDs)
 - `AppProf-AppCentric-V2` — ESG layer (`ESG-All-Internal-V2`, `ESG-All-DMZ-V2`)
@@ -292,7 +292,7 @@
 ### C1. Scope of `ESG-All-Internal-V2` and `ESG-All-DMZ-V2`
 
 **Today** ✅ — Two ESGs declared in `tenant-eur-esgs.nac.yaml`:
-- `ESG-All-Internal-V2` in `VRF-EUR-V2`, with `epg_selectors` listing all 36 internal EPGs
+- `ESG-All-Internal-V2` in `VRF-AFR-DEL.Services-V2`, with `epg_selectors` listing all 36 internal EPGs
 - `ESG-All-DMZ-V2` in `VRF-DMZ-V2`, with `epg_selectors` listing the 3 DMZ EPGs
 
 Both have `intra_esg_isolation: false` and `preferred_group: false`. vzAny permit-all is still the active reachability policy.
@@ -302,7 +302,7 @@ Both have `intra_esg_isolation: false` and `preferred_group: false`. vzAny permi
 **Source:** ESGs-V2; DESIGN; Sharman §4 ("Phase 1: vzAny → permit all"); BRKDCN slide 75 (single ESG to single VRF mapping).
 
 **Open questions for the team:**
-- [ ] Define the exit criteria for Phase 2 → Phase 3. Suggested: (a) every endpoint in `VRF-EUR-V2` shows up under `ESG-All-Internal-V2` in APIC's per-ESG endpoint view; (b) NDI flow analysis confirms no flows are being mis-categorized; (c) at least one full business cycle (week or month) of observation.
+- [ ] Define the exit criteria for Phase 2 → Phase 3. Suggested: (a) every endpoint in `VRF-AFR-DEL.Services-V2` shows up under `ESG-All-Internal-V2` in APIC's per-ESG endpoint view; (b) NDI flow analysis confirms no flows are being mis-categorized; (c) at least one full business cycle (week or month) of observation.
 - [ ] How long does Phase 2 run before Phase 3 starts? (Suggestion: minimum 30 days, longer if app discovery is incomplete.)
 
 **Risk if not decided:** Phase 3 begins before Phase 2 baseline is solid; classification mistakes get inherited into per-zone ESGs and are harder to find later.
@@ -434,7 +434,7 @@ Tags are set in vCenter and read by ACI's VMware VMM integration. ESG tag select
 
 **Recommendation:** Document a Phase 2.5 procedure (between Phase 2 baseline and Phase 3 split work):
 
-1. **Enable NDI flow analysis** for VRF-EUR-V2 and VRF-DMZ-V2.
+1. **Enable NDI flow analysis** for VRF-AFR-DEL.Services-V2 and VRF-DMZ-V2.
 2. **Capture baseline** during a representative business cycle (suggestion: 4 weeks covering a month-end and a quarter-end).
 3. **Pull flows by source ESG → destination ESG**. Today this is `ESG-All-Internal-V2 → ESG-All-Internal-V2` and `ESG-All-Internal-V2 → ESG-All-DMZ-V2` and external. That tells you the bulk volume but not the application breakdown.
 4. **Pull flows by source IP → destination IP → port**. Group by /24 or /27 prefix to find clusters. Cross-reference with ServiceNow CMDB if available.
@@ -625,7 +625,7 @@ Suggested pilot candidates (you'll need to confirm based on what fits): an inter
    - Maintenance window scheduled.
    - Stakeholders notified.
 
-2. **The change itself**: edit `schema-africom-v2.nac.yaml` to set `vzany: false` (or remove the block) on `VRF-EUR-V2`. Deploy through NDO. **Do NOT do both VRFs in the same window.** Do `VRF-DMZ-V2` first (smaller blast radius), then `VRF-EUR-V2` after a stabilization period.
+2. **The change itself**: edit `schema-africom-v2.nac.yaml` to set `vzany: false` (or remove the block) on `VRF-AFR-DEL.Services-V2`. Deploy through NDO. **Do NOT do both VRFs in the same window.** Do `VRF-DMZ-V2` first (smaller blast radius), then `VRF-AFR-DEL.Services-V2` after a stabilization period.
 
 3. **Post-change observation**: monitor NDI for unexpected denies for at least 7 days.
 
@@ -648,11 +648,11 @@ This section is grouped because L3Outs are an undecided cross-phase topic. Most 
 
 ### F1. L3Out ownership in V2
 
-**Today** ⚪ — V2 schema declares **zero L3Outs**. North-south routing for `VRF-EUR-V2` and `VRF-DMZ-V2` is currently provided by the L3Outs that already exist in the legacy AFRICOM schema (13 L3Outs total: per-VRF, per-site `L3Out-G_*` and `L3Out-K_*`).
+**Today** ⚪ — V2 schema declares **zero L3Outs**. North-south routing for `VRF-AFR-DEL.Services-V2` and `VRF-DMZ-V2` is currently provided by the L3Outs that already exist in the legacy AFRICOM schema (13 L3Outs total: per-VRF, per-site `L3Out-G_*` and `L3Out-K_*`).
 
 **Recommendation:** Decide **now** whether V2 will own its own L3Outs or continue inheriting from legacy AFRICOM. Two options:
 
-- **Option A — V2 owns L3Outs.** Add `l3outs:` and `external_endpoint_groups:` blocks to `schema-africom-v2.nac.yaml`. New L3Outs are created in `EUR` tenant, scoped to `VRF-EUR-V2` and `VRF-DMZ-V2`. Eventually the legacy AFRICOM L3Outs are decommissioned.
+- **Option A — V2 owns L3Outs.** Add `l3outs:` and `external_endpoint_groups:` blocks to `schema-africom-v2.nac.yaml`. New L3Outs are created in `EUR` tenant, scoped to `VRF-AFR-DEL.Services-V2` and `VRF-DMZ-V2`. Eventually the legacy AFRICOM L3Outs are decommissioned.
 - **Option B — V2 inherits indefinitely.** Keep using the legacy L3Outs. AFRICOM schema stays partially live forever, just for L3Outs.
 
 **Recommended: Option A** with phased migration. Continuing to depend on AFRICOM for L3Outs prevents you from ever fully retiring the legacy schema, and creates a confusing two-headed ownership model.
@@ -680,8 +680,8 @@ This section is grouped because L3Outs are an undecided cross-phase topic. Most 
 2. Dedicated L3Outs avoid all the route-leaking complexity that BRKDCN slides 64-68 warn about.
 
 Concretely, four L3Outs in V2:
-- `L3Out-EUR-V2-G_to_core` (VRF-EUR-V2, Site1)
-- `L3Out-EUR-V2-K_to_core` (VRF-EUR-V2, Site2)
+- `L3Out-EUR-V2-G_to_core` (VRF-AFR-DEL.Services-V2, Site1)
+- `L3Out-EUR-V2-K_to_core` (VRF-AFR-DEL.Services-V2, Site2)
 - `L3Out-DMZ-V2-G_to_core` (VRF-DMZ-V2, Site1)
 - `L3Out-DMZ-V2-K_to_core` (VRF-DMZ-V2, Site2)
 
@@ -690,7 +690,7 @@ Concretely, four L3Outs in V2:
 **Open questions for the team:**
 - [ ] Approve the dedicated-per-VRF pattern.
 - [ ] Approve the four-L3Out naming proposal, or modify.
-- [ ] Confirm both `VRF-EUR-V2` and `VRF-DMZ-V2` peer with the same upstream device(s), or document where they differ.
+- [ ] Confirm both `VRF-AFR-DEL.Services-V2` and `VRF-DMZ-V2` peer with the same upstream device(s), or document where they differ.
 
 **Risk if not decided:** F1 cannot be implemented without F2 settled.
 

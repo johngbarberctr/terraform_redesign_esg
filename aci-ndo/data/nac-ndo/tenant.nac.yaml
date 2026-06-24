@@ -14,7 +14,7 @@
 # ndo:
 #   tenants:
 #     - name: AFR-DEL.Services
-#       description: "V2 redesign tenant -- 2 VRFs (VRF-EUR-V2 / VRF-DMZ-V2), 39 stretched BDs"
+#       description: "V2 redesign tenant -- 2 VRFs (VRF-AFR-DEL.Services-V2 / VRF-DMZ-V2), 39 stretched BDs"
 #       sites:
 #         - name: Kelley
 #         - name: Del-Din

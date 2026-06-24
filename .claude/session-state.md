@@ -1,7 +1,24 @@
 # Session Handoff — sac-johbarbe-AFRICOM-terraform-esg-nac-ndo
-**Last updated:** 2026-06-17 (morning session)
-**Session focus (2026-06-17):** nac-ndo pipeline failure debugging and CI revert — no ESG repo code changes this session.
+**Last updated:** 2026-06-17 (afternoon session)
+**Session focus (2026-06-17 afternoon):** VRF consolidation (11 → 1, placeholder `AFR-PROD`), template rename (5→4) documentation cleanup — all changes in nac-ndo sibling repo.
+**Session focus (2026-06-17 morning):** nac-ndo pipeline failure debugging and CI revert — no ESG repo code changes this session.
 **Session focus (2026-06-16):** AFRICOM NIPR implementation plan corrections, design review PPTX fixes, Phase 0/1 automation, documentation updates.
+
+---
+
+## What happened this session (2026-06-17 afternoon) — VRF consolidation
+
+All substantive work is in `sac-johbarbe-AFRICOM-terraform-nac-ndo`. Summary:
+
+**11 VRFs → 1 VRF (`AFR-PROD`, placeholder)** in `data/ndo/schema_AFRICOM.nac.yaml`:
+- 9 VRF definitions in `VRF` template collapsed to single `AFR-PROD`
+- 10 vzAny contracts (`Any_EUR-*`) collapsed to single `Any_AFR-PROD`
+- 287 BD/L3Out `vrf: name:` references updated to `AFR-PROD`
+- Kelley Unique's 2 site-local VRFs removed
+- ExtEPG contract bindings updated to `Any_AFR-PROD`
+- `README.md` VRF count table corrected (11 VRFs → 1)
+
+**⚠️ `AFR-PROD` is a placeholder name.** Once the customer confirms the actual production VRF name, do a global replace of `AFR-PROD` in the schema file.
 
 ---
 
@@ -147,7 +164,7 @@ The Phase 0 script and Phase 1 NAC YAML files exist on disk but have never been 
 - **The Site1/Site2 → Kelley/Del-Din rename is COMPLETE** in all tracked files. Do not reintroduce site1/site2 in any new content.
 - **Tenant rename `EUR` → `AFR-DEL.Services` is COMPLETE** across all AFRICOM files in both nac-ndo and ESG repos. Do not reintroduce `EUR` as a tenant name in any AFRICOM file. VRF/EPG/object names (`EUR-AIM`, `EUR-E`, `Any_EUR-*`, `Tenant_EUR_V2`, etc.) are intentionally unchanged — those are actual ACI object names.
 - **Do not use tenant `EUR`** in AFRICOM context. AFRICOM tenant is `AFR-DEL.Services`.
-- **Do not use RCC-E ESG zone names** (ESG-AIM, ESG-AIS, etc.) or VRF names (VRF-EUR-V2) in AFRICOM context.
+- **Do not use RCC-E ESG zone names** (ESG-AIM, ESG-AIS, etc.) or VRF names (VRF-AFR-DEL.Services-V2) in AFRICOM context.
 - **Do not modify `aci-apic/`, `aci-ndo/`, `aci-ndo-ipv6/`** — preserved RCC-E working state.
 - **`docs/AFRICOM/AFRICOM_Implementation_Plan.docx`** is a binary file in a gitignored path. Do not regenerate it unless the .md changes — conversion requires a temp venv with `python-docx`.
 
@@ -164,7 +181,7 @@ Required before proceeding:
 1. Delete `AFRICOM` schema and `AFR-DEL.Services` tenant from NDO UI
 2. Delete `ndo-terraform-nac-prod` GitLab state (project 5, Settings → CI/CD → Terraform states)
 3. Run nac-ndo pipeline → confirm 1478 resources created
-4. Deploy templates in NDO UI in strict order (VRF_Template → L2_Stretched → L2_Non-Stretched → Kelley-Specific_Only → Del-Din-Specific_Only)
+4. Deploy templates in NDO UI in strict order (VRF → Stretched Services → Kelley Unique → Del Din Unique)
 
 ### Step 0b — Commit this session's tracked ESG changes (from 2026-06-16)
 

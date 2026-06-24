@@ -240,7 +240,7 @@ def agenda_slide():
     items = [
         ("1  Why redesign", "Problems with today's 11-VRF / 266-EPG layout"),
         ("2  Target architecture", "2 VRFs, 39 BDs/EPGs, ESGs, vzAny"),
-        ("3  Key design decisions", "Why 2 VRFs, why L2 'DMZ' stays in VRF-EUR-V2, no IP changes, why -V2"),
+        ("3  Key design decisions", "Why 2 VRFs, why L2 'DMZ' stays in VRF-AFR-DEL.Services-V2, no IP changes, why -V2"),
         ("4  BD consolidation", "How 215 legacy BDs map into 39 functional BDs"),
         ("5  Naming & object model", "Descriptive naming conventions"),
         ("6  Phased security model", "vzAny → single ESG → zone ESGs → tight contracts"),
@@ -290,7 +290,7 @@ def executive_summary_slide():
     add_bullets(
         s, Inches(0.5), Inches(1.6), Inches(7.4), Inches(3.2),
         [
-            "Collapse 11 legacy VRFs into 2 routing domains: VRF-EUR-V2 (internal) and VRF-DMZ-V2 (proxy).",
+            "Collapse 11 legacy VRFs into 2 routing domains: VRF-AFR-DEL.Services-V2 (internal) and VRF-DMZ-V2 (proxy).",
             "Replace 215 numeric bridge domains and 266 EPGs with 39 descriptive, function-named BDs/EPGs that match the IPv6 RCC model.",
             "Introduce Endpoint Security Groups (ESGs) so segmentation can be enforced by policy instead of by VRF routing isolation.",
             "Keep every existing IPv4 subnet and gateway address in place - no host, VM, or switch is readdressed.",
@@ -383,17 +383,17 @@ def current_state_slide():
 def target_state_slide():
     s = prs.slides.add_slide(BLANK)
     page_header(s, "Target State - 2-VRF V2 Redesign",
-                "VRF-EUR-V2 + VRF-DMZ-V2, 39 BDs, 39 EPGs, 2 ESGs, vzAny permit-all start")
+                "VRF-AFR-DEL.Services-V2 + VRF-DMZ-V2, 39 BDs, 39 EPGs, 2 ESGs, vzAny permit-all start")
     headers = ["Attribute", "Target"]
     rows = [
         ["Tenant", "EUR (unchanged)"],
         ["Schema / Template", "AFRICOM-V2 / Tenant_EUR_V2"],
-        ["VRFs", "2  -  VRF-EUR-V2 (internal) + VRF-DMZ-V2 (proxy segments)"],
+        ["VRFs", "2  -  VRF-AFR-DEL.Services-V2 (internal) + VRF-DMZ-V2 (proxy segments)"],
         ["Bridge Domains",
          "39 descriptive  -  BD-AD-V2, BD-APP-SVR-V2, BD-CFG-MGMT-V2, ..."],
         ["EPGs", "39 (1:1 with BDs)  -  EPG-AD-V2, EPG-APP-SVR-V2, ..."],
         ["Contracts",
-         "vzAny permit-all (Any_VRF-EUR-V2, Any_VRF-DMZ-V2) - tightened via per-zone ESGs in Phase 3"],
+         "vzAny permit-all (Any_VRF-AFR-DEL.Services-V2, Any_VRF-DMZ-V2) - tightened via per-zone ESGs in Phase 3"],
         ["ESGs",
          "ESG-All-Internal-V2 (selects all 36 EPGs in AppProf-NetCentric-V2) + "
          "ESG-All-DMZ-V2 (selects all 3 EPGs in AppProf-DMZ-V2)  -  "
@@ -410,7 +410,7 @@ def target_state_slide():
         s, Inches(8.6), Inches(1.15), Inches(4.3), Inches(4.2),
         "Why this shape (and why -V2)",
         [
-            "VRF-EUR-V2 consolidates all internal traffic into a single routing domain.",
+            "VRF-AFR-DEL.Services-V2 consolidates all internal traffic into a single routing domain.",
             "VRF-DMZ-V2 keeps proxy segments (139.139.x.x) routing-isolated from internal.",
             "-V2 suffix lets AFRICOM-V2 coexist with the legacy AFRICOM schema in tenant EUR (ACI requires unique names per tenant).",
             "-V2 is generational, not address-family - same BDs will carry IPv4 + IPv6 once dual-stack wave lands.",
@@ -463,7 +463,7 @@ def architecture_diagram_slide():
              anchor=MSO_ANCHOR.MIDDLE)
     add_text(s, tx + Inches(4), ty, tw - Inches(4.2), Inches(0.4),
              "Filter: Any (cross-ref AFRICOM/VRF_Template/Any)  "
-             "|  Contracts: Any_VRF-EUR-V2, Any_VRF-DMZ-V2  "
+             "|  Contracts: Any_VRF-AFR-DEL.Services-V2, Any_VRF-DMZ-V2  "
              "|  Schema: AFRICOM-V2 / Tenant_EUR_V2",
              size=10, color=RGBColor(0xCF, 0xDA, 0xEA),
              anchor=MSO_ANCHOR.MIDDLE, align=PP_ALIGN.RIGHT)
@@ -474,8 +474,8 @@ def architecture_diagram_slide():
              line=RGBColor(0xCF, 0xD6, 0xE0))
     add_rect(s, ex, ey, ew, Inches(0.45), CISCO_BLUE)
     add_text(s, ex + Inches(0.15), ey, ew, Inches(0.45),
-             "VRF-EUR-V2  -  Internal (IPv4 today, dual-stack target)   "
-             "|   vzAny: Any_VRF-EUR-V2 (permit-all)",
+             "VRF-AFR-DEL.Services-V2  -  Internal (IPv4 today, dual-stack target)   "
+             "|   vzAny: Any_VRF-AFR-DEL.Services-V2 (permit-all)",
              size=13, bold=True, color=WHITE,
              anchor=MSO_ANCHOR.MIDDLE)
 
@@ -537,7 +537,7 @@ def architecture_diagram_slide():
           "ESG-All-Internal-V2  (Phase 2 in flight)", [
               "Selects all 36 EPGs in AppProf-NetCentric-V2 above",
               "Lives in AppProf-AppCentric-V2 ANP (APIC-direct)",
-              "vzAny on VRF-EUR-V2 keeps it reachability-neutral",
+              "vzAny on VRF-AFR-DEL.Services-V2 keeps it reachability-neutral",
           ], accent=GREEN)
 
     # VRF-DMZ container
@@ -584,7 +584,7 @@ def design_decisions_slide():
     rows = [
         ["2 VRFs instead of 11",
          "The firewall already enforces real security boundaries - extra VRFs added ops complexity without security value. ESGs + contracts replace VRF-based segmentation."],
-        ["VRF-EUR-V2 (internal)",
+        ["VRF-AFR-DEL.Services-V2 (internal)",
          "Consolidates EUR-E (101) + EUR-AIS (132) + EUR-AIM (15) + EUR-AIV (12) + EUR-AIZ (11) + EUR-AIG (1) + EUR-AIP (4) + EUR-GSN-Test (1) ≈ 276 legacy EPGs."],
         ["VRF-DMZ-V2",
          "Keeps EUR-AOV-UC-DMZ and EUR-ARMY-ENT-SVR-DMZ routing-isolated - DMZ must never share a routing table with internal."],
@@ -596,7 +596,7 @@ def design_decisions_slide():
          "All EPGs can talk inside a VRF on day 1. ESGs classify endpoints today so contracts can be tightened tomorrow without reclassification."],
         ["L3Out consolidation",
          "Production shrinks 13 L3Outs to ~4 (1 internal + 1 DMZ per site). Lab does not deploy L3Outs."],
-        ["L2 'DMZ'-aliased BDs stay in VRF-EUR-V2",
+        ["L2 'DMZ'-aliased BDs stay in VRF-AFR-DEL.Services-V2",
          "Gateway lives on an external firewall - VRF choice doesn't affect routing. ESG-based grouping (Phase 3) enforces the DMZ/internal boundary instead."],
     ]
     add_table(s, Inches(0.5), Inches(1.15), Inches(12.3), Inches(5.8),
@@ -619,7 +619,7 @@ def no_ip_change_slide():
              line=RGBColor(0xDD, 0xE2, 0xEA))
     add_rect(s, left_x, box_y, left_w, Inches(0.45), CISCO_BLUE)
     add_text(s, left_x + Inches(0.15), box_y, left_w, Inches(0.45),
-             "Example - BD-APP-SVR-V2 (VRF-EUR-V2) absorbs 32 subnets",
+             "Example - BD-APP-SVR-V2 (VRF-AFR-DEL.Services-V2) absorbs 32 subnets",
              size=13, bold=True, color=WHITE,
              anchor=MSO_ANCHOR.MIDDLE)
     mapping = [
@@ -729,10 +729,10 @@ def naming_conventions_slide():
     page_header(s, "Naming & Object Model",
                 "V2 redesign: -V2 suffix coexists with legacy AFRICOM in the same tenant EUR")
     rows = [
-        ["VRF (internal)", "VRF-<scope>-V2", "VRF-EUR-V2"],
+        ["VRF (internal)", "VRF-<scope>-V2", "VRF-AFR-DEL.Services-V2"],
         ["VRF (DMZ)", "VRF-<scope>-V2", "VRF-DMZ-V2"],
         ["VRF (IPv6, legacy)", "VRF-RCC (unchanged)", "VRF-RCC"],
-        ["Contract", "Any_<VRF>-V2", "Any_VRF-EUR-V2, Any_VRF-DMZ-V2"],
+        ["Contract", "Any_<VRF>-V2", "Any_VRF-AFR-DEL.Services-V2, Any_VRF-DMZ-V2"],
         ["Filter", "Any (cross-ref to AFRICOM/VRF_Template/Any)", "Any"],
         ["Bridge Domain", "BD-<function>-V2", "BD-DNS-MGMT-V2, BD-DB-SVR-V2"],
         ["EPG", "EPG-<function>-V2", "EPG-DNS-MGMT-V2, EPG-DB-SVR-V2"],
@@ -895,9 +895,9 @@ def production_phases_slide():
     page_header(s, "Production Migration (Brownfield)",
                 "Coexistence model - live traffic keeps flowing through every phase")
     rows = [
-        ["1", "Create VRF-EUR-V2 and VRF-DMZ-V2 alongside legacy 11 VRFs",
+        ["1", "Create VRF-AFR-DEL.Services-V2 and VRF-DMZ-V2 alongside legacy 11 VRFs",
          "None - new VRFs are empty"],
-        ["2", "Create 39 new BD-*-V2 with descriptive names in VRF-EUR-V2/VRF-DMZ-V2",
+        ["2", "Create 39 new BD-*-V2 with descriptive names in VRF-AFR-DEL.Services-V2/VRF-DMZ-V2",
          "None - new BDs have no endpoints yet"],
         ["3", "Create ESG-*-V2 and vzAny contracts (Any_VRF-*-V2) on VRF-*-V2",
          "None - policy ready, no enforcement yet"],
@@ -1066,9 +1066,9 @@ def deployed_objects_slide():
              "Tenant EUR", size=16, bold=True, color=NAVY)
     rows_tenant = [
         ["Filter", "Any (cross-ref AFRICOM/VRF_Template/Any, not redefined)"],
-        ["Contract", "Any_VRF-EUR-V2 (scope: context)"],
+        ["Contract", "Any_VRF-AFR-DEL.Services-V2 (scope: context)"],
         ["Contract", "Any_VRF-DMZ-V2 (scope: context)"],
-        ["VRF-EUR-V2", "vzAny provider + consumer of Any_VRF-EUR-V2"],
+        ["VRF-AFR-DEL.Services-V2", "vzAny provider + consumer of Any_VRF-AFR-DEL.Services-V2"],
         ["VRF-DMZ-V2", "vzAny provider + consumer of Any_VRF-DMZ-V2"],
         ["Bridge Domains (internal)",
          "36 BDs (BD-*-V2) - multi-subnet from legacy consolidation"],
