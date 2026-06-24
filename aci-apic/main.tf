@@ -27,19 +27,12 @@ terraform {
 #                                     Anything in here lands on every fabric.
 #   ../data/nac-aci-site1/            Kelley-specific access/fabric policy
 #                                     (Leaf-101/102 selectors, AAEP, VPC).
-#   ../data/nac-aci-kelley-rendered/  gitignored. vmm-domain.nac.yaml produced
-#                                     by `scripts/render-vmm-yaml.sh kelley`
-#                                     before `terraform plan`.
 #   ../data/nac-aci-site2/            Del-Din-specific access/fabric policy
 #                                     (Leaf-101/102 selectors, AAEP, VPC).
-#   ../data/nac-aci-deldin-rendered/  gitignored. produced by
-#                                     `scripts/render-vmm-yaml.sh deldin`.
 #
-# The render step is intentionally OUT OF BAND. A `local_file` resource here
-# would force the nac-aci module to depends_on an unapplied resource, which
-# defers every internal `for_each`/`count` to apply time and breaks plan.
-# The Makefile (`make plan` / `make apply`) and the GitLab CI plan/deploy
-# jobs always run the render script for both fabrics first.
+# NOTE: nac-aci-kelley-rendered/ and nac-aci-deldin-rendered/ (gitignored,
+# produced by scripts/render-vmm-yaml.sh) are NO LONGER loaded. VMM domain
+# configuration is commented out — AFRICOM already has VMM configured in APIC.
 # ---------------------------------------------------------------------------
 
 
@@ -50,7 +43,7 @@ module "aci_kelley" {
   yaml_directories = [
     "./data/nac-aci-shared",
     "./data/nac-aci-site1",
-    "./data/nac-aci-kelley-rendered",
+    # "./data/nac-aci-kelley-rendered",  # VMM already configured in APIC
   ]
 
   # Tenant-scoped split (see ../README.md for the cutover sequence):
@@ -114,7 +107,7 @@ module "aci_deldin" {
   yaml_directories = [
     "./data/nac-aci-shared",
     "./data/nac-aci-site2",
-    "./data/nac-aci-deldin-rendered",
+    # "./data/nac-aci-deldin-rendered",  # VMM already configured in APIC
   ]
 
   # See Kelley module above for the tenant split. The same shared YAML
