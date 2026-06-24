@@ -20,11 +20,11 @@
 apic:
   access_policies:
     vlan_pools:
-      - name: vmm-vlan-pool
-        allocation: dynamic
-        ranges:
-          - from: 3501
-            to: 3967
+#       - name: vmm-vlan-pool
+#         allocation: dynamic
+#         ranges:
+#           - from: 3501
+#             to: 3967
 
       # Identical to Site1 prod (213 VLANs, 93 contiguous ranges).
       - name: fi-static-vlan-pool
@@ -125,8 +125,8 @@ apic:
           - { from: 2250, to: 2250 }
 
     physical_domains:
-      - name: phys-vmm-domain
-        vlan_pool: vmm-vlan-pool
+#       - name: phys-vmm-domain
+#         vlan_pool: vmm-vlan-pool
 
       - name: phys-fi-domain
         vlan_pool: fi-static-vlan-pool
@@ -156,30 +156,28 @@ apic:
           auto: true
 
     aaeps:
-      - name: vmm-aaep
-        infra_vlan: true
-        vmware_vmm_domains:
-          # APCK-VDS1: existing per-fabric VDS in shared vCenter (Option A).
-          - APCK-VDS1
-        physical_domains:
-          - phys-vmm-domain
+#       - name: vmm-aaep
+#         infra_vlan: true
+#         vmware_vmm_domains:
+#           # APCK-VDS1: existing per-fabric VDS in shared vCenter (Option A).
+#           - APCK-VDS1
+#         physical_domains:
+#           - phys-vmm-domain
 
       - name: fi-aaep
         infra_vlan: true
-        vmware_vmm_domains:
-          # APCK-VDS1: existing per-fabric VDS in shared vCenter (Option A).
-          - APCK-VDS1
+        # vmware_vmm_domains: [APCK-VDS1]  # commented out — VMM already configured in APIC
         physical_domains:
           - phys-fi-domain
 
     leaf_interface_policy_groups:
-      - name: vpc-vmm-hosts
-        type: vpc
-        aaep: vmm-aaep
-        link_level_policy: 10G
-        cdp_policy: cdp-enabled
-        lldp_policy: lldp-enabled
-        port_channel_policy: mac-pinning
+#       - name: vpc-vmm-hosts
+#         type: vpc
+#         aaep: vmm-aaep
+#         link_level_policy: 10G
+#         cdp_policy: cdp-enabled
+#         lldp_policy: lldp-enabled
+#         port_channel_policy: mac-pinning
 
       - name: PC_FI_A
         type: pc
@@ -202,12 +200,12 @@ apic:
     leaf_interface_profiles:
       - name: leaf-101-102-intprof
         interface_selectors:
-          - name: vmm-host-ports
-            policy_group: vpc-vmm-hosts
-            port_blocks:
-              - name: block1
-                from_port: 8
-                to_port: 48
+#           - name: vmm-host-ports
+#             policy_group: vpc-vmm-hosts
+#             port_blocks:
+#               - name: block1
+#                 from_port: 8
+#                 to_port: 48
 
       - name: leaf-101-fi-intprof
         interface_selectors:

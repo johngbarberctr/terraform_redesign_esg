@@ -12,11 +12,11 @@
 apic:
   access_policies:
     vlan_pools:
-      - name: vmm-vlan-pool
-        allocation: dynamic
-        ranges:
-          - from: 3501
-            to: 3967
+#       - name: vmm-vlan-pool
+#         allocation: dynamic
+#         ranges:
+#           - from: 3501
+#             to: 3967
 
       # Legacy IPv4 infrastructure pool. Matches production APIC object
       # "Pool_VLAN_All_Combined" (2024-03-08 backup). Named VLAN_All_Combined
@@ -132,8 +132,8 @@ apic:
           - { from: 2250, to: 2250 }
 
     physical_domains:
-      - name: phys-vmm-domain
-        vlan_pool: vmm-vlan-pool
+#       - name: phys-vmm-domain
+#         vlan_pool: vmm-vlan-pool
 
       - name: phys-fi-domain
         vlan_pool: fi-static-vlan-pool
@@ -172,21 +172,20 @@ apic:
           auto: true
 
     aaeps:
-      - name: vmm-aaep
-        infra_vlan: true
-        vmware_vmm_domains:
-          # APCK-VDS1 is the existing VDS in the shared lab vCenter.
-          - APCK-VDS1
-        physical_domains:
-          - phys-vmm-domain
+#       - name: vmm-aaep
+#         infra_vlan: true
+#         vmware_vmm_domains:
+#           # APCK-VDS1 is the existing VDS in the shared lab vCenter.
+#           - APCK-VDS1
+#         physical_domains:
+#           - phys-vmm-domain
 
       # AAEP for FI uplinks. Carries BOTH the VMM domain (VDS trunk to ESXi
       # behind FIs) AND the static physical domain (non-VM workloads).
       # infra_vlan is true because ESXi VTEPs need the infra VLAN for OpFlex.
       - name: fi-aaep
         infra_vlan: true
-        vmware_vmm_domains:
-          - APCK-VDS1
+        # vmware_vmm_domains: [APCK-VDS1]  # commented out — VMM already configured in APIC
         physical_domains:
           - phys-fi-domain
 
@@ -200,13 +199,13 @@ apic:
           - L3_Dom_ND
 
     leaf_interface_policy_groups:
-      - name: vpc-vmm-hosts
-        type: vpc
-        aaep: vmm-aaep
-        link_level_policy: 10G
-        cdp_policy: cdp-enabled
-        lldp_policy: lldp-enabled
-        port_channel_policy: mac-pinning
+#       - name: vpc-vmm-hosts
+#         type: vpc
+#         aaep: vmm-aaep
+#         link_level_policy: 10G
+#         cdp_policy: cdp-enabled
+#         lldp_policy: lldp-enabled
+#         port_channel_policy: mac-pinning
 
       # Per-leaf port-channels to UCS Fabric Interconnects (Design A).
       # FI-A homes to Leaf-101 (PC_FI_A, eth1/6).
@@ -233,12 +232,12 @@ apic:
     leaf_interface_profiles:
       - name: leaf-101-102-intprof
         interface_selectors:
-          - name: vmm-host-ports
-            policy_group: vpc-vmm-hosts
-            port_blocks:
-              - name: block1
-                from_port: 8
-                to_port: 48
+#           - name: vmm-host-ports
+#             policy_group: vpc-vmm-hosts
+#             port_blocks:
+#               - name: block1
+#                 from_port: 8
+#                 to_port: 48
 
       - name: leaf-101-fi-intprof
         interface_selectors:

@@ -83,8 +83,8 @@ validate-apic-vmware:
   script:
     - bash .gitlab/ci-secret-scan.sh
     - cd aci-apic
-    - ./scripts/render-vmm-yaml.sh kelley
-    - ./scripts/render-vmm-yaml.sh deldin
+    # ./scripts/render-vmm-yaml.sh kelley  # VMM already configured in APIC
+    # ./scripts/render-vmm-yaml.sh deldin  # VMM already configured in APIC
     - terraform fmt -check -recursive
     - terraform init -backend=false -input=false
     - terraform validate
@@ -99,8 +99,8 @@ plan-apic-vmware:
     <<: *apic-vmware-vars
   script:
     - cd aci-apic
-    - ./scripts/render-vmm-yaml.sh kelley
-    - ./scripts/render-vmm-yaml.sh deldin
+    # ./scripts/render-vmm-yaml.sh kelley  # VMM already configured in APIC
+    # ./scripts/render-vmm-yaml.sh deldin  # VMM already configured in APIC
     - terraform init -input=false
     - terraform plan -out=plan.tfplan -input=false -var-file=lab.tfvars
     - terraform show -no-color plan.tfplan > plan.txt
@@ -127,8 +127,8 @@ apply-apic-vmware:
     <<: *apic-vmware-vars
   script:
     - cd aci-apic
-    - ./scripts/render-vmm-yaml.sh kelley
-    - ./scripts/render-vmm-yaml.sh deldin
+    # ./scripts/render-vmm-yaml.sh kelley  # VMM already configured in APIC
+    # ./scripts/render-vmm-yaml.sh deldin  # VMM already configured in APIC
     - terraform init -input=false
     - terraform apply -input=false -auto-approve plan.tfplan
   dependencies:
@@ -194,8 +194,8 @@ validate-apic-vmware-prod:
   script:
     - bash .gitlab/ci-secret-scan.sh
     - cd aci-apic
-    - ./scripts/render-vmm-yaml.sh kelley
-    - ./scripts/render-vmm-yaml.sh deldin
+    # ./scripts/render-vmm-yaml.sh kelley  # VMM already configured in APIC
+    # ./scripts/render-vmm-yaml.sh deldin  # VMM already configured in APIC
     - terraform fmt -check -recursive
     - terraform init -backend=false -input=false
     - terraform validate
@@ -210,8 +210,8 @@ plan-apic-vmware-prod:
     <<: *apic-vmware-prod-vars
   script:
     - cd aci-apic
-    - ./scripts/render-vmm-yaml.sh kelley
-    - ./scripts/render-vmm-yaml.sh deldin
+    # ./scripts/render-vmm-yaml.sh kelley  # VMM already configured in APIC
+    # ./scripts/render-vmm-yaml.sh deldin  # VMM already configured in APIC
     - terraform init -input=false
     - terraform plan -out=plan.tfplan -input=false -var-file=prod.tfvars
     - terraform show -no-color plan.tfplan > plan.txt
@@ -238,8 +238,8 @@ apply-apic-vmware-prod:
     <<: *apic-vmware-prod-vars
   script:
     - cd aci-apic
-    - ./scripts/render-vmm-yaml.sh kelley
-    - ./scripts/render-vmm-yaml.sh deldin
+    # ./scripts/render-vmm-yaml.sh kelley  # VMM already configured in APIC
+    # ./scripts/render-vmm-yaml.sh deldin  # VMM already configured in APIC
     - terraform init -input=false
     - terraform apply -input=false -auto-approve plan.tfplan
   dependencies:
