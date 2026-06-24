@@ -50,7 +50,7 @@ CLI
 ::
 
     ./generate_fi_bindings.py \
-        --schema-yaml ../data/nac-ndo/schema-africom-v2.nac.yaml \
+        --schema-yaml ../aci-ndo/data/nac-ndo/schema-africom-v2.nac.yaml \
         --output      fi_bindings.json \
         --vlan-map    fi_vlan_map.json
 """
@@ -310,7 +310,7 @@ def generate_bindings(
 def main() -> int:
     here = os.path.dirname(os.path.abspath(__file__))
     default_schema = os.path.normpath(
-        os.path.join(here, "..", "data", "nac-ndo", "schema-africom-v2.nac.yaml")
+        os.path.join(here, "..", "aci-ndo", "data", "nac-ndo", "schema-africom-v2.nac.yaml")
     )
 
     p = argparse.ArgumentParser(

@@ -128,14 +128,14 @@ def expected_epgs_from_schema(
 def main() -> int:
     here = os.path.dirname(os.path.abspath(__file__))
     default_schema = os.path.normpath(
-        os.path.join(here, "..", "data", "nac-ndo", "schema-africom-v2.nac.yaml")
+        os.path.join(here, "..", "aci-ndo", "data", "nac-ndo", "schema-africom-v2.nac.yaml")
     )
     default_manifest = os.path.join(here, "fi_epg_manifest.json")
 
     p = argparse.ArgumentParser(
         description=(
-            "Verify aci-redesign/scripts/fi_epg_manifest.json matches "
-            "aci-redesign/data/nac-ndo/schema-africom-v2.nac.yaml. "
+            "Verify scripts/fi_epg_manifest.json matches "
+            "aci-ndo/data/nac-ndo/schema-africom-v2.nac.yaml. "
             "Run from CI to fail fast on schema/binding drift."
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
