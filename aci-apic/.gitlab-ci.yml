@@ -58,12 +58,12 @@
   TF_VAR_kelley_apic_username: "${KELLEY_APIC_USERNAME}"
   TF_VAR_kelley_apic_password: "${KELLEY_APIC_PASSWORD}"
   TF_VAR_kelley_apic_insecure: "true"
-  TF_VAR_kelley_mcp_key: "${KELLEY_MCP_KEY}"
+  # TF_VAR_kelley_mcp_key: "${KELLEY_MCP_KEY}"  # MCP already in APIC
   TF_VAR_deldin_apic_url: "${DELDIN_APIC_URL}"
   TF_VAR_deldin_apic_username: "${DELDIN_APIC_USERNAME}"
   TF_VAR_deldin_apic_password: "${DELDIN_APIC_PASSWORD}"
   TF_VAR_deldin_apic_insecure: "true"
-  TF_VAR_deldin_mcp_key: "${DELDIN_MCP_KEY}"
+  # TF_VAR_deldin_mcp_key: "${DELDIN_MCP_KEY}"  # MCP already in APIC
   TF_VAR_vcenter_hostname_ip: "${VCENTER_HOSTNAME_IP}"
   TF_VAR_vcenter_datacenter: "${VCENTER_DATACENTER}"
   TF_VAR_vcenter_dvs_version: "${VCENTER_DVS_VERSION}"
@@ -163,12 +163,12 @@ apply-apic-vmware:
   TF_VAR_kelley_apic_username: "${KELLEY_APIC_USERNAME_PROD}"
   TF_VAR_kelley_apic_password: "${KELLEY_APIC_PASSWORD_PROD}"
   TF_VAR_kelley_apic_insecure: "true"
-  TF_VAR_kelley_mcp_key: "${KELLEY_MCP_KEY_PROD}"
+  # TF_VAR_kelley_mcp_key: "${KELLEY_MCP_KEY_PROD}"  # MCP already in APIC
   TF_VAR_deldin_apic_url: "${DELDIN_APIC_URL_PROD}"
   TF_VAR_deldin_apic_username: "${DELDIN_APIC_USERNAME_PROD}"
   TF_VAR_deldin_apic_password: "${DELDIN_APIC_PASSWORD_PROD}"
   TF_VAR_deldin_apic_insecure: "true"
-  TF_VAR_deldin_mcp_key: "${DELDIN_MCP_KEY_PROD}"
+  # TF_VAR_deldin_mcp_key: "${DELDIN_MCP_KEY_PROD}"  # MCP already in APIC
   TF_VAR_vcenter_hostname_ip: "${VCENTER_HOSTNAME_IP}"
   TF_VAR_vcenter_datacenter: "${VCENTER_DATACENTER}"
   TF_VAR_vcenter_dvs_version: "${VCENTER_DVS_VERSION}"

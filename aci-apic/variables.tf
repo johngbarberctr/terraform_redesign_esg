@@ -69,48 +69,20 @@ variable "deldin_apic_insecure" {
 # ---------------------------------------------------------------------------
 # MCP Instance Policy keys (one per fabric).
 # ---------------------------------------------------------------------------
+# MCP key variables retained for reference but no longer used — MCP resources
+# are commented out in main.tf (AFRICOM already has MCP configured in APIC).
 variable "kelley_mcp_key" {
-  description = <<-EOT
-    Kelley MCP (MisCabling Protocol) Instance Policy password/key.
-
-    APIC enforces complexity (>= 8 chars, mixed classes from lower/upper/
-    digit/symbol). Weak values like "cisco" are rejected with HTTP 400 /
-    Error 182.
-
-    Sources, in order:
-      1. Environment: export TF_VAR_kelley_mcp_key='<strong value>'
-      2. GitLab CI/CD masked + protected variable named KELLEY_MCP_KEY
-      3. Vault when stood up
-    Never commit this value to Git.
-  EOT
+  description = "Kelley MCP Instance Policy key. Unused — MCP already configured in APIC."
   type        = string
   sensitive   = true
-
-  validation {
-    condition     = length(var.kelley_mcp_key) >= 8
-    error_message = "kelley_mcp_key must be at least 8 characters to satisfy APIC MCP password complexity requirements."
-  }
+  default     = ""
 }
 
 variable "deldin_mcp_key" {
-  description = <<-EOT
-    Del-Din MCP (MisCabling Protocol) Instance Policy password/key. Same rules
-    as kelley_mcp_key. Use a DIFFERENT value than kelley_mcp_key so a leak of
-    one fabric's key does not compromise the other.
-
-    Sources, in order:
-      1. Environment: export TF_VAR_deldin_mcp_key='<strong value>'
-      2. GitLab CI/CD masked + protected variable named DELDIN_MCP_KEY
-      3. Vault when stood up
-    Never commit this value to Git.
-  EOT
+  description = "Del-Din MCP Instance Policy key. Unused — MCP already configured in APIC."
   type        = string
   sensitive   = true
-
-  validation {
-    condition     = length(var.deldin_mcp_key) >= 8
-    error_message = "deldin_mcp_key must be at least 8 characters to satisfy APIC MCP password complexity requirements."
-  }
+  default     = ""
 }
 
 variable "manage_tenants" {

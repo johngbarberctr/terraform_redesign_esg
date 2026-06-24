@@ -81,20 +81,21 @@ module "aci_kelley" {
 # the backend supports it) and rotating it produces a tracked diff. The
 # CI/Vault story for the key remains unchanged -- it still flows in via
 # var.kelley_mcp_key / var.deldin_mcp_key from TF_VAR_*_mcp_key env vars.
-resource "aci_rest_managed" "mcp_inst_pol_kelley" {
-  dn         = "uni/infra/mcpInstP-default"
-  class_name = "mcpInstPol"
-  content = {
-    adminSt        = "enabled"
-    ctrl           = "pdu-per-vlan"
-    initDelayTime  = "180"
-    key            = var.kelley_mcp_key
-    loopDetectMult = "3"
-    loopProtectAct = "port-disable"
-    txFreq         = "2"
-    txFreqMsec     = "0"
-  }
-}
+# MCP Instance Policy commented out — AFRICOM already has MCP configured in APIC.
+# resource "aci_rest_managed" "mcp_inst_pol_kelley" {
+#   dn         = "uni/infra/mcpInstP-default"
+#   class_name = "mcpInstPol"
+#   content = {
+#     adminSt        = "enabled"
+#     ctrl           = "pdu-per-vlan"
+#     initDelayTime  = "180"
+#     key            = var.kelley_mcp_key
+#     loopDetectMult = "3"
+#     loopProtectAct = "port-disable"
+#     txFreq         = "2"
+#     txFreqMsec     = "0"
+#   }
+# }
 
 module "aci_deldin" {
   source  = "netascode/nac-aci/aci"
@@ -124,18 +125,19 @@ module "aci_deldin" {
 # Del-Din counterpart -- same shape as mcp_inst_pol_kelley, routed through the
 # aliased aci.deldin provider. See the comment block above the Kelley resource
 # for why we don't use the netascode/mcp/aci wrapper here.
-resource "aci_rest_managed" "mcp_inst_pol_deldin" {
-  provider   = aci.deldin
-  dn         = "uni/infra/mcpInstP-default"
-  class_name = "mcpInstPol"
-  content = {
-    adminSt        = "enabled"
-    ctrl           = "pdu-per-vlan"
-    initDelayTime  = "180"
-    key            = var.deldin_mcp_key
-    loopDetectMult = "3"
-    loopProtectAct = "port-disable"
-    txFreq         = "2"
-    txFreqMsec     = "0"
-  }
-}
+# MCP Instance Policy commented out — AFRICOM already has MCP configured in APIC.
+# resource "aci_rest_managed" "mcp_inst_pol_deldin" {
+#   provider   = aci.deldin
+#   dn         = "uni/infra/mcpInstP-default"
+#   class_name = "mcpInstPol"
+#   content = {
+#     adminSt        = "enabled"
+#     ctrl           = "pdu-per-vlan"
+#     initDelayTime  = "180"
+#     key            = var.deldin_mcp_key
+#     loopDetectMult = "3"
+#     loopProtectAct = "port-disable"
+#     txFreq         = "2"
+#     txFreqMsec     = "0"
+#   }
+# }
