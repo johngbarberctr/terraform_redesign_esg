@@ -370,6 +370,16 @@ profiles for the FI uplinks (eth1/6 on leaf-101, eth1/7 on leaf-102), and the
 legacy IPv4 objects: `VLAN_All_Combined` static pool, `PhysDom_ACI_Nexus`,
 `L3_Dom_ND`, and `AAEP_ACI_Nexus`.
 
+### Triggering the CI pipeline
+
+| Mode | How |
+|---|---|
+| **Auto** | Push any change under `aci-apic/**` to `main` — lab jobs run automatically |
+| **Lab manual** | GitLab → **Build → Pipelines → New pipeline** → branch `main` → add variable `PROJECT` = `apic-vmware` → **Run pipeline** |
+| **Prod manual** | Same as above but `PROJECT` = `apic-vmware-prod` — prod never runs automatically |
+
+Direct URL: `http://localhost:8080/root/sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/-/pipelines/new`
+
 Details: `aci-apic/README_LAB.md` (lab daily-driver),
 `README.md` (env-var table, MCP-key rationale, error catalog).
 

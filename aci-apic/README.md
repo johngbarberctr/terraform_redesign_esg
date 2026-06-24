@@ -46,14 +46,10 @@ Local workflow:
 source scripts/set-apic-password.sh              # sets TF_VAR_kelley/deldin_apic_password
 eval "$(./scripts/generate-mcp-key.sh kelley)"  # TF_VAR_kelley_mcp_key
 eval "$(./scripts/generate-mcp-key.sh deldin)"  # TF_VAR_deldin_mcp_key
-export TF_VAR_vcenter_hostname_ip='...'
-export TF_VAR_vcenter_datacenter='...'
-export TF_VAR_vcenter_username='...'
-export TF_VAR_vcenter_password='...'
-export TF_VAR_vcenter_dvs_version='unmanaged'
+# NOTE: TF_VAR_vcenter_* vars are NOT needed — VMM is commented out
 make init                   # first time or after module/provider bumps
 make auth-check             # verify APIC connectivity before plan
-make plan                   # renders VMM YAML + plans; uses lab.tfvars by default
+make plan                   # uses lab.tfvars by default
 make apply
 
 # Prod (override var-file and pass prod secrets via env)
@@ -71,11 +67,21 @@ Four jobs in `aci-apic/.gitlab-ci.yml` (two pairs: lab + prod):
 
 | Job | Stage | Trigger |
 |---|---|---|
-| `validate-aci-apic` | validate | MR or push to `aci-apic/**` |
-| `plan-aci-apic` | plan | same |
-| `plan-aci-apic-prod` | plan | MR or push to `aci-apic/**` |
-| `apply-aci-apic` | deploy | manual, `main` only |
-| `apply-aci-apic-prod` | deploy | manual, `main` only |
+| `validate-apic-vmware` | validate | auto — any push/MR changing `aci-apic/**` |
+| `plan-apic-vmware` | plan | auto — same |
+| `apply-apic-vmware` | deploy | **manual** — `main` branch only |
+| `validate-apic-vmware-prod` | validate | **manual only** — set `PROJECT=apic-vmware-prod` |
+| `plan-apic-vmware-prod` | plan | **manual only** — set `PROJECT=apic-vmware-prod` |
+| `apply-apic-vmware-prod` | deploy | **manual only** — set `PROJECT=apic-vmware-prod` |
+
+Prod jobs never run automatically. To trigger them:
+
+1. Go to `http://localhost:8080/root/sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/-/pipelines/new`
+2. Branch: `main`
+3. Add variable: **`PROJECT`** = **`apic-vmware-prod`**
+4. Click **Run pipeline**
+
+For lab, same steps with **`PROJECT`** = **`apic-vmware`** (or just push to `aci-apic/**`).
 
 State keys (do NOT rename — live state exists):
 
@@ -90,8 +96,8 @@ State keys (do NOT rename — live state exists):
 | `kelley_apic_username / deldin_apic_username` | tfvars | usually `admin` |
 | `kelley_apic_password / deldin_apic_password` | env / CI masked | never committed |
 | `kelley_mcp_key / deldin_mcp_key` | env / CI masked | >=8 chars, mixed |
-| `vcenter_hostname_ip` / `vcenter_datacenter` / `vcenter_dvs_version` | tfvars | VMM domain prereqs |
-| `vcenter_username` / `vcenter_password` | env / CI masked | |
+| `vcenter_hostname_ip` / `vcenter_datacenter` / `vcenter_dvs_version` | ~~tfvars~~ | **Not required** — VMM commented out (already in APIC) |
+| `vcenter_username` / `vcenter_password` | ~~env / CI masked~~ | **Not required** — VMM commented out |
 | `manage_tenants` | tfvars | `true` = lab, `false` = prod |
 
 ## Troubleshooting
