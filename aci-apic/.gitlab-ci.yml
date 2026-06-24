@@ -147,14 +147,8 @@ apply-apic-vmware:
 # ---------------------------------------------------------------------------
 
 .apic-vmware-prod-rules: &apic-vmware-prod-rules
-  - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    changes:
-      - aci-apic/**/*
-      - .gitlab/ci-secret-scan.sh
-  - if: $CI_COMMIT_BRANCH == "main"
-    changes:
-      - aci-apic/**/*
-      - .gitlab/ci-secret-scan.sh
+  # Prod only runs when explicitly triggered — never on automatic push/MR.
+  # Set PROJECT=apic-vmware-prod in the GitLab UI to run the prod pipeline.
   - if: $PROJECT == "apic-vmware-prod"
 
 .apic-vmware-prod-vars: &apic-vmware-prod-vars
