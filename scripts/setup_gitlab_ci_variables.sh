@@ -44,7 +44,7 @@
 # Usage:
 #   export GITLAB_TOKEN=glpat-xxxxxxxxxxxxxxxxxxxx
 #   export NDO_USERNAME=admin
-#   export NDO_PASSWORD='C1sco12345'              # gets masked in GitLab
+#   export NDO_PASSWORD='<your-ndo-password>'      # gets masked in GitLab
 #   export NDO_URL='https://198.18.133.100'
 #   export Site1_APIC_URL='https://198.18.134.252'
 #   export Site1_APIC_USERNAME=admin
