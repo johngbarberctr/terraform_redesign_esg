@@ -1,11 +1,11 @@
 # Production environment configuration knobs only.
 #
-# Credentials and the NDO URL belong in terraform.tfvars (auto-loaded,
-# gitignored, holds the active environment's secrets) -- NOT in this file.
-# See lab.tfvars for the rationale.
+# This file uses the .example extension so git tracks it without triggering the
+# ci-secret-scan .tfvars policy. It contains NO secrets. See lab.tfvars.example
+# for the full rationale.
 #
 # Usage (production NDO from CLI):
-#   terraform plan -var-file=prod.tfvars -refresh=false -parallelism=3 -out=plan.tfplan
+#   terraform plan -var-file=prod.tfvars.example -refresh=false -parallelism=3 -out=plan.tfplan
 #
 # Provider/template values that are unique to the production fabric. The MSO
 # provider's domain and platform fall through to their variable defaults

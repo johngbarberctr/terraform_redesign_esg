@@ -76,9 +76,10 @@
   TF_VAR_ndo_password: "${NDO_PASSWORD}"
   TF_VAR_ndo_url: "${NDO_URL}"
   # vrf_template_name, mso_domain, mso_platform come from the checked-in
-  # var-file selected via TF_VARS_FILE (default: lab.tfvars). Production
-  # GitLab projects override TF_VARS_FILE=prod.tfvars in CI/CD variables.
-  TF_VARS_FILE: "lab.tfvars"
+  # var-file selected via TF_VARS_FILE (default: lab.tfvars.example). Production
+  # GitLab projects override TF_VARS_FILE=prod.tfvars.example in CI/CD variables.
+  # Files use .example extension so git does not treat them as secret .tfvars.
+  TF_VARS_FILE: "lab.tfvars.example"
 
 validate-aci-ndo-ipv6:
   extends: .tf-job

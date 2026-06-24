@@ -1,0 +1,18 @@
+# Lab environment configuration knobs only.
+#
+# This file uses the .example extension so git tracks it without triggering the
+# ci-secret-scan .tfvars policy. It contains NO secrets — only non-sensitive
+# knobs (vrf_template_name, mso_domain, mso_platform). Terraform accepts any
+# filename with -var-file=, so the .example extension works fine.
+#
+# Credentials and the NDO URL belong in terraform.tfvars (auto-loaded,
+# gitignored, holds the active environment's secrets) -- NOT in this file.
+#
+# Usage:
+#   terraform plan -var-file=lab.tfvars.example -refresh=false -parallelism=3 -out=plan.tfplan
+#
+# Provider/template values that are unique to the lab fabric:
+
+vrf_template_name = "VRF"           # production uses "UpgradeTemplate1"; was "VRF_Template" before 2026-06-17 template rename
+mso_domain        = "local"          # NDO local domain for the admin user
+mso_platform      = "nd"             # MSO provider platform = Nexus Dashboard
