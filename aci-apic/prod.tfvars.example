@@ -1,0 +1,19 @@
+# Per-fabric APIC URLs and usernames for production.
+#
+# Sensitive values (apic passwords, mcp keys) are NOT declared here.
+# Export them before `make plan` / `make apply`:
+#
+#   export TF_VAR_kelley_apic_password='<prod-pw>'
+#   export TF_VAR_deldin_apic_password='<prod-pw>'
+#   export TF_VAR_kelley_mcp_key='<key>'
+#   export TF_VAR_deldin_mcp_key='<key>'
+#
+# Production APIC IPs: update when prod addresses change.
+
+kelley_apic_url      = "https://PROD-KELLEY-APIC-IP"
+kelley_apic_username = "admin"
+
+deldin_apic_url      = "https://PROD-DELDIN-APIC-IP"
+deldin_apic_username = "admin"
+
+manage_tenants = false

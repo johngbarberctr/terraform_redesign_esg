@@ -102,7 +102,7 @@ plan-apic-vmware:
     # ./scripts/render-vmm-yaml.sh kelley  # VMM already configured in APIC
     # ./scripts/render-vmm-yaml.sh deldin  # VMM already configured in APIC
     - terraform init -input=false
-    - terraform plan -out=plan.tfplan -input=false -var-file=lab.tfvars
+    - terraform plan -out=plan.tfplan -input=false -var-file=lab.tfvars.example
     - terraform show -no-color plan.tfplan > plan.txt
     - terraform show -json    plan.tfplan | jq > plan.json
     - terraform show -json    plan.tfplan | jq '([.resource_changes[]?.change.actions?]|flatten)|{"create":(map(select(.=="create"))|length),"update":(map(select(.=="update"))|length),"delete":(map(select(.=="delete"))|length)}' > plan_gitlab.json
@@ -207,7 +207,7 @@ plan-apic-vmware-prod:
     # ./scripts/render-vmm-yaml.sh kelley  # VMM already configured in APIC
     # ./scripts/render-vmm-yaml.sh deldin  # VMM already configured in APIC
     - terraform init -input=false
-    - terraform plan -out=plan.tfplan -input=false -var-file=prod.tfvars
+    - terraform plan -out=plan.tfplan -input=false -var-file=prod.tfvars.example
     - terraform show -no-color plan.tfplan > plan.txt
     - terraform show -json    plan.tfplan | jq > plan.json
     - terraform show -json    plan.tfplan | jq '([.resource_changes[]?.change.actions?]|flatten)|{"create":(map(select(.=="create"))|length),"update":(map(select(.=="update"))|length),"delete":(map(select(.=="delete"))|length)}' > plan_gitlab.json
