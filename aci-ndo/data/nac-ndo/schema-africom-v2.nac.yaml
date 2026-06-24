@@ -20,8 +20,8 @@
 # Naming convention -- WHY THE -V2 SUFFIX:
 #   * Every tenant-scoped object (BDs, EPGs, VRFs, contracts, ANPs) carries
 #     -V2. The legacy AFRICOM schema (managed by ../../../sac-johbarbe-AFRICOM-terraform-nac-ndo)
-#     deploys to the same tenant EUR. ACI enforces unique object names per
-#     tenant (uni/tn-EUR/BD-foo is one MO; two NDO templates cannot both own
+#     deploys to the same tenant AFR-DEL.Services. ACI enforces unique object names per
+#     tenant (uni/tn-AFR-DEL.Services/BD-foo is one MO; two NDO templates cannot both own
 #     it), so the redesign needs distinct names to coexist with AFRICOM during
 #     the parallel-run period.
 #   * The suffix is GENERATIONAL, not address-family. These objects are NOT
@@ -48,13 +48,13 @@
 #     creates the schema and template content in NDO only. Pushes to Kelley
 #     and Del-Din are operator-driven from the NDO UI:
 #       Application Management -> Schemas -> AFRICOM-V2
-#         -> Tenant_EUR_V2 -> Deploy to sites
+#         -> Tenant_AFR-DEL.Services_V2 -> Deploy to sites
 #   * Static port bindings on the EPGs are NOT in this file. They land via
 #     ../../scripts/deploy_bindings.py against the NDO REST API after the
 #     template is deployed.
 #
 # Notes:
-#   * Filter "Any" intentionally NOT defined here. Tenant EUR already has
+#   * Filter "Any" intentionally NOT defined here. Tenant AFR-DEL.Services already has
 #     filter Any in schema AFRICOM / template VRF_Template (created by the
 #     sac-johbarbe-AFRICOM-terraform-nac-ndo stack). NDO enforces unique object names per
 #     tenant, so the two contracts below cross-reference that existing filter.
@@ -100,8 +100,8 @@ ndo:
   schemas:
     - name: AFRICOM-V2
       templates:
-        - name: Tenant_EUR_V2
-          tenant: EUR
+        - name: Tenant_AFR-DEL.Services_V2
+          tenant: AFR-DEL.Services
           sites:
             - Kelley
             - Del-Din

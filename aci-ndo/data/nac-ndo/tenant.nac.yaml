@@ -1,26 +1,22 @@
-# Tenant EUR -- V2 (consolidated) tenant redesign.
+# Tenant AFR-DEL.Services -- V2 (consolidated) tenant redesign.
 #
-# Tenant EUR already exists in NDO (created out of band) and the ndo/ root
+# Tenant AFR-DEL.Services already exists in NDO (created out of band) and the ndo/ root
 # runs with manage_tenants=false. The templates in schema-africom-v2.nac.yaml
-# reference the tenant by name (`tenant: EUR`); that lookup does NOT require
+# reference the tenant by name (`tenant: AFR-DEL.Services`); that lookup does NOT require
 # this root to own the mso_tenant resource, so this file is intentionally a
 # stub.
-#
-# Note: the tenant name itself stays `EUR` -- only schema-internal objects
-# (VRFs, BDs, EPGs, contracts, ANPs) carry the -V2 suffix. See
-# ../../DESIGN.md "Naming convention" for rationale.
 #
 # If you ever want this root to own the tenant, restore the block below
 # (un-comment), set manage_tenants=true in main.tf, and import the existing
 # object:
-#   terraform import 'module.ndo.module.tenants[0].mso_tenant.tenant["EUR"]' EUR
+#   terraform import 'module.ndo.module.tenants[0].mso_tenant.tenant["AFR-DEL.Services"]' AFR-DEL.Services
 #
 # ndo:
 #   tenants:
-#     - name: EUR
+#     - name: AFR-DEL.Services
 #       description: "V2 redesign tenant -- 2 VRFs (VRF-EUR-V2 / VRF-DMZ-V2), 39 stretched BDs"
 #       sites:
 #         - name: Kelley
 #         - name: Del-Din
----
+
 ndo: {}

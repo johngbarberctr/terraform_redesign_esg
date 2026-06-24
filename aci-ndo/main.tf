@@ -16,7 +16,7 @@ terraform {
 # ---------------------------------------------------------------------------
 # NDO-managed tenant root for the V2 (consolidated) tenant redesign.
 #
-# This root manages tenant EUR and its full template tree (VRFs, filters,
+# This root manages tenant AFR-DEL.Services and its full template tree (VRFs, filters,
 # contracts, BDs, EPGs, ESGs, ANPs) in Nexus Dashboard Orchestrator. NDO
 # pushes the resulting objects down to Kelley and Del-Din APICs.
 #
@@ -30,13 +30,13 @@ terraform {
 # YAML directory:
 #   ../data/nac-ndo/   ndo top-level with sites + tenants + schemas. The
 #                      AFRICOM-V2 schema declares a single template
-#                      (Tenant_EUR_V2) carrying VRFs, contracts, BDs, ANPs,
+#                      (Tenant_AFR-DEL.Services_V2) carrying VRFs, contracts, BDs, ANPs,
 #                      and EPGs. All target sites Kelley and Del-Din.
 #
 # Naming convention:
 #   Every tenant-scoped object in AFRICOM-V2 carries a -V2 suffix (BDs, EPGs,
 #   VRFs, contracts, ANPs). The legacy AFRICOM schema (managed by
-#   ../../../sac-johbarbe-AFRICOM-terraform-nac-ndo) deploys to the same tenant EUR; ACI
+#   ../../../sac-johbarbe-AFRICOM-terraform-nac-ndo) deploys to the same tenant AFR-DEL.Services; ACI
 #   enforces unique object names per tenant, so distinct names are required
 #   for parallel coexistence. The suffix is generational, not address-family
 #   -- V2 BDs will eventually carry both IPv4 and IPv6 subnets. See
@@ -45,7 +45,7 @@ terraform {
 # Module flags:
 #   manage_sites            = false  -- Kelley/Del-Din already onboarded into
 #                                       NDO; we only reference them.
-#   manage_tenants          = false  -- tenant EUR already exists in NDO
+#   manage_tenants          = false  -- tenant AFR-DEL.Services already exists in NDO
 #                                       (created out of band). Templates in
 #                                       schema-africom-v2.nac.yaml reference
 #                                       it by name; that does not require us
@@ -53,7 +53,7 @@ terraform {
 #                                       ever want this root to own the tenant,
 #                                       flip back to true and run:
 #                                         terraform import \
-#                                           'module.ndo.module.tenants[0].mso_tenant.tenant["EUR"]' EUR
+#                                           'module.ndo.module.tenants[0].mso_tenant.tenant["AFR-DEL.Services"]' AFR-DEL.Services
 #   manage_schemas          = true   -- schemas + templates + all child
 #                                       resources (vrfs/bds/contracts/epgs).
 #   deploy_templates        = false  -- create the schema/templates/objects

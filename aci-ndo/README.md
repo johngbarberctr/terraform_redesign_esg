@@ -2,7 +2,7 @@
 
 Manages the AFRICOM-V2 schema in Nexus Dashboard Orchestrator: 2 VRFs, 39 BDs,
 2 ANPs, 39 EPGs, 2 vzAny contracts. All tenant-scoped objects carry a `-V2`
-suffix to coexist with the legacy `AFRICOM` schema in tenant `EUR`.
+suffix to coexist with the legacy `AFRICOM` schema in tenant `AFR-DEL.Services`.
 
 See `docs/DESIGN.md` for naming-convention rationale.
 
@@ -17,7 +17,7 @@ cross-schema link; plan fails if that object doesn't exist in NDO.
 
 ```
 data/nac-ndo/        NDO YAML — sites, tenants, schemas
-                     Schema AFRICOM-V2 / template Tenant_EUR_V2
+                     Schema AFRICOM-V2 / template Tenant_AFR-DEL.Services_V2
 ```
 
 ## Local workflow
@@ -38,7 +38,7 @@ terraform apply -parallelism=3 -auto-approve
 After apply, the schema content is in NDO but **not yet deployed to APIC**.
 Manual NDO UI step:
 
-> Application Management → Schemas → AFRICOM-V2 → Tenant_EUR_V2 →
+> Application Management → Schemas → AFRICOM-V2 → Tenant_AFR-DEL.Services_V2 →
 > Deploy to sites → [Kelley, Del-Din]
 
 ## GitLab CI
@@ -58,6 +58,6 @@ State key: `aci-redesign-ndo` (do NOT rename — live state exists).
 | Flag | Value | Why |
 |---|---|---|
 | `manage_sites` | false | Kelley/Del-Din already onboarded in NDO |
-| `manage_tenants` | false | tenant EUR pre-exists, owned out of band |
+| `manage_tenants` | false | tenant AFR-DEL.Services pre-exists, owned out of band |
 | `manage_schemas` | true | this root owns AFRICOM-V2 |
 | `deploy_templates` | false | deploy is a manual NDO UI click for now |
