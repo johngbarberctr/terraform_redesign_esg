@@ -317,19 +317,25 @@ walkthrough including port classification rules and FEX-to-leaf mapping.
 
 ---
 
-## Phase 3 — APIC-direct fabric & VMM (`aci-apic/`)
+## Phase 3 — APIC-direct fabric (`aci-apic/`)
 
-Builds access policies, MCP Instance Policies (per fabric, with per-fabric
-keys), the VMware VMM domains `APCG-VDS1` (on Kelley) and `APCK-VDS1`
-(on Del-Din) that Phase 4's EPGs will bind to, the UCS Fabric Interconnect
-uplink access policies (Design A): `fi-static-vlan-pool` (213 VLANs),
-`phys-fi-domain`, `fi-aaep`, `PC_FI_A`/`PC_FI_B` PC policy groups
-(LACP active), and per-leaf interface/switch profiles for leaves 101/102
-(Kelley) and 101/102 (Del-Din); and the legacy IPv4 infrastructure objects:
-`VLAN_All_Combined` static pool (5 broad ranges, ~2148 VLANs), `PhysDom_ACI_Nexus`
-physical domain, `L3_Dom_ND` routed domain, and `AAEP_ACI_Nexus` (used by all
-N5K migration VPC/PC policy groups). Independent of Phase 2 — could technically
-run in parallel — but in practice do it after.
+Builds access policies and MCP Instance Policies (per fabric, with per-fabric
+keys). Manages the UCS Fabric Interconnect uplink access policies (Design A):
+`fi-static-vlan-pool` (213 VLANs), `phys-fi-domain`, `fi-aaep`,
+`PC_FI_A`/`PC_FI_B` PC policy groups (LACP active), and per-leaf
+interface/switch profiles for leaves 101/102 (Kelley) and 101/102 (Del-Din);
+and the legacy IPv4 infrastructure objects: `VLAN_All_Combined` static pool
+(5 broad ranges, ~2148 VLANs), `PhysDom_ACI_Nexus` physical domain,
+`L3_Dom_ND` routed domain, and `AAEP_ACI_Nexus` (used by all N5K migration
+VPC/PC policy groups). Independent of Phase 2 — could technically run in
+parallel — but in practice do it after.
+
+> **VMM skipped — already in APIC.** The VMM domain objects (`vmm-vlan-pool`,
+> `phys-vmm-domain`, `vmm-aaep`, `vpc-vmm-hosts`, `vmm-host-ports`,
+> `APCG-VDS1`/`APCK-VDS1` domain definitions) are commented out in all
+> `access-policies.nac.yaml` files because AFRICOM already has a VMM domain
+> and configuration in APIC. vCenter env vars are **not required** for this
+> phase. The `fi-aaep` still carries `phys-fi-domain` for non-VM traffic.
 
 > **No Python venv needed for this phase.** `make` calls bash scripts and
 > `terraform` only. The scripts use `python3` stdlib (`json`, `os`, `sys`) for
@@ -345,11 +351,8 @@ cd ~/DC/ACI/sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/aci-apic
 source scripts/set-apic-password.sh                 # both fabrics, same lab password
 eval "$(./scripts/generate-mcp-key.sh kelley)"       # TF_VAR_kelley_mcp_key
 eval "$(./scripts/generate-mcp-key.sh deldin)"       # TF_VAR_deldin_mcp_key
-export TF_VAR_vcenter_hostname_ip='198.18.134.80'
-export TF_VAR_vcenter_datacenter='Datacenter'
-export TF_VAR_vcenter_username='administrator'
-export TF_VAR_vcenter_password='C1sco12345!'         # SINGLE quotes — ! triggers history expansion
-export TF_VAR_vcenter_dvs_version='unmanaged'        # 7.x/8.x rejected by validator
+# NOTE: vCenter env vars (TF_VAR_vcenter_*) are no longer needed — VMM is
+#       commented out and render-vmm-yaml.sh is not called.
 
 # 3.3 Init (first time or after module/provider bumps)
 make init
@@ -360,19 +363,12 @@ make plan
 make apply
 ```
 
-After Phase 3: `APCG-VDS1` exists on Kelley APIC, `APCK-VDS1` exists on Del-Din
-APIC, both registered against vCenter. Additionally on each APIC:
-`fi-static-vlan-pool` (static, 213 VLANs), `phys-fi-domain`, `fi-aaep`,
+After Phase 3, on each APIC: `fi-static-vlan-pool` (static, 213 VLANs),
+`phys-fi-domain`, `fi-aaep` (carries `phys-fi-domain` only — no VMM binding),
 `PC_FI_A` and `PC_FI_B` PC policy groups (LACP active), per-leaf interface
-profiles for the FI uplinks (leaf 152 eth1/6 and leaf 153 eth1/7 on Kelley;
-leaf 119 eth1/6 and leaf 191 eth1/7 on Del-Din), and the legacy IPv4 objects:
-`VLAN_All_Combined` static pool, `PhysDom_ACI_Nexus`, `L3_Dom_ND`, and
-`AAEP_ACI_Nexus`.
-
-> **Plan heads-up (first apply after lab YAML update):** The `vmm-host-ports`
-> interface selector in `leaf-101-102-intprof` (Kelley and Del-Din) will show as
-> a **modify** — port range changes from 1-48 to 8-48. This is expected;
-> ports 1-7 are now reserved for FI uplinks (eth1/6-7) and future use.
+profiles for the FI uplinks (eth1/6 on leaf-101, eth1/7 on leaf-102), and the
+legacy IPv4 objects: `VLAN_All_Combined` static pool, `PhysDom_ACI_Nexus`,
+`L3_Dom_ND`, and `AAEP_ACI_Nexus`.
 
 Details: `aci-apic/README_LAB.md` (lab daily-driver),
 `README.md` (env-var table, MCP-key rationale, error catalog).
