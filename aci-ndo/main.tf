@@ -1,3 +1,4 @@
+# pipeline triggered: 2026-06-24T18:58:02Z
 terraform {
   # GitLab HTTP backend for CI. Local users override to local state via a
   # gitignored `local_override.tf` containing:
