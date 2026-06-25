@@ -100,7 +100,7 @@ at the per-stack README for details.
 | 2 | Deploy 4 templates to Kelley/Del-Din (in strict order) | NDO UI | ~15 min total | **Manual UI** |
 | 2.5 | Push legacy N5K static port bindings to AFRICOM EPGs | `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/scripts/` | ~2 min | Python (`deploy_bindings_python_v2.py`) |
 | 3 | APIC fabric/access policies, MCP, VMware VMM domains | `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/aci-apic/` | ~5 min apply | Terraform (both fabrics in one root) |
-| 4 | V2 redesign tenant tree (schema `AFRICOM-V2`, template `Tenant_EUR_V2`; all tenant-scoped objects suffixed `-V2`) | `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/aci-ndo/` | ~5 min apply + UI deploy | Terraform + manual UI |
+| 4 | V2 redesign tenant tree (schema `AFRICOM-V2`, template `Tenant_AFR-DEL.Services_V2`; all tenant-scoped objects suffixed `-V2`) | `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/aci-ndo/` | ~5 min apply + UI deploy | Terraform + manual UI |
 | 5 *(optional)* | IPv6 RCC layer (adds `AppProf-RCC` to existing `Stretched_Services`) | `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/aci-ndo-ipv6/` | ~30 min apply at `-parallelism=3` | Terraform + manual UI re-deploy |
 | 6 | Static port bindings (post-deploy push not modeled in NAC YAML) | `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/scripts/` | ~2 min | Python + manual UI re-deploy |
 | 7 | Verify on APICs and vCenter | APIC GUI + vCenter | as needed | Manual |
@@ -389,7 +389,7 @@ Details: `aci-apic/README_LAB.md` (lab daily-driver),
 
 This is where the cross-schema reference to `AFRICOM/VRF/Any` (built
 in Phase 1, deployed in Phase 2) actually resolves. Schema `AFRICOM-V2`
-contains a **single template** `Tenant_EUR_V2` (2 VRFs, 39 BDs, 39 EPGs,
+contains a **single template** `Tenant_AFR-DEL.Services_V2` (2 VRFs, 39 BDs, 39 EPGs,
 2 ANPs, 2 contracts; all tenant-scoped objects suffixed `-V2` to coexist
 with the legacy `AFRICOM` schema in tenant `AFR-DEL.Services` — see
 [`docs/DESIGN.md` → Naming convention](docs/DESIGN.md#naming-convention);
@@ -408,7 +408,7 @@ source scripts/set-ndo-password.sh
 # 4.3 Sanity check, init, plan, apply
 make auth-check
 make init    # only first time
-make plan    # expect: 1 schema (AFRICOM-V2), 1 template (Tenant_EUR_V2),
+make plan    # expect: 1 schema (AFRICOM-V2), 1 template (Tenant_AFR-DEL.Services_V2),
              #         2 VRFs (-V2), 39 BDs (-V2), 2 ANPs (-V2),
              #         39 EPGs (-V2), 2 contracts (-V2).
              # NO mso_tenant create (manage_tenants=false; AFR-DEL.Services is from Phase 1).
@@ -416,7 +416,7 @@ make apply
 ```
 
 Then NDO UI → **Application Management → Schemas → AFRICOM-V2 →
-`Tenant_EUR_V2` → Deploy to sites** → Kelley and Del-Din. **One template here**,
+`Tenant_AFR-DEL.Services_V2` → Deploy to sites** → Kelley and Del-Din. **One template here**,
 not three (any older docs that say `Tenant_Policy / Stretched_BDs /
 App_Profiles` reflect an abandoned design).
 
@@ -557,7 +557,7 @@ cd ~/DC/ACI/sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/scripts
 ./deploy_bindings.py fi_bindings.json --no-vault
 ```
 
-Whichever path: finish in **NDO UI → schema AFRICOM-V2 → Tenant_EUR_V2 →
+Whichever path: finish in **NDO UI → schema AFRICOM-V2 → Tenant_AFR-DEL.Services_V2 →
 Deploy to sites** (re-deploy) so the new `staticPorts[]` push to APIC.
 
 Details: `scripts/README.md` (CLI reference, vault flow, VLAN
