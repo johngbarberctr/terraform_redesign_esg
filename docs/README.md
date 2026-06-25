@@ -7,7 +7,7 @@ This project deploys IPv6 infrastructure for RCC-E (Regional Cyber Center - Euro
 - **Site1** - Site G (Grafenwoehr)
 - **Site2** - Site K (Kaiserslautern)
 
-The deployment creates 39 Bridge Domains, 39 EPGs, L3Outs, External EPGs, and associated contracts within the `VRF-RCC` routing domain.
+The deployment creates 39 Bridge Domains, 39 EPGs, L3Outs, External EPGs, and associated contracts within the `AFR-PROD-V6` routing domain.
 
 ---
 
@@ -107,8 +107,8 @@ attach the same VMM domain.
 
 | Object | Name | Template |
 |--------|------|----------|
-| VRF | `VRF-RCC` | UpgradeTemplate1 |
-| Contract | `Any_VRF-RCC` | UpgradeTemplate1 |
+| VRF | `AFR-PROD-V6` | UpgradeTemplate1 |
+| Contract | `Any_AFR-PROD-V6` | UpgradeTemplate1 |
 | L3Out (Site G) | `L3Out-Kelley-V2` | Site1-Specific_Only |
 | L3Out (Site K) | `L3Out-Del-Din-V2` | Site2-Specific_Only |
 | External EPG (Site G) | `ExtEPG-Kelley-V2` | Site1-Specific_Only |
@@ -210,7 +210,7 @@ python3 remove_all_rcc_bindings.py              # Execute
 
 - L3Out definitions
 - External EPGs with `::/0` subnet
-- Contract associations (consumer/provider for `Any_VRF-RCC`)
+- Contract associations (consumer/provider for `Any_AFR-PROD-V6`)
 - BD-to-L3Out associations for all 39 BDs
 
 ### APIC-Managed (l3outs_apic.tf.disabled)
@@ -339,11 +339,11 @@ python3 remove_all_rcc_bindings.py --dry-run --show-all
 ```
 Schema: AFRICOM
 ├── UpgradeTemplate1
-│   ├── VRF-RCC
-│   └── Contract: Any_VRF-RCC
+│   ├── AFR-PROD-V6
+│   └── Contract: Any_AFR-PROD-V6
 ├── L2_Stretched
 │   ├── BDs (35)
-│   ├── EPGs (35) in AppProf-RCC
+│   ├── EPGs (35) in AppProf-AFR-PROD-V6
 │   └── Site deployments (Site1, Site2)
 ├── L2_Non-Stretched
 │   ├── BDs (2)

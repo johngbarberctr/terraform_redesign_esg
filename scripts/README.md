@@ -143,7 +143,7 @@ There are two paths — pick one based on which fabric topology you have:
 ### Path A — dump from the IPv6 RCC schema (lab default; requires `ndo-terraform-ipv6/` already deployed)
 
 1. `dump_bindings.py` — pull existing bindings from the IPv6 RCC schema
-   (`AFRICOM` / `AppProf-RCC`) into a JSON file matching `bindings.example.json`.
+   (`AFRICOM` / `AppProf-AFR-PROD-V6`) into a JSON file matching `bindings.example.json`.
 2. Review and edit the dumped JSON. Decide your VLAN strategy (see
    `dump_bindings.py` docstring; default strips VLAN, but `deploy_bindings.py`
    requires one).
@@ -166,11 +166,11 @@ There are two paths — pick one based on which fabric topology you have:
 
 Read-only NDO REST client. Walks an existing schema's `staticPorts[]` and
 emits them as a JSON file in the format `deploy_bindings.py` consumes. The
-common usage is dumping `AFRICOM / AppProf-RCC` (39 EPGs, IPv6 RCC redesign)
+common usage is dumping `AFRICOM / AppProf-AFR-PROD-V6` (39 EPGs, IPv6 RCC redesign)
 into a starter file for `AFRICOM-V2`.
 
 > The dumper does not auto-rewrite EPG names. Source EPGs from
-> `AFRICOM/AppProf-RCC` come without the `-V2` suffix; the V2 redesign
+> `AFRICOM/AppProf-AFR-PROD-V6` come without the `-V2` suffix; the V2 redesign
 > EPGs are suffixed (see `aci-redesign/DESIGN.md` "Naming convention").
 > Either pre-edit the bindings JSON to rename source EPGs to their `-V2`
 > equivalents (e.g. `EPG-WEB-SVR` → `EPG-WEB-SVR-V2`) before pushing,
@@ -191,7 +191,7 @@ Whenever you need to (re-)seed the bindings JSON. Typical cases:
 | Flag | Default | Why |
 | --- | --- | --- |
 | `--source-schema` | `AFRICOM` | The IPv6 RCC redesign schema in NDO. |
-| `--source-anp`    | `AppProf-RCC` | The single ANP holding all 39 IPv6 EPGs. |
+| `--source-anp`    | `AppProf-AFR-PROD-V6` | The single ANP holding all 39 IPv6 EPGs. |
 | `--target-schema` | `AFRICOM-V2` | Used for validation (EPG name parity). Set `''` to skip. |
 | `--exclude-leaves` | `101,102` | Border leaves -- L2 collection only in IPv6, not relevant for V2 EPGs. |
 | `--leaves`        | (empty) | If set, INCLUDE-only filter. For the Kelley/Del-Din lab use `152,153,119,191`. |

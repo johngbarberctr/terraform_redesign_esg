@@ -199,7 +199,7 @@ The recommended path is partial-fabric apply via `-target`:
 
 The active deployment implements a **2-VRF architecture** replacing the
 legacy 11-VRF layout. All internal EPGs consolidate into `VRF-AFR-DEL.Services-V2`,
-DMZ EPGs go into `VRF-DMZ-V2`, and IPv6 stays in `VRF-RCC` (managed
+DMZ EPGs go into `VRF-DMZ-V2`, and IPv6 stays in `AFR-PROD-V6` (managed
 separately). ESGs group EPGs for future contract tightening; vzAny permits
 all traffic within each VRF initially.
 
@@ -251,10 +251,10 @@ Tenant: EUR
 │   ├── BD-PATCH-V2          (1 subnet)        → EPG-PATCH-V2
 │   ├── BD-PKI-SRV-V2        (1 subnet)        → EPG-PKI-SRV-V2
 │   ├── BD-PRINT-SVR-V2      (placeholder)     → EPG-PRINT-SVR-V2
-│   ├── BD-RCC-DCO-V2        (placeholder)     → EPG-RCC-DCO-V2
-│   ├── BD-RCC-DNS-V2        (placeholder)     → EPG-RCC-DNS-V2
-│   ├── BD-RCC-SVR-V2        (placeholder)     → EPG-RCC-SVR-V2
-│   ├── BD-RCC-UNIX-V2       (placeholder)     → EPG-RCC-UNIX-V2
+│   ├── BD-AFRICOM-DCO-V2        (placeholder)     → EPG-AFRICOM-DCO-V2
+│   ├── BD-AFRICOM-DNS-V2        (placeholder)     → EPG-AFRICOM-DNS-V2
+│   ├── BD-AFRICOM-SVR-V2        (placeholder)     → EPG-AFRICOM-SVR-V2
+│   ├── BD-AFRICOM-UNIX-V2       (placeholder)     → EPG-AFRICOM-UNIX-V2
 │   ├── BD-SMTP-SVR-V2       (placeholder)     → EPG-SMTP-SVR-V2
 │   ├── BD-SYSLOG-V2         (3 subnets)       → EPG-SYSLOG-V2
 │   ├── BD-SYSMAN-V2         (placeholder)     → EPG-SYSMAN-V2
@@ -301,7 +301,7 @@ Tenant: EUR
 | **2 VRFs instead of 11** | Legacy VRFs (EUR-E, EUR-AIS, EUR-AIM, etc.) provided segmentation via routing isolation. ESGs now handle segmentation with contracts, so only Internal vs DMZ routing isolation is needed. |
 | **VRF-EUR (internal)** | Consolidates EUR-E (101 EPGs), EUR-AIS (132), EUR-AIM (15), EUR-AIV (12), EUR-AIZ (11), EUR-AIG (1), EUR-AIP (4), EUR-GSN-Test (1) = ~276 EPGs. |
 | **VRF-DMZ** | Keeps EUR-AOV-UC-DMZ and EUR-ARMY-ENT-SVR-DMZ routing-isolated from internal. DMZ traffic must never share a routing table with internal. |
-| **VRF-RCC (IPv6)** | Unchanged. Managed separately in `~/DC/ACI/terraform-esg/ndo-terraform-ipv6/`. |
+| **AFR-PROD-V6 (IPv6)** | Unchanged. Managed separately in `~/DC/ACI/terraform-esg/ndo-terraform-ipv6/`. |
 | **Descriptive naming** | `BD-DNS-MGMT` / `EPG-DNS-MGMT` replaces numeric `BD-V0005` / `EPG-V0005`. Matches IPv6 RCC naming style. |
 | **vzAny permit-all** | Initial state — everything communicates. ESGs provide classification for progressive tightening. |
 | **L3Outs** | Production consolidates from 13 L3Outs to ~4 (1 internal + 1 DMZ per site). Lab does not deploy L3Outs. |
@@ -363,7 +363,7 @@ convention extends without ambiguity.
 | ACI tenant | **unchanged** (`EUR`) | `EUR` |
 | VRF (internal) | `VRF-AFR-DEL.Services-V2` | `VRF-AFR-DEL.Services-V2` |
 | VRF (DMZ) | `VRF-DMZ-V2` | `VRF-DMZ-V2` |
-| VRF (IPv6) | `VRF-RCC` (legacy, unchanged) | `VRF-RCC` |
+| VRF (IPv6) | `AFR-PROD-V6` (legacy, unchanged) | `AFR-PROD-V6` |
 | Contract | `Any_<VRF>-V2` | `Any_VRF-AFR-DEL.Services-V2`, `Any_VRF-DMZ-V2` |
 | Filter | `Any` (cross-ref to `AFRICOM/VRF_Template`, **not redefined**) | `Any` |
 | BD | `BD-<function>-V2` | `BD-DNS-MGMT-V2`, `BD-DB-SVR-V2` |
@@ -623,7 +623,7 @@ aci-redesign/
 │   └── README_LAB.md                 lab daily-driver
 │
 ├── scripts/                        cross-cutting Python tools (run after NDO apply)
-│   ├── dump_bindings.py              read AFRICOM/AppProf-RCC, write JSON for AFRICOM-V2
+│   ├── dump_bindings.py              read AFRICOM/AppProf-AFR-PROD-V6, write JSON for AFRICOM-V2
 │   ├── deploy_bindings.py            PATCH per-EPG staticPorts[] into AFRICOM-V2
 │   ├── generate_fi_bindings.py       FI port-channel binding generator (Design A)
 │   ├── check_fi_bindings_parity.py   CI guard for schema/manifest drift

@@ -43,7 +43,7 @@ Always use environment variables or secure credential management for production 
 
 This repository contains Terraform configurations and Python automation for deploying IPv6-enabled Regional Computing Center (RCC) services in Cisco ACI Multi-Site Orchestrator (MSO/NDO). It manages:
 
-- **1 VRF** (VRF-RCC)
+- **1 VRF** (AFR-PROD-V6)
 - **33 Bridge Domains** with IPv6 subnets
 - **33 Endpoint Groups (EPGs)** for service segmentation
 - **~200 static port bindings** via Python automation
@@ -154,8 +154,8 @@ This should show the current planned changes without errors. See [Running Terraf
 |---|---|
 | `main.tf` | Terraform backend and provider configuration (provider versions pinned) |
 | `variables.tf` | Variable definitions (NDO credentials, template names) |
-| `bds_epgs.tf` | VRF-RCC, `Any_VRF-RCC` and `Any_RCC` contracts (vzAny), all BDs and EPGs |
-| `l3outs_ndo.tf` | NDO site-local L3Outs, External EPGs, BD-L3Out associations, `Any_RCC` ExtEPG contract |
+| `bds_epgs.tf` | AFR-PROD-V6, `Any_AFR-PROD-V6` and `Any_AFR-PROD-V6` contracts (vzAny), all BDs and EPGs |
+| `l3outs_ndo.tf` | NDO site-local L3Outs, External EPGs, BD-L3Out associations, `Any_AFR-PROD-V6` ExtEPG contract |
 | `l3outs_apic.tf` | APIC-direct: `OSPF-IntPol-L3Out` policy, logical node/interface profiles, SVI path attachments (per-site `aci.apic_g` / `aci.apic_k`) |
 | `vlans_apic.tf` | APIC-direct: creates `VLAN_All_Combined` static pool and 39 encap entries on Kelley and Del-Din |
 | `.gitlab-ci.yml` | CI/CD pipeline definition |
@@ -372,7 +372,7 @@ git push to a branch or merge request
               only, on purpose)
 ```
 
-After clicking apply: NDO has the new ANP `AppProf-RCC` and 39 IPv6 EPGs inside `AFRICOM / L2_Stretched`, but they are **not yet deployed to Kelley/Del-Din**. The apply job's tail log prints the exact NDO UI path: `Application Management → Schemas → AFRICOM → L2_Stretched → Deploy to sites → [Kelley, Del-Din]`. This is **a re-deploy** of `L2_Stretched` (Phase 1 already deployed it once with the original IPv4 content; this re-deploy adds the IPv6 layer).
+After clicking apply: NDO has the new ANP `AppProf-AFR-PROD-V6` and 39 IPv6 EPGs inside `AFRICOM / L2_Stretched`, but they are **not yet deployed to Kelley/Del-Din**. The apply job's tail log prints the exact NDO UI path: `Application Management → Schemas → AFRICOM → L2_Stretched → Deploy to sites → [Kelley, Del-Din]`. This is **a re-deploy** of `L2_Stretched` (Phase 1 already deployed it once with the original IPv4 content; this re-deploy adds the IPv6 layer).
 
 ### GitLab CI/CD Variables
 
@@ -537,10 +537,10 @@ tail -f apply_output.log
 **This step cannot be automated** due to a Terraform provider limitation.
 
 1. Login to NDO/MSO GUI
-2. Navigate to: **Schemas > AFRICOM > UpgradeTemplate1 > VRF-RCC**
+2. Navigate to: **Schemas > AFRICOM > UpgradeTemplate1 > AFR-PROD-V6**
 3. Check the **vzAny** checkbox
-4. Under **vzAny Provider Contracts**: click **+ Contract**, select `Any_VRF-RCC`
-5. Under **vzAny Consumer Contracts**: click **+ Contract**, select `Any_VRF-RCC`
+4. Under **vzAny Provider Contracts**: click **+ Contract**, select `Any_AFR-PROD-V6`
+5. Under **vzAny Consumer Contracts**: click **+ Contract**, select `Any_AFR-PROD-V6`
 6. Click **Save**
 7. Click **Deploy** > check both sites (Kelley, Del-Din) > Deploy
 
@@ -586,7 +586,7 @@ grep -E "paths-10[12]|protpaths-101-102" ipv6_rcc_port_bindings_lab_*.json
 
 ### Network Design
 
-- **1 VRF**: VRF-RCC with vzAny for intra-VRF communication
+- **1 VRF**: AFR-PROD-V6 with vzAny for intra-VRF communication
 - **33 Bridge Domains** with IPv6 subnets (`2609:efff:b33b:xxxx::1/64`)
 - **33 EPGs** organized into service categories
 - **Multi-site**: Kelley and Del-Din
@@ -810,8 +810,8 @@ Usually caused by invisible characters (tabs, BOM markers) from copy-paste. Use 
 
 **EPGs cannot communicate:**
 
-1. Verify vzAny enabled: VRF-RCC > vzAny checkbox checked
-2. Verify contracts: Provider and Consumer both have `Any_VRF-RCC`
+1. Verify vzAny enabled: AFR-PROD-V6 > vzAny checkbox checked
+2. Verify contracts: Provider and Consumer both have `Any_AFR-PROD-V6`
 3. Verify deployed to both sites
 4. Check endpoint learning in APIC
 

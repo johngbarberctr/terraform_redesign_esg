@@ -1,7 +1,7 @@
 # ============================================================================
-# RCC-E L3OUT CONFIGURATION - NDO
+# AFRICOM L3OUT CONFIGURATION - NDO
 # ============================================================================
-# Site-specific L3Outs serving all BDs in VRF-RCC
+# Site-specific L3Outs serving all BDs in AFR-PROD-V6
 #
 # Architecture (NDO-compliant):
 #   - L3Out-Kelley-V2 in Site1-Specific_Only template (Site G)
@@ -33,7 +33,7 @@ resource "mso_schema_template_l3out" "l3out_rcc_e_g" {
   template_name     = "Kelley_Unique"
   l3out_name        = "L3Out-Kelley-V2"
   display_name      = "L3Out-Kelley-V2"
-  description       = "RCC-E L3Out for Site G (Grafenwoehr) - All BDs"
+  description       = "L3Out for Site G (Grafenwoehr) - All BDs"
   vrf_name          = mso_schema_template_vrf.vrf_rcc.name
   vrf_schema_id     = data.mso_schema.existing.id
   vrf_template_name = var.vrf_template_name
@@ -44,7 +44,7 @@ resource "mso_schema_template_l3out" "l3out_rcc_e_k" {
   template_name     = "Del_Din_Unique"
   l3out_name        = "L3Out-Del-Din-V2"
   display_name      = "L3Out-Del-Din-V2"
-  description       = "RCC-E L3Out for Site K (Kaiserslautern) - All BDs"
+  description       = "L3Out for Site K (Kaiserslautern) - All BDs"
   vrf_name          = mso_schema_template_vrf.vrf_rcc.name
   vrf_schema_id     = data.mso_schema.existing.id
   vrf_template_name = var.vrf_template_name
@@ -86,7 +86,7 @@ resource "mso_schema_template_external_epg_contract" "ext_epg_rcc_e_g_consumer" 
   template_name          = "Kelley_Unique"
   external_epg_name      = mso_schema_template_external_epg.ext_epg_rcc_e_g.external_epg_name
   relationship_type      = "consumer"
-  contract_name          = mso_schema_template_contract.contract_rcc.contract_name
+  contract_name          = mso_schema_template_contract.contract_vrf_rcc.contract_name
   contract_schema_id     = data.mso_schema.existing.id
   contract_template_name = var.vrf_template_name
 
@@ -98,7 +98,7 @@ resource "mso_schema_template_external_epg_contract" "ext_epg_rcc_e_g_provider" 
   template_name          = "Kelley_Unique"
   external_epg_name      = mso_schema_template_external_epg.ext_epg_rcc_e_g.external_epg_name
   relationship_type      = "provider"
-  contract_name          = mso_schema_template_contract.contract_rcc.contract_name
+  contract_name          = mso_schema_template_contract.contract_vrf_rcc.contract_name
   contract_schema_id     = data.mso_schema.existing.id
   contract_template_name = var.vrf_template_name
 
@@ -141,7 +141,7 @@ resource "mso_schema_template_external_epg_contract" "ext_epg_rcc_e_k_consumer" 
   template_name          = "Del_Din_Unique"
   external_epg_name      = mso_schema_template_external_epg.ext_epg_rcc_e_k.external_epg_name
   relationship_type      = "consumer"
-  contract_name          = mso_schema_template_contract.contract_rcc.contract_name
+  contract_name          = mso_schema_template_contract.contract_vrf_rcc.contract_name
   contract_schema_id     = data.mso_schema.existing.id
   contract_template_name = var.vrf_template_name
 
@@ -153,7 +153,7 @@ resource "mso_schema_template_external_epg_contract" "ext_epg_rcc_e_k_provider" 
   template_name          = "Del_Din_Unique"
   external_epg_name      = mso_schema_template_external_epg.ext_epg_rcc_e_k.external_epg_name
   relationship_type      = "provider"
-  contract_name          = mso_schema_template_contract.contract_rcc.contract_name
+  contract_name          = mso_schema_template_contract.contract_vrf_rcc.contract_name
   contract_schema_id     = data.mso_schema.existing.id
   contract_template_name = var.vrf_template_name
 
@@ -255,7 +255,7 @@ resource "mso_schema_site_bd_l3out" "bd_dns_mgmt_l3out_k" {
   depends_on    = [mso_schema_site_bd.bd_dns_mgmt_k, mso_schema_template_l3out.l3out_rcc_e_k]
 }
 
-# --- BD-RCC-DNS ---
+# --- BD-AFRICOM-DNS ---
 resource "mso_schema_site_bd_l3out" "bd_rcc_dns_l3out_g" {
   schema_id     = data.mso_schema.existing.id
   template_name = "Stretched_Services"
@@ -597,7 +597,7 @@ resource "mso_schema_site_bd_l3out" "bd_fmwr_svr_l3out_k" {
   depends_on    = [mso_schema_site_bd.bd_fmwr_svr_k, mso_schema_template_l3out.l3out_rcc_e_k]
 }
 
-# --- BD-RCC-SVR ---
+# --- BD-AFRICOM-SVR ---
 resource "mso_schema_site_bd_l3out" "bd_rcc_svr_l3out_g" {
   schema_id     = data.mso_schema.existing.id
   template_name = "Stretched_Services"
@@ -615,7 +615,7 @@ resource "mso_schema_site_bd_l3out" "bd_rcc_svr_l3out_k" {
   depends_on    = [mso_schema_site_bd.bd_rcc_svr_k, mso_schema_template_l3out.l3out_rcc_e_k]
 }
 
-# --- BD-RCC-DCO ---
+# --- BD-AFRICOM-DCO ---
 resource "mso_schema_site_bd_l3out" "bd_rcc_dco_l3out_g" {
   schema_id     = data.mso_schema.existing.id
   template_name = "Stretched_Services"
@@ -633,7 +633,7 @@ resource "mso_schema_site_bd_l3out" "bd_rcc_dco_l3out_k" {
   depends_on    = [mso_schema_site_bd.bd_rcc_dco_k, mso_schema_template_l3out.l3out_rcc_e_k]
 }
 
-# --- BD-RCC-UNIX ---
+# --- BD-AFRICOM-UNIX ---
 resource "mso_schema_site_bd_l3out" "bd_rcc_unix_l3out_g" {
   schema_id     = data.mso_schema.existing.id
   template_name = "Stretched_Services"

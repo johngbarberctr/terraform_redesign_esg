@@ -33,7 +33,7 @@ terraform apply
 ```
 
 This creates:
-- VRF-RCC with vzAny contracts
+- AFR-PROD-V6 with vzAny contracts
 - 35 Bridge Domains with IPv6 subnets
 - 35 EPGs with domain associations
 - L3Out-Kelley-V2 (Site G) and L3Out-Del-Din-V2 (Site K)

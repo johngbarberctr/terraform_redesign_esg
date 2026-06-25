@@ -78,12 +78,12 @@ NDO
 └── Tenant: EUR
     └── Schema: AFRICOM
         ├── Template: UpgradeTemplate1 (VRF template)
-        │   ├── VRF: VRF-RCC (vzAny enabled)
-        │   ├── Contract: Any_VRF-RCC (scope: context, bidirectional)
+        │   ├── VRF: AFR-PROD-V6 (vzAny enabled)
+        │   ├── Contract: Any_AFR-PROD-V6 (scope: context, bidirectional)
         │   └── Filter: Any
         │
         ├── Template: L2_Stretched (majority of resources)
-        │   ├── AppProf: AppProf-RCC
+        │   ├── AppProf: AppProf-AFR-PROD-V6
         │   │   ├── EPG-NAC → BD-NAC (2609:efff:b33b:1500::1/64)
         │   │   ├── EPG-CFG-MGMT → BD-CFG-MGMT (2609:efff:b33b:6900::1/64)
         │   │   ├── EPG-DNS-MGMT → BD-DNS-MGMT (2609:efff:b33b:5300::1/64)
@@ -147,7 +147,7 @@ Multiple schema backups were taken before any modifications:
 - `backup_analysis/ScheduledBackup-20260203070000.tar.gz` (11 MB) -- Full APIC scheduled backup
 - `backup_analysis/Backup-20260203144943.tar.gz` (10.9 MB) -- Manual APIC backup
 - `backup_analysis/20250722070000.tar.gz` (5.3 MB) -- Older backup for comparison
-- `backup_analysis/L3Outs-Table-tn-EUR.json` -- L3Out routing table for EUR tenant (9 L3Outs across 7 VRFs, including L3Out-RCC-E-G for VRF-RCC)
+- `backup_analysis/L3Outs-Table-tn-EUR.json` -- L3Out routing table for EUR tenant (9 L3Outs across 7 VRFs, including L3Out-RCC-E-G for AFR-PROD-V6)
 
 **f) GitLab Network Functions List (wiki page)**
 
@@ -201,7 +201,7 @@ The mapping from VLAN-numbered IPv4 EPGs to service-named IPv6 EPGs. Each `EPG-V
 | EPG-V0178 | EPG-E911-SVR | Emergency Services |
 | EPG-V0210 | EPG-LB | Load Balancing |
 | EPG-V0216 | EPG-DNS-MGMT | DNS Management |
-| EPG-V0218 | EPG-RCC-DNS | RCC DNS Services |
+| EPG-V0218 | EPG-AFRICOM-DNS | RCC DNS Services |
 | EPG-V0219 | EPG-DHCP-SVR | DHCP Services |
 | EPG-V0220 | EPG-SMTP-SVR | SMTP/Email |
 | EPG-V0260 | EPG-D64-PROXY, EPG-GEF-MGMT | Proxy/GEF Services |
@@ -209,9 +209,9 @@ The mapping from VLAN-numbered IPv4 EPGs to service-named IPv6 EPGs. Each `EPG-V
 | EPG-V0262 | EPG-FWEB-PROXY | Forward Web Proxy |
 | EPG-V0420 | EPG-APP-SVR, EPG-WEB-SVR | Application/Web Hosting |
 | EPG-V0450 | EPG-FMWR-SVR | Firmware Distribution |
-| EPG-V0470 | EPG-RCC-SVR | RCC Server |
-| EPG-V0471 | EPG-RCC-DCO, EPG-ADM-DCO | RCC/Admin Operations |
-| EPG-V0472 | EPG-RCC-UNIX | RCC UNIX Services |
+| EPG-V0470 | EPG-AFRICOM-SVR | RCC Server |
+| EPG-V0471 | EPG-AFRICOM-DCO, EPG-ADM-DCO | RCC/Admin Operations |
+| EPG-V0472 | EPG-AFRICOM-UNIX | RCC UNIX Services |
 | EPG-V0520 | EPG-PRINT-SVR | Print Services |
 | EPG-V0521 | EPG-FILE-SVR | File Services |
 | EPG-V0522 | EPG-BACKUP-SVR | Backup Services |
@@ -323,10 +323,10 @@ Where `[function_code]` is a 2-digit hex value unique to each service function.
 | a3 | BD-ADM-DCO | 2609:efff:b33b:a300::1/64 | 3163 | L2_Stretched | RCC Services |
 | ad | BD-AD | 2609:efff:b33b:ad00::1/64 | 3173 | L2_Stretched | Directory/Auth |
 | af | BD-ADFS | 2609:efff:b33b:af00::1/64 | 3175 | L2_Stretched | Directory/Auth |
-| bc | BD-RCC-SVR | 2609:efff:b33b:bc00::1/64 | 3051 | L2_Stretched | RCC Services |
-| bd | BD-RCC-DNS | 2609:efff:b33b:bd00::1/64 | 3052 | L2_Stretched | RCC Services |
-| be | BD-RCC-DCO | 2609:efff:b33b:be00::1/64 | 3053 | L2_Stretched | RCC Services |
-| bf | BD-RCC-UNIX | 2609:efff:b33b:bf00::1/64 | 3054 | L2_Stretched | RCC Services |
+| bc | BD-AFRICOM-SVR | 2609:efff:b33b:bc00::1/64 | 3051 | L2_Stretched | RCC Services |
+| bd | BD-AFRICOM-DNS | 2609:efff:b33b:bd00::1/64 | 3052 | L2_Stretched | RCC Services |
+| be | BD-AFRICOM-DCO | 2609:efff:b33b:be00::1/64 | 3053 | L2_Stretched | RCC Services |
+| bf | BD-AFRICOM-UNIX | 2609:efff:b33b:bf00::1/64 | 3054 | L2_Stretched | RCC Services |
 | c0 | BD-ACAS-SCANNERS | 2609:efff:b33b:c000::1/64 | 3192 | L2_Stretched | Security |
 | c1 | BD-C2C-SCANNERS | 2609:efff:b33b:c001::1/64 | 3442 | L2_Stretched | Security |
 | c3 | BD-SYSMAN | 2609:efff:b33b:c300::1/64 | 3195 | L2_Stretched | Infrastructure |
@@ -372,7 +372,7 @@ Every BD follows the same three-resource pattern in Terraform:
 └────────────┬────────────────────┘
              │
 ┌────────────▼────────────────────┐
-│  mso_schema_template_anp_epg    │  EPG in AppProf-RCC
+│  mso_schema_template_anp_epg    │  EPG in AppProf-AFR-PROD-V6
 └─────────────────────────────────┘
 ```
 
@@ -410,9 +410,9 @@ All BDs share these settings for L2 stretched multi-site operation:
 ### VRF and Contract Configuration
 
 ```
-VRF-RCC
+AFR-PROD-V6
 ├── vzAny: enabled
-├── Contract: Any_VRF-RCC
+├── Contract: Any_AFR-PROD-V6
 │   ├── Scope: context (VRF-wide)
 │   ├── Filter: Any (bidirectional)
 │   ├── vzAny Provider
@@ -420,7 +420,7 @@ VRF-RCC
 └── All BDs associated to this VRF
 ```
 
-The vzAny contract with an "Any" filter enables full inter-EPG communication within the VRF -- all EPGs under VRF-RCC can communicate with each other without individual contract definitions.
+The vzAny contract with an "Any" filter enables full inter-EPG communication within the VRF -- all EPGs under AFR-PROD-V6 can communicate with each other without individual contract definitions.
 
 ---
 

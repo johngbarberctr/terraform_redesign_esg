@@ -87,7 +87,7 @@ self.verified_vlans = [
 | EPG-MECM | EPG-V0033 | Endpoint Management |
 | EPG-ACAS-SCANNERS | EPG-V0140 | Vulnerability Scanners |
 | EPG-AD | EPG-V0150 | Active Directory |
-| EPG-RCC-SVR | EPG-V0470 | RCC Servers |
+| EPG-AFRICOM-SVR | EPG-V0470 | RCC Servers |
 
 **This is why the script has a hardcoded mapping** - there's no automatic way to derive the relationship between function codes and VLAN-based IPv4 EPG names.
 

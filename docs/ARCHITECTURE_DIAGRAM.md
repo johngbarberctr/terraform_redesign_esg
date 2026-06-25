@@ -42,11 +42,11 @@
 │  ┌─────────────────────┐    ┌─────────────────────┐    ┌─────────────────────┐    ┌────────────────┐ │
 │  │    VRF_Template     │    │    L2_Stretched     │    │   Site1-Specific_Only   │    │ Site2-Specific_Only│ │
 │  │                     │    │                     │    │                     │    │                │ │
-│  │  • VRF-RCC          │    │  • 29 BDs           │    │  • BD-GEF-MGMT      │    │ • BD-BACKUP-SVR│ │
+│  │  • AFR-PROD-V6          │    │  • 29 BDs           │    │  • BD-GEF-MGMT      │    │ • BD-BACKUP-SVR│ │
 │  │  • vzAny enabled    │    │  • 29 EPGs          │    │  • EPG-GEF-MGMT     │    │ • EPG-BACKUP-  │ │
-│  │  • Any_VRF-RCC      │    │  • AppProf-RCC      │    │  • L3Out-Kelley-V2    │    │   SVR          │ │
+│  │  • Any_AFR-PROD-V6      │    │  • AppProf-AFR-PROD-V6      │    │  • L3Out-Kelley-V2    │    │   SVR          │ │
 │  │    contract         │    │                     │    │  • ExtEPG-Kelley-V2   │    │ • L3Out-Del-Din-V2│ │
-│  │  • "Any" filter     │    │                     │    │                     │    │ • ExtEPG-RCC-  │ │
+│  │  • "Any" filter     │    │                     │    │                     │    │ • ExtEPG-V2    │ │
 │  │                     │    │                     │    │                     │    │   E-K          │ │
 │  │  Sites: G, K        │    │  Sites: G, K        │    │  Site: G only       │    │ Site: K only   │ │
 │  └─────────────────────┘    └─────────────────────┘    └─────────────────────┘    └────────────────┘ │
@@ -70,10 +70,10 @@
 
 ```
                               ┌─────────────────────────────────────────┐
-                              │              VRF-RCC                     │
+                              │              AFR-PROD-V6                     │
                               │           (VRF_Template)                 │
                               │                                          │
-                              │    vzAny ◄──── Any_VRF-RCC ────► vzAny  │
+                              │    vzAny ◄──── Any_AFR-PROD-V6 ────► vzAny  │
                               │  (Provider)     Contract      (Consumer) │
                               └───────────────────┬─────────────────────┘
                                                   │
@@ -88,7 +88,7 @@
         │  EPG-CFG-MGMT     │       │  EPG-BACKUP-SVR(K)│       │  ExtEPG-Del-Din-V2   │
         │  EPG-MECM         │       │                   │       │                   │
         │  EPG-NMS          │       │                   │       │  Provider/Consumer│
-        │  ... (35 total)   │       │                   │       │  of Any_VRF-RCC   │
+        │  ... (35 total)   │       │                   │       │  of Any_AFR-PROD-V6   │
         └───────────────────┘       └───────────────────┘       └───────────────────┘
 ```
 
@@ -146,10 +146,10 @@
     a3               BD-ADM-DCO           a300::/56         3163
     ad               BD-AD                ad00::/56         3173
     af               BD-ADFS              af00::/56         3175
-    bc               BD-RCC-SVR           bc00::/56         3051
-    bd               BD-RCC-DNS           bd00::/56         3052
-    be               BD-RCC-DCO           be00::/56         3053
-    bf               BD-RCC-UNIX          bf00::/56         3054
+    bc               BD-AFRICOM-SVR           bc00::/56         3051
+    bd               BD-AFRICOM-DNS           bd00::/56         3052
+    be               BD-AFRICOM-DCO           be00::/56         3053
+    bf               BD-AFRICOM-UNIX          bf00::/56         3054
     c0               BD-ACAS-SCANNERS     c000::/56         3192
     c1               BD-C2C-SCANNERS      c001::/56         3442
     c3               BD-SYSMAN            c300::/56         3195
@@ -251,13 +251,13 @@
 graph TB
     subgraph NDO["NDO - Schema: AFRICOM"]
         subgraph VRF_Template["VRF_Template"]
-            VRF[VRF-RCC<br/>vzAny enabled]
-            Contract[Any_VRF-RCC<br/>Contract]
+            VRF[AFR-PROD-V6<br/>vzAny enabled]
+            Contract[Any_AFR-PROD-V6<br/>Contract]
         end
         
         subgraph L2_Stretched["L2_Stretched (Sites: G, K)"]
             BDs[29 Bridge Domains<br/>IPv6 Subnets]
-            EPGs[29 EPGs<br/>AppProf-RCC]
+            EPGs[29 EPGs<br/>AppProf-AFR-PROD-V6]
         end
         
         subgraph G_Only["Site1-Specific_Only (Site G)"]

@@ -43,7 +43,7 @@ The Terraform plan provisions **39 IPv6 Endpoint Groups (EPGs)** organized acros
 | BD-PROXY | Proxy Services | D64-PROXY, RWEB-PROXY, FWEB-PROXY |
 | BD-APPLICATION | Application Servers | APP-SVR, WEB-SVR, FMWR-SVR |
 | BD-DATA | Data Services | DB-SVR, PRINT-SVR, FILE-SVR, SYSLOG |
-| BD-RCC-CORE | RCC Core Services | RCC-SVR, RCC-DCO, RCC-UNIX |
+| BD-AFRICOM-CORE | RCC Core Services | RCC-SVR, RCC-DCO, RCC-UNIX |
 | BD-SITE-SPECIFIC | Site-Local Services | GEF-MGMT (G), BACKUP-SVR (K) |
 
 ### IPv6 Addressing Scheme
@@ -54,8 +54,8 @@ The Terraform plan provisions **39 IPv6 Endpoint Groups (EPGs)** organized acros
 
 ### Key Configuration Details
 
-- **VRF:** VRF-RCC (existing)
-- **Contract:** Any_VRF-RCC (vzAny enabled)
+- **VRF:** AFR-PROD-V6 (existing)
+- **Contract:** Any_AFR-PROD-V6 (vzAny enabled)
 - **Physical Domain:** PhysDom_ACI_Nexus
 - **L3Out Association:** L3Out-RCC-E (for external routing)
 

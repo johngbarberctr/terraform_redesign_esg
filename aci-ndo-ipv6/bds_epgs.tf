@@ -26,10 +26,10 @@
 # a3   | BD-ADM-DCO        | 2609:efff:b33b:a300::/64 | 2609:efff:b33b:a300::1/64    | 3163 | No     | ✅
 # ad   | BD-AD             | 2609:efff:b33b:ad00::/64 | 2609:efff:b33b:ad00::1/64    | 3173 | No     | ✅
 # af   | BD-ADFS           | 2609:efff:b33b:af00::/64 | 2609:efff:b33b:af00::1/64    | 3175 | No     | ✅
-# bc   | BD-RCC-SVR        | 2609:efff:b33b:bc00::/64 | 2609:efff:b33b:bc00::1/64    | 3051 | No     | ⚠️
-# bd   | BD-RCC-DNS        | 2609:efff:b33b:bd00::/64 | 2609:efff:b33b:bd00::1/64    | 3052 | No     | ⚠️
-# be   | BD-RCC-DCO        | 2609:efff:b33b:be00::/64 | 2609:efff:b33b:be00::1/64    | 3053 | No     | ⚠️
-# bf   | BD-RCC-UNIX       | 2609:efff:b33b:bf00::/64 | 2609:efff:b33b:bf00::1/64    | 3054 | No     | ⚠️
+# bc   | BD-AFRICOM-SVR        | 2609:efff:b33b:bc00::/64 | 2609:efff:b33b:bc00::1/64    | 3051 | No     | ⚠️
+# bd   | BD-AFRICOM-DNS        | 2609:efff:b33b:bd00::/64 | 2609:efff:b33b:bd00::1/64    | 3052 | No     | ⚠️
+# be   | BD-AFRICOM-DCO        | 2609:efff:b33b:be00::/64 | 2609:efff:b33b:be00::1/64    | 3053 | No     | ⚠️
+# bf   | BD-AFRICOM-UNIX       | 2609:efff:b33b:bf00::/64 | 2609:efff:b33b:bf00::1/64    | 3054 | No     | ⚠️
 # c0   | BD-ACAS-SCANNERS  | 2609:efff:b33b:c000::/64 | 2609:efff:b33b:c000::1/64    | 3192 | No     | ✅
 # c1   | BD-C2C-SCANNERS   | 2609:efff:b33b:c001::/64 | 2609:efff:b33b:c001::1/64    | 3442 | No     | ✅
 # c3   | BD-SYSMAN         | 2609:efff:b33b:c300::/64 | 2609:efff:b33b:c300::1/64    | 3195 | No     | ✅
@@ -84,8 +84,8 @@ data "mso_tenant" "eur" {
 resource "mso_schema_template_vrf" "vrf_rcc" {
   schema_id        = data.mso_schema.existing.id
   template         = var.vrf_template_name
-  name             = "VRF-RCC"
-  display_name     = "VRF-RCC"
+  name             = "AFR-PROD-V6"
+  display_name     = "AFR-PROD-V6"
   layer3_multicast = false
   vzany            = true
 }
@@ -97,24 +97,8 @@ resource "mso_schema_template_vrf" "vrf_rcc" {
 resource "mso_schema_template_contract" "contract_vrf_rcc" {
   schema_id     = data.mso_schema.existing.id
   template_name = var.vrf_template_name
-  contract_name = "Any_VRF-RCC"
-  display_name  = "Any_VRF-RCC"
-  scope         = "context"
-  filter_type   = "bothWay"
-
-  filter_relationship {
-    filter_schema_id     = data.mso_schema.existing.id
-    filter_template_name = var.vrf_template_name
-    filter_name          = "Any"
-    filter_type          = "bothWay"
-  }
-}
-
-resource "mso_schema_template_contract" "contract_rcc" {
-  schema_id     = data.mso_schema.existing.id
-  template_name = var.vrf_template_name
-  contract_name = "Any_RCC"
-  display_name  = "Any_RCC"
+  contract_name = "Any_AFR-PROD-V6"
+  display_name  = "Any_AFR-PROD-V6"
   scope         = "context"
   filter_type   = "bothWay"
 
@@ -150,27 +134,6 @@ resource "mso_schema_template_vrf_contract" "vrf_rcc_vzany_consumer" {
   contract_schema_id     = data.mso_schema.existing.id
   contract_template_name = var.vrf_template_name
 }
-
-resource "mso_schema_template_vrf_contract" "vrf_rcc_vzany_provider_rcc" {
-  schema_id              = data.mso_schema.existing.id
-  template_name          = var.vrf_template_name
-  vrf_name               = mso_schema_template_vrf.vrf_rcc.name
-  relationship_type      = "provider"
-  contract_name          = mso_schema_template_contract.contract_rcc.contract_name
-  contract_schema_id     = data.mso_schema.existing.id
-  contract_template_name = var.vrf_template_name
-}
-
-resource "mso_schema_template_vrf_contract" "vrf_rcc_vzany_consumer_rcc" {
-  schema_id              = data.mso_schema.existing.id
-  template_name          = var.vrf_template_name
-  vrf_name               = mso_schema_template_vrf.vrf_rcc.name
-  relationship_type      = "consumer"
-  contract_name          = mso_schema_template_contract.contract_rcc.contract_name
-  contract_schema_id     = data.mso_schema.existing.id
-  contract_template_name = var.vrf_template_name
-}
-
 # ============================================================================
 # L2_STRETCHED TEMPLATE
 # ============================================================================
@@ -178,8 +141,8 @@ resource "mso_schema_template_vrf_contract" "vrf_rcc_vzany_consumer_rcc" {
 resource "mso_schema_template_anp" "appprof_rcc_stretched" {
   schema_id    = data.mso_schema.existing.id
   template     = "Stretched_Services"
-  name         = "AppProf-RCC"
-  display_name = "AppProf-RCC"
+  name         = "AppProf-AFR-PROD-V6"
+  display_name = "AppProf-AFR-PROD-V6"
 }
 
 # ============================================================================
@@ -393,15 +356,15 @@ resource "mso_schema_template_anp_epg" "epg_dns_mgmt" {
 }
 
 # ============================================================================
-# Function: bd - RCC-DNS | IPv6: 2609:efff:b33b:bd00::1/64 | VLAN: Safe range
+# Function: bd - AFRICOM-DNS | IPv6: 2609:efff:b33b:bd00::1/64 | VLAN: Safe range
 # ============================================================================
 
 resource "mso_schema_template_bd" "bd_rcc_dns" {
   schema_id                       = data.mso_schema.existing.id
   template_name                   = "Stretched_Services"
-  name                            = "BD-RCC-DNS"
-  display_name                    = "BD-RCC-DNS"
-  description                     = "RCC DNS Services - Function: bd"
+  name                            = "BD-AFRICOM-DNS"
+  display_name                    = "BD-AFRICOM-DNS"
+  description                     = "AFRICOM DNS Services - Function: bd"
   vrf_name                        = mso_schema_template_vrf.vrf_rcc.name
   vrf_schema_id                   = data.mso_schema.existing.id
   vrf_template_name               = var.vrf_template_name
@@ -429,8 +392,8 @@ resource "mso_schema_template_anp_epg" "epg_rcc_dns" {
   schema_id     = data.mso_schema.existing.id
   template_name = "Stretched_Services"
   anp_name      = mso_schema_template_anp.appprof_rcc_stretched.name
-  name          = "EPG-RCC-DNS"
-  display_name  = "EPG-RCC-DNS"
+  name          = "EPG-AFRICOM-DNS"
+  display_name  = "EPG-AFRICOM-DNS"
   bd_name       = mso_schema_template_bd.bd_rcc_dns.name
 }
 
@@ -1191,15 +1154,15 @@ resource "mso_schema_template_anp_epg" "epg_fmwr_svr" {
 }
 
 # ============================================================================
-# Function: bc - RCC-SVR | IPv6: 2609:efff:b33b:bc00::1/64 | VLAN: Safe range
+# Function: bc - AFRICOM-SVR | IPv6: 2609:efff:b33b:bc00::1/64 | VLAN: Safe range
 # ============================================================================
 
 resource "mso_schema_template_bd" "bd_rcc_svr" {
   schema_id                       = data.mso_schema.existing.id
   template_name                   = "Stretched_Services"
-  name                            = "BD-RCC-SVR"
-  display_name                    = "BD-RCC-SVR"
-  description                     = "RCC Server - Function: bc"
+  name                            = "BD-AFRICOM-SVR"
+  display_name                    = "BD-AFRICOM-SVR"
+  description                     = "AFRICOM Server - Function: bc"
   vrf_name                        = mso_schema_template_vrf.vrf_rcc.name
   vrf_schema_id                   = data.mso_schema.existing.id
   vrf_template_name               = var.vrf_template_name
@@ -1227,21 +1190,21 @@ resource "mso_schema_template_anp_epg" "epg_rcc_svr" {
   schema_id     = data.mso_schema.existing.id
   template_name = "Stretched_Services"
   anp_name      = mso_schema_template_anp.appprof_rcc_stretched.name
-  name          = "EPG-RCC-SVR"
-  display_name  = "EPG-RCC-SVR"
+  name          = "EPG-AFRICOM-SVR"
+  display_name  = "EPG-AFRICOM-SVR"
   bd_name       = mso_schema_template_bd.bd_rcc_svr.name
 }
 
 # ============================================================================
-# Function: be - RCC-DCO | IPv6: 2609:efff:b33b:be00::1/64 | VLAN: Safe range
+# Function: be - AFRICOM-DCO | IPv6: 2609:efff:b33b:be00::1/64 | VLAN: Safe range
 # ============================================================================
 
 resource "mso_schema_template_bd" "bd_rcc_dco" {
   schema_id                       = data.mso_schema.existing.id
   template_name                   = "Stretched_Services"
-  name                            = "BD-RCC-DCO"
-  display_name                    = "BD-RCC-DCO"
-  description                     = "RCC DCO - Function: be"
+  name                            = "BD-AFRICOM-DCO"
+  display_name                    = "BD-AFRICOM-DCO"
+  description                     = "AFRICOM DCO - Function: be"
   vrf_name                        = mso_schema_template_vrf.vrf_rcc.name
   vrf_schema_id                   = data.mso_schema.existing.id
   vrf_template_name               = var.vrf_template_name
@@ -1269,21 +1232,21 @@ resource "mso_schema_template_anp_epg" "epg_rcc_dco" {
   schema_id     = data.mso_schema.existing.id
   template_name = "Stretched_Services"
   anp_name      = mso_schema_template_anp.appprof_rcc_stretched.name
-  name          = "EPG-RCC-DCO"
-  display_name  = "EPG-RCC-DCO"
+  name          = "EPG-AFRICOM-DCO"
+  display_name  = "EPG-AFRICOM-DCO"
   bd_name       = mso_schema_template_bd.bd_rcc_dco.name
 }
 
 # ============================================================================
-# Function: bf - RCC-UNIX | IPv6: 2609:efff:b33b:bf00::1/64 | VLAN: Safe range
+# Function: bf - AFRICOM-UNIX | IPv6: 2609:efff:b33b:bf00::1/64 | VLAN: Safe range
 # ============================================================================
 
 resource "mso_schema_template_bd" "bd_rcc_unix" {
   schema_id                       = data.mso_schema.existing.id
   template_name                   = "Stretched_Services"
-  name                            = "BD-RCC-UNIX"
-  display_name                    = "BD-RCC-UNIX"
-  description                     = "RCC UNIX - Function: bf"
+  name                            = "BD-AFRICOM-UNIX"
+  display_name                    = "BD-AFRICOM-UNIX"
+  description                     = "AFRICOM UNIX - Function: bf"
   vrf_name                        = mso_schema_template_vrf.vrf_rcc.name
   vrf_schema_id                   = data.mso_schema.existing.id
   vrf_template_name               = var.vrf_template_name
@@ -1311,8 +1274,8 @@ resource "mso_schema_template_anp_epg" "epg_rcc_unix" {
   schema_id     = data.mso_schema.existing.id
   template_name = "Stretched_Services"
   anp_name      = mso_schema_template_anp.appprof_rcc_stretched.name
-  name          = "EPG-RCC-UNIX"
-  display_name  = "EPG-RCC-UNIX"
+  name          = "EPG-AFRICOM-UNIX"
+  display_name  = "EPG-AFRICOM-UNIX"
   bd_name       = mso_schema_template_bd.bd_rcc_unix.name
 }
 
@@ -2291,8 +2254,8 @@ resource "mso_schema_site_anp_epg" "site_epg_patch_k" {
 resource "mso_schema_template_anp" "appprof_rcc_g_specific" {
   schema_id    = data.mso_schema.existing.id
   template     = "Kelley_Unique"
-  name         = "AppProf-RCC"
-  display_name = "AppProf-RCC"
+  name         = "AppProf-AFR-PROD-V6"
+  display_name = "AppProf-AFR-PROD-V6"
 }
 
 # Function: ef - GEF-MGMT | IPv6: 2609:efff:b33b:ef00::1/64 | VLAN: Safe range
@@ -2356,8 +2319,8 @@ resource "mso_schema_site_anp_epg" "site_epg_gef_mgmt_g" {
 resource "mso_schema_template_anp" "appprof_rcc_k_specific" {
   schema_id    = data.mso_schema.existing.id
   template     = "Del_Din_Unique"
-  name         = "AppProf-RCC"
-  display_name = "AppProf-RCC"
+  name         = "AppProf-AFR-PROD-V6"
+  display_name = "AppProf-AFR-PROD-V6"
 }
 
 # Function: dd - BACKUP-SVR | IPv6: 2609:efff:b33b:dd00::1/64 | VLAN: 3221 ✅
@@ -2418,13 +2381,6 @@ resource "mso_schema_site_anp_epg" "site_epg_backup_svr_k" {
 # L2_NON-STRETCHED TEMPLATE
 # ============================================================================
 
-resource "mso_schema_template_anp" "appprof_rcc_non_stretched" {
-  schema_id    = data.mso_schema.existing.id
-  template     = "Stretched_Services"
-  name         = "AppProf-RCC"
-  display_name = "AppProf-RCC"
-}
-
 # Function: db - DB-SVR | IPv6: 2609:efff:b33b:db00::1/64 | VLAN: 3219 ✅
 resource "mso_schema_template_bd" "bd_db_svr" {
   schema_id                       = data.mso_schema.existing.id
@@ -2458,7 +2414,7 @@ resource "mso_schema_template_bd_subnet" "bd_db_svr_subnet" {
 resource "mso_schema_template_anp_epg" "epg_db_svr" {
   schema_id     = data.mso_schema.existing.id
   template_name = "Stretched_Services"
-  anp_name      = mso_schema_template_anp.appprof_rcc_non_stretched.name
+  anp_name      = mso_schema_template_anp.appprof_rcc_stretched.name
   name          = "EPG-DB-SVR"
   display_name  = "EPG-DB-SVR"
   bd_name       = mso_schema_template_bd.bd_db_svr.name
@@ -2497,25 +2453,18 @@ resource "mso_schema_template_bd_subnet" "bd_syslog_subnet" {
 resource "mso_schema_template_anp_epg" "epg_syslog" {
   schema_id     = data.mso_schema.existing.id
   template_name = "Stretched_Services"
-  anp_name      = mso_schema_template_anp.appprof_rcc_non_stretched.name
+  anp_name      = mso_schema_template_anp.appprof_rcc_stretched.name
   name          = "EPG-SYSLOG"
   display_name  = "EPG-SYSLOG"
   bd_name       = mso_schema_template_bd.bd_syslog.name
 }
 
-# Site Associations - L2_Non-Stretched
-resource "mso_schema_site_anp" "site_anp_site1_non_stretched" {
-  schema_id     = data.mso_schema.existing.id
-  template_name = "Stretched_Services"
-  site_id       = data.mso_site.site1.id
-  anp_name      = mso_schema_template_anp.appprof_rcc_non_stretched.name
-}
-
+# Site Associations - Site-Local services (ANP added via site_anp_site1_stretched)
 resource "mso_schema_site_anp_epg" "site_epg_db_svr_g" {
   schema_id     = data.mso_schema.existing.id
   template_name = "Stretched_Services"
   site_id       = data.mso_site.site1.id
-  anp_name      = mso_schema_template_anp.appprof_rcc_non_stretched.name
+  anp_name      = mso_schema_template_anp.appprof_rcc_stretched.name
   epg_name      = mso_schema_template_anp_epg.epg_db_svr.name
 }
 
@@ -2523,22 +2472,15 @@ resource "mso_schema_site_anp_epg" "site_epg_syslog_g" {
   schema_id     = data.mso_schema.existing.id
   template_name = "Stretched_Services"
   site_id       = data.mso_site.site1.id
-  anp_name      = mso_schema_template_anp.appprof_rcc_non_stretched.name
+  anp_name      = mso_schema_template_anp.appprof_rcc_stretched.name
   epg_name      = mso_schema_template_anp_epg.epg_syslog.name
-}
-
-resource "mso_schema_site_anp" "site_anp_site2_non_stretched" {
-  schema_id     = data.mso_schema.existing.id
-  template_name = "Stretched_Services"
-  site_id       = data.mso_site.site2.id
-  anp_name      = mso_schema_template_anp.appprof_rcc_non_stretched.name
 }
 
 resource "mso_schema_site_anp_epg" "site_epg_db_svr_k" {
   schema_id     = data.mso_schema.existing.id
   template_name = "Stretched_Services"
   site_id       = data.mso_site.site2.id
-  anp_name      = mso_schema_template_anp.appprof_rcc_non_stretched.name
+  anp_name      = mso_schema_template_anp.appprof_rcc_stretched.name
   epg_name      = mso_schema_template_anp_epg.epg_db_svr.name
 }
 
@@ -2546,7 +2488,7 @@ resource "mso_schema_site_anp_epg" "site_epg_syslog_k" {
   schema_id     = data.mso_schema.existing.id
   template_name = "Stretched_Services"
   site_id       = data.mso_site.site2.id
-  anp_name      = mso_schema_template_anp.appprof_rcc_non_stretched.name
+  anp_name      = mso_schema_template_anp.appprof_rcc_stretched.name
   epg_name      = mso_schema_template_anp_epg.epg_syslog.name
 }
 
@@ -4167,7 +4109,7 @@ resource "mso_schema_site_anp_epg_domain" "epg_db_svr_domain_g" {
   schema_id            = data.mso_schema.existing.id
   template_name        = "Stretched_Services"
   site_id              = data.mso_site.site1.id
-  anp_name             = mso_schema_template_anp.appprof_rcc_non_stretched.name
+  anp_name             = mso_schema_template_anp.appprof_rcc_stretched.name
   epg_name             = mso_schema_template_anp_epg.epg_db_svr.name
   domain_type          = "physicalDomain"
   domain_name          = "PhysDom_ACI_IPv6"
@@ -4180,7 +4122,7 @@ resource "mso_schema_site_anp_epg_domain" "epg_syslog_domain_g" {
   schema_id            = data.mso_schema.existing.id
   template_name        = "Stretched_Services"
   site_id              = data.mso_site.site1.id
-  anp_name             = mso_schema_template_anp.appprof_rcc_non_stretched.name
+  anp_name             = mso_schema_template_anp.appprof_rcc_stretched.name
   epg_name             = mso_schema_template_anp_epg.epg_syslog.name
   domain_type          = "physicalDomain"
   domain_name          = "PhysDom_ACI_IPv6"
@@ -4194,7 +4136,7 @@ resource "mso_schema_site_anp_epg_domain" "epg_db_svr_domain_k" {
   schema_id            = data.mso_schema.existing.id
   template_name        = "Stretched_Services"
   site_id              = data.mso_site.site2.id
-  anp_name             = mso_schema_template_anp.appprof_rcc_non_stretched.name
+  anp_name             = mso_schema_template_anp.appprof_rcc_stretched.name
   epg_name             = mso_schema_template_anp_epg.epg_db_svr.name
   domain_type          = "physicalDomain"
   domain_name          = "PhysDom_ACI_IPv6"
@@ -4207,7 +4149,7 @@ resource "mso_schema_site_anp_epg_domain" "epg_syslog_domain_k" {
   schema_id            = data.mso_schema.existing.id
   template_name        = "Stretched_Services"
   site_id              = data.mso_site.site2.id
-  anp_name             = mso_schema_template_anp.appprof_rcc_non_stretched.name
+  anp_name             = mso_schema_template_anp.appprof_rcc_stretched.name
   epg_name             = mso_schema_template_anp_epg.epg_syslog.name
   domain_type          = "physicalDomain"
   domain_name          = "PhysDom_ACI_IPv6"

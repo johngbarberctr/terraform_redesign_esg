@@ -39,7 +39,7 @@ shared scripts and the AFRICOM NIPR implementation documentation.
 |------|--------|------|---------|
 | `aci-apic/` | `aci-apic/README.md` | ESG redesign: APIC access/fabric policies, VMM domain, MCP, ESG layer (`AppProf-AppCentric-V2`) for both lab and prod | Lab APICs + prod APICs |
 | `aci-ndo/` | `aci-ndo/README.md` | IPv4 redesign NDO schema (`AFRICOM-V2`): 2 VRFs, 39 BDs, 39 EPGs | Lab + prod NDO |
-| `aci-ndo-ipv6/` | `aci-ndo-ipv6/README.md` | IPv6 RCC NDO layer (`VRF-RCC`, schema `AFRICOM`) | Lab NDO |
+| `aci-ndo-ipv6/` | `aci-ndo-ipv6/README.md` | IPv6 RCC NDO layer (`AFR-PROD-V6`, schema `AFRICOM`) | Lab NDO |
 | **`africom-aci-apic/`** | **`africom-aci-apic/README.md`** | **AFRICOM NIPR APIC-direct: access/fabric policies + Phase 1–2 implementation settings for Kelley (NADE02) and Del Din (NAIT03)** | AFRICOM NIPR lab + prod APICs |
 | **`africom-aci-ndo/`** | `africom-aci-ndo/README.md` | **AFRICOM NIPR V2 NDO schema** (AFR-SERVICES-V2) | AFRICOM NIPR NDO |
 
@@ -110,7 +110,7 @@ shared scripts and the AFRICOM NIPR implementation documentation.
 | **Mac path**                | `/Users/johbarbe/DC/ACI/ndo-terraform-nac/`                                                 |
 | **Git remotes**             | `localhost:8080/root/ndo_terraform` · `localhost:8080/Administrator/ndo_terraform`          |
 | **Cursor workspace labels** | `LAB - IPv4 NAC Terraform` (root) · `PROD - IPv6 RCC (136.215.4.96)` (sub-dir)             |
-| **Purpose**                 | NAC-style Terraform for NDO at multiple production sites. Houses the canonical IPv6 RCC build under `136.215.4.96/` (39 BDs, 39 EPGs in `VRF-RCC`, L3Outs, External EPGs). |
+| **Purpose**                 | NAC-style Terraform for NDO at multiple production sites. Houses the canonical IPv6 RCC build under `136.215.4.96/` (39 BDs, 39 EPGs in `AFR-PROD-V6`, L3Outs, External EPGs). |
 | **Production target**       | NDO at `136.215.4.96`                                                                       |
 | **Note**                    | Similar name to the old `ndo-terraform` helper folder — entirely separate repo and purpose. |
 

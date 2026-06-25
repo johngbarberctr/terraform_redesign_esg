@@ -65,8 +65,8 @@ Deployed **27 IPv6 Bridge Domains** with associated subnets across the following
 - Domain associations configured for both Site G and Site K
 
 #### VRF and Contract Configuration
-- **VRF:** VRF-RCC (stretched across both sites)
-- **Contract:** Any_VRF-RCC (permit-all for internal communication)
+- **VRF:** AFR-PROD-V6 (stretched across both sites)
+- **Contract:** Any_AFR-PROD-V6 (permit-all for internal communication)
 - **vzAny:** Contract associated as both provider and consumer for simplified policy
 
 ### 2. L3Out Configuration (External Routing)
@@ -76,7 +76,7 @@ Deployed **27 IPv6 Bridge Domains** with associated subnets across the following
 |-----------|--------|--------|
 | L3Out Name | L3Out-Kelley-V2 | L3Out-Del-Din-V2 |
 | Template | Site1-Specific_Only | Site2-Specific_Only |
-| VRF | VRF-RCC | VRF-RCC |
+| VRF | AFR-PROD-V6 | AFR-PROD-V6 |
 | External EPG | ExtEPG-Kelley-V2 | ExtEPG-Del-Din-V2 |
 
 #### APIC-Level Configuration (per site)
@@ -135,7 +135,7 @@ All 27 Bridge Domains are associated with their respective site-local L3Out for 
 ### Template Structure
 | Template | Scope | Contents |
 |----------|-------|----------|
-| VRF_Template | Stretched | VRF-RCC, Any_VRF-RCC contract |
+| VRF_Template | Stretched | AFR-PROD-V6, Any_AFR-PROD-V6 contract |
 | L2_Stretched | Stretched | All BDs, EPGs, ANP |
 | Site1-Specific_Only | Site G only | L3Out-Kelley-V2, ExtEPG-Kelley-V2 |
 | Site2-Specific_Only | Site K only | L3Out-Del-Din-V2, ExtEPG-Del-Din-V2 |

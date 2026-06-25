@@ -101,7 +101,7 @@ at the per-stack README for details.
 | 2.5 | Push legacy N5K static port bindings to AFRICOM EPGs | `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/scripts/` | ~2 min | Python (`deploy_bindings_python_v2.py`) |
 | 3 | APIC fabric/access policies, MCP, VMware VMM domains | `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/aci-apic/` | ~5 min apply | Terraform (both fabrics in one root) |
 | 4 | V2 redesign tenant tree (schema `AFRICOM-V2`, template `Tenant_AFR-DEL.Services_V2`; all tenant-scoped objects suffixed `-V2`) | `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/aci-ndo/` | ~5 min apply + UI deploy | Terraform + manual UI |
-| 5 *(optional)* | IPv6 RCC layer (adds `AppProf-RCC` to existing `Stretched_Services`) | `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/aci-ndo-ipv6/` | ~30 min apply at `-parallelism=3` | Terraform + manual UI re-deploy |
+| 5 *(optional)* | IPv6 RCC layer (adds `AppProf-AFR-PROD-V6` to existing `Stretched_Services`) | `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/aci-ndo-ipv6/` | ~30 min apply at `-parallelism=3` | Terraform + manual UI re-deploy |
 | 6 | Static port bindings (post-deploy push not modeled in NAC YAML) | `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/scripts/` | ~2 min | Python + manual UI re-deploy |
 | 7 | Verify on APICs and vCenter | APIC GUI + vCenter | as needed | Manual |
 
@@ -445,9 +445,9 @@ Details: `aci-apic/data/nac-aci-shared/tenant-eur-esgs.nac.yaml` (the ESG YAML i
 ## Phase 5 *(optional)* — IPv6 RCC layer (`aci-ndo-ipv6/`)
 
 Only do this phase if you need the IPv6 RCC EPGs (`EPG-NAC`, `EPG-CFG-MGMT`,
-`EPG-RCC-DNS`, … 39 in total) under a new ANP `AppProf-RCC` inside the
+`EPG-AFRICOM-DNS`, … 39 in total) under a new ANP `AppProf-AFR-PROD-V6` inside the
 existing `Stretched_Services` template, **and/or** you intend to use Phase 6
-Path A (`dump_bindings.py`) which reads from `AFRICOM/AppProf-RCC` to seed
+Path A (`dump_bindings.py`) which reads from `AFRICOM/AppProf-AFR-PROD-V6` to seed
 IPv4 bindings.
 
 ```bash
@@ -485,7 +485,7 @@ terraform apply -parallelism=3 plan.tfplan
 ```
 
 Then NDO UI → schema `AFRICOM` → template `Stretched_Services` → **Deploy to sites**
-again (since this Terraform run added `AppProf-RCC` and 39 IPv6 EPGs into
+again (since this Terraform run added `AppProf-AFR-PROD-V6` and 39 IPv6 EPGs into
 `Stretched_Services`).
 
 The "Deferred — re-enable after bindings" stages 6a/6b/6c documented in
@@ -522,7 +522,7 @@ cd ~/DC/ACI/sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/scripts
 export NDO_HOST=198.18.133.100
 export NDO_USER=admin
 
-# Read AFRICOM/AppProf-RCC, write a JSON for AFRICOM-V2.
+# Read AFRICOM/AppProf-AFR-PROD-V6, write a JSON for AFRICOM-V2.
 # Both sites use nodes 101,102 — pass all four node IDs (Kelley: 101,102; Del-Din: 101,102).
 ./dump_bindings.py --leaves 101,102,101,102 \
                    --output current_bindings.json --dry-run     # preview
@@ -579,7 +579,7 @@ strategy rationale).
 | Each EPG's "Domains" tab | Per-fabric VMM domain (`APCG-VDS1` or `APCK-VDS1`) bound, `Resolution Immediacy = Immediate` |
 | Each EPG's "Static Ports" tab | Phase 6 bindings present with the right leaf/port/VLAN |
 | vCenter | 39 port-groups under each of `APCG-VDS1` / `APCK-VDS1` |
-| Phase 5 Phase-Two outcome (if done) | `AppProf-RCC` ANP visible in `Tenants → AFR-DEL.Services → Application Profiles` with 39 IPv6 EPGs |
+| Phase 5 Phase-Two outcome (if done) | `AppProf-AFR-PROD-V6` ANP visible in `Tenants → AFR-DEL.Services → Application Profiles` with 39 IPv6 EPGs |
 
 If anything is missing on the APIC: re-check that you clicked **Deploy to
 sites** after the relevant Terraform `apply`.

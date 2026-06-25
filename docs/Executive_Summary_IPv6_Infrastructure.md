@@ -32,10 +32,10 @@ Defines and deploys the **logical network infrastructure** to Cisco NDO:
 
 | Component | Count | Description |
 |-----------|-------|-------------|
-| **VRF** | 1 | Virtual Routing & Forwarding instance (VRF-RCC) |
+| **VRF** | 1 | Virtual Routing & Forwarding instance (AFR-PROD-V6) |
 | **Bridge Domains** | 39 | Layer 2 network segments with IPv6 subnets |
 | **EPGs** | 39 | Endpoint Groups for policy enforcement |
-| **Contracts** | 1 | Security policy (Any_VRF-RCC) |
+| **Contracts** | 1 | Security policy (Any_AFR-PROD-V6) |
 | **Site Associations** | ~150 | Multi-site deployment mappings |
 
 ### IPv6 Addressing Scheme
@@ -178,7 +178,7 @@ python3 generate_ipv6_bindings3.py dry-run
 │                           ▼                                     │
 │  2. MANUAL vzAny CONFIG (2-3 min) - ONE TIME                   │
 │     ┌─────────────────────────────────────────────────────┐    │
-│     │  MSO GUI: Add vzAny contracts to VRF-RCC            │    │
+│     │  MSO GUI: Add vzAny contracts to AFR-PROD-V6            │    │
 │     └─────────────────────────────────────────────────────┘    │
 │                           │                                     │
 │                           ▼                                     │
@@ -233,7 +233,7 @@ python3 generate_ipv6_bindings3.py dry-run
 
 | Aspect | Implementation |
 |--------|----------------|
-| **Network Isolation** | VRF-RCC isolated from other VRFs |
+| **Network Isolation** | AFR-PROD-V6 isolated from other VRFs |
 | **Broadcast Isolation** | 39 separate bridge domains |
 | **VLAN Separation** | Unique VLAN per service (3000-3500 range) |
 | **Access Control** | vzAny contract for intra-VRF communication |

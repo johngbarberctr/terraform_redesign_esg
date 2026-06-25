@@ -74,7 +74,7 @@ schema and allowing the legacy `AFRICOM` schema to be retired.
 | Contracts | vzAny permit-all on each VRF (initial), tightened via ESGs later. Deployed names: `Any_VRF-AFR-DEL.Services-V2`, `Any_VRF-DMZ-V2`. |
 | ESGs | `ESG-All-Internal-V2` (selects all 36 EPGs in `AppProf-NetCentric-V2`) + `ESG-All-DMZ-V2` (selects all 3 EPGs in `AppProf-DMZ-V2`), both under a third ANP `AppProf-AppCentric-V2`. The two ESGs land APIC-direct via the `nac-aci@0.7.0` wrapper (loaded by `apic-vmware/main.tf` from `data/nac-aci-shared/tenant-eur-esgs.nac.yaml` for both Site1 and Site2), because `nac-ndo ~> 1.2.0` and the upstream Cisco `mso` provider `~> 1.7.x` do not model `endpoint_security_groups`. vzAny+permit-all on each VRF keeps both ESGs reachability-neutral. |
 | VMM Domains | **Per-fabric**: `APCG-VDS1` on Site1, `APCK-VDS1` on Site2. Each adopts the existing per-fabric VDS in vCenter (`dvs_version: unmanaged`). Replaces the legacy single shared `VMM1` domain. |
-| Address families | IPv4 today; IPv6 (currently in `VRF-RCC` / `AppProf-RCC`) folded in later as additional subnets on the same `BD-*-V2` objects. |
+| Address families | IPv4 today; IPv6 (currently in `AFR-PROD-V6` / `AppProf-AFR-PROD-V6`) folded in later as additional subnets on the same `BD-*-V2` objects. |
 
 ---
 
@@ -98,8 +98,8 @@ Tenant: EUR
 │   │   BD-CFG-MGMT (19 subnets), BD-DB-SVR (8 subnets), BD-DHCP-SVR,
 │   │   BD-DNS-MGMT, BD-E911-SVR, BD-FILE-SVR, BD-FMWR-SVR, BD-GEF-MGMT,
 │   │   BD-LB, BD-LMR, BD-MECM, BD-NAC, BD-NMS, BD-OCSP, BD-PATCH,
-│   │   BD-PKI-SRV, BD-PRINT-SVR, BD-RCC-DCO, BD-RCC-DNS, BD-RCC-SVR,
-│   │   BD-RCC-UNIX, BD-SMTP-SVR, BD-SYSLOG, BD-SYSMAN, BD-VHOST-MGMT,
+│   │   BD-PKI-SRV, BD-PRINT-SVR, BD-AFRICOM-DCO, BD-AFRICOM-DNS, BD-AFRICOM-SVR,
+│   │   BD-AFRICOM-UNIX, BD-SMTP-SVR, BD-SYSLOG, BD-SYSMAN, BD-VHOST-MGMT,
 │   │   BD-VVOIP-MGMT (9 subnets), BD-VVOIP-PROXY, BD-WEB-SVR (11 subnets)
 │   │
 │   ├── AppProf-NetCentric (36 EPGs on per-fabric VMM domains: APCG-VDS1 / APCK-VDS1)
@@ -123,7 +123,7 @@ Tenant: EUR
 │           (one ANP, two ESGs -- one per VRF)
 │           [deployed as AppProf-AppCentric-V2 / ESG-All-DMZ-V2]
 │
-└── VRF-RCC (IPv6) ─── still managed separately by ndo-terraform-nac (interim)
+└── AFR-PROD-V6 (IPv6) ─── still managed separately by ndo-terraform-nac (interim)
     Folds into the BD-*-V2 set above as additional subnets in a later wave.
 ```
 
@@ -244,7 +244,7 @@ Is ACI the IP gateway for this segment?
 | **VMM domain** | VMM1 → per-fabric `APCG-VDS1` / `APCK-VDS1` (each adopts the existing per-fabric VDS in vCenter) | Dynamic VLAN assignment from `vmm-vlan-pool` 3501-3967 |
 | **L3Outs** | 13 → ~4 (production) | External routing concept |
 | **Firewall** | -- | Still enforces DMZ boundaries |
-| **IPv6 (VRF-RCC)** | Folded into `BD-*-V2` as additional subnets in a later wave | Currently still managed separately |
+| **IPv6 (AFR-PROD-V6)** | Folded into `BD-*-V2` as additional subnets in a later wave | Currently still managed separately |
 
 ---
 

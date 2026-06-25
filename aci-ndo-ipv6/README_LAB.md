@@ -287,13 +287,13 @@ The full lab workflow looks roughly like:
 
 ### Deferred — re-enable after bindings
 
-> **Status (lab, Kelley + Del-Din):** all three stage files are **active** (no `.disabled` suffix). `bds_epgs.tf` manages the VRF, `Any_RCC` contract (vzAny on VRF-RCC), and all BDs/EPGs. `l3outs_ndo.tf` manages the NDO L3Outs and ExtEPGs with the `Any_RCC` contract. `l3outs_apic.tf` manages the OSPF interface policy (`OSPF-IntPol-L3Out`), logical node/interface profiles, and IPv6 SVI path attachments on each APIC. `vlans_apic.tf` creates the `VLAN_All_Combined` static VLAN pool and all 39 encap entries on both APICs.
+> **Status (lab, Kelley + Del-Din):** all three stage files are **active** (no `.disabled` suffix). `bds_epgs.tf` manages the VRF, `Any_AFR-PROD-V6` contract (vzAny on AFR-PROD-V6), and all BDs/EPGs. `l3outs_ndo.tf` manages the NDO L3Outs and ExtEPGs with the `Any_AFR-PROD-V6` contract. `l3outs_apic.tf` manages the OSPF interface policy (`OSPF-IntPol-L3Out`), logical node/interface profiles, and IPv6 SVI path attachments on each APIC. `vlans_apic.tf` creates the `VLAN_All_Combined` static VLAN pool and all 39 encap entries on both APICs.
 
 Three files form a strict ordered chain. They must be applied in sequence after `bds_epgs.tf` is in NDO and static port bindings have been pushed (workflow step 5). To deactivate one, rename `*.tf` → `*.tf.disabled`; to reactivate, rename back.
 
 | Stage | File | Provider | Manages | Hard prerequisite |
 |---|---|---|---|---|
-| 6a | `l3outs_ndo.tf` | `mso` | Site-local L3Outs (`L3Out-Kelley-V2`, `L3Out-Del-Din-V2`), External EPGs (`ExtEPG-Kelley-V2`, `ExtEPG-Del-Din-V2`), `Any_RCC` contract consumer/provider on each ExtEPG | `bds_epgs.tf` applied (provides `Any_RCC` contract); bindings pushed |
+| 6a | `l3outs_ndo.tf` | `mso` | Site-local L3Outs (`L3Out-Kelley-V2`, `L3Out-Del-Din-V2`), External EPGs (`ExtEPG-Kelley-V2`, `ExtEPG-Del-Din-V2`), `Any_AFR-PROD-V6` contract consumer/provider on each ExtEPG | `bds_epgs.tf` applied (provides `Any_AFR-PROD-V6` contract); bindings pushed |
 | 6b | `l3outs_apic.tf.disabled` (rename to `.tf` to enable) | `aci` (per-site aliases `aci.apic_g`, `aci.apic_k`) | OSPF interface policy (`OSPF-IntPol-L3Out` in tenant EUR), logical node/interface profiles, IPv6 SVI path attachments directly on each APIC | Stage 6a applied **and** NDO has pushed the L3Outs to **both** APICs (verify in APIC UI before proceeding) |
 | 6c | `vlans_apic.tf.disabled` (rename to `.tf` to enable) | `aci` (reuses `aci.apic_g`, `aci.apic_k` from stage 6b) | Creates VLAN pool `VLAN_All_Combined` (static) on both APICs and adds 39 encap entries (VLANs 3001–3442) | Stage 6b applied |
 
