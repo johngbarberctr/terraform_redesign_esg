@@ -1,8 +1,69 @@
 # Session Handoff — sac-johbarbe-AFRICOM-terraform-esg-nac-ndo
-**Last updated:** 2026-06-17 (afternoon session)
+**Last updated:** 2026-06-25
+**Session focus (2026-06-25):** `aci-ndo-ipv6` cleanup so its GitLab CI plans clean: L3Out renames, NDO template remap, deferred APIC-direct stages, and a full `RCC` → `AFRICOM`/`AFR-PROD-V6` rebrand of the IPv6 layer. (Companion consolidation work happened in the `nac-ndo` sibling repo — see its own session-state.md.)
 **Session focus (2026-06-17 afternoon):** VRF consolidation (11 → 1, placeholder `AFR-PROD`), template rename (5→4) documentation cleanup — all changes in nac-ndo sibling repo.
 **Session focus (2026-06-17 morning):** nac-ndo pipeline failure debugging and CI revert — no ESG repo code changes this session.
 **Session focus (2026-06-16):** AFRICOM NIPR implementation plan corrections, design review PPTX fixes, Phase 0/1 automation, documentation updates.
+
+---
+
+## What happened this session (2026-06-25) — aci-ndo-ipv6 CI cleanup + RCC→AFRICOM rebrand
+
+All work this session is in **`aci-ndo-ipv6/`** (this repo). Goal: get its GitLab pipeline to plan/validate clean and remove all `RCC` naming from the IPv6 layer. The IPv6 layer is a **separate VRF + contract by design** (kept distinct from the IPv4 `AFR-PROD`), just rebranded.
+
+### Accomplished (committed + pushed to gitlab main)
+
+Commit history this session (newest first):
+- `2bacf20` refactor(aci-ndo-ipv6): rebrand RCC objects to AFRICOM/AFR-PROD-V6
+- `b7e237b` fix(aci-ndo-ipv6): map RCC templates to actual AFRICOM schema templates
+- `187f472` fix(aci-ndo-ipv6): defer APIC-direct L3Out/VLAN stages so CI plans clean
+- `b00ac28` refactor(aci-ndo-ipv6): rename RCC L3Outs to site-named -V2 objects
+
+**1. L3Out / ExtEPG site renames** (`l3outs_ndo.tf`, `l3outs_apic.tf.disabled`, all docs):
+- `L3Out-RCC-E-G` → `L3Out-Kelley-V2`, `L3Out-RCC-E-K` → `L3Out-Del-Din-V2`
+- `ExtEPG-RCC-E-G` → `ExtEPG-Kelley-V2`, `ExtEPG-RCC-E-K` → `ExtEPG-Del-Din-V2`
+- `-V2` suffix is REQUIRED: another schema in the same tenant already uses the bare site names, and L3Out names are tenant-unique.
+
+**2. NDO template remap** (`bds_epgs.tf`, `l3outs_ndo.tf`) — the schema templates were renamed/merged, so old names no longer exist:
+- `L2_Stretched` AND `L2_Non-Stretched` → `Stretched_Services` (non-stretched was folded into stretched)
+- `Site1-Specific_Only` → `Kelley_Unique`, `Site2-Specific_Only` → `Del_Din_Unique`
+- hardcoded `"VRF_Template"` → `var.vrf_template_name` (default `"VRF"`)
+
+**3. Deferred APIC-direct stages** (`187f472`): `l3outs_apic.tf` and `vlans_apic.tf` renamed to `*.tf.disabled` via `git mv`. They reference L3Outs that don't exist at plan time (data sources) and broke CI. This matches the documented deferred-deployment design — re-enable them manually after the NDO L3Outs are deployed (README_LAB Stage 6b/6c).
+
+**4. RCC → AFRICOM rebrand** (`2bacf20`, `bds_epgs.tf` + `l3outs_ndo.tf` + 16 docs):
+- VRF `VRF-RCC` → `AFR-PROD-V6` (dedicated IPv6 VRF, created in the `VRF` template)
+- Contract: `Any_VRF-RCC` + duplicate `Any_RCC` → single `Any_AFR-PROD-V6`
+- ANP `AppProf-RCC` → `AppProf-AFR-PROD-V6`
+- Services `EPG-RCC-{DNS,SVR,DCO,UNIX}` → `EPG-AFRICOM-*`; `BD-RCC-*` → `BD-AFRICOM-*`
+
+**5. Duplicate cleanup** (root cause of the earlier `Duplicate Resource` error, from the non-stretched→stretched merge):
+- Deleted duplicate `Any_RCC` contract + its 2 vzAny provider/consumer bindings
+- Deleted duplicate ANP `appprof_rcc_non_stretched` + its 2 site-ANP associations; repointed the affected site EPGs to `appprof_rcc_stretched`
+- Repointed L3Out ExtEPG contract relationships to `contract_vrf_rcc`
+
+**Validation:** `terraform fmt` clean; `terraform validate` → "Success! The configuration is valid." (Note: validate/plan must run OUTSIDE the local sandbox — the MSO/ACI provider plugin fails the go-plugin handshake under sandboxing.)
+
+### Decisions made this session and why
+
+| Decision | Rationale |
+|----------|-----------|
+| IPv6 stays a SEPARATE VRF (`AFR-PROD-V6`) + contract (`Any_AFR-PROD-V6`), not merged into IPv4 `AFR-PROD` | User initially asked to fold into `AFR-PROD`, then corrected: the IPv6 config must be its own VRF (and therefore its own contract). |
+| New names are `AFR-PROD-V6` / `Any_AFR-PROD-V6` / `AppProf-AFR-PROD-V6`, services `EPG-AFRICOM-*` | User wanted zero `RCC` and chose these names. |
+| Kept internal HCL resource labels (`vrf_rcc`, `bd_rcc_dns`, `appprof_rcc_stretched`, …) unchanged | These are local Terraform identifiers, never pushed to ACI. Renaming ~280 of them is pure churn/risk with no functional effect. |
+| Left historical `RCC-E` project/branding text + meeting/presentation narrative ("RCC Services", "RCC-E IPv6 Infrastructure") and the separate `terraform-nac-ndo` repo's `RCC` untouched | `RCC` there is the separate real customer / project branding, not the deployed ACI object names. |
+| `*.tf.disabled` for APIC-direct files | Established repo convention for deferred stages; keeps CI planning only the NDO layer. |
+
+### Do NOT repeat next session (this repo)
+
+- **`aci-ndo-ipv6/` is NO LONGER "keep as-is".** The older handoff said don't touch it — that's now superseded. This session intentionally rebranded it. The IPv6 ACI object names are now `AFR-PROD-V6` / `AppProf-AFR-PROD-V6` / `EPG-AFRICOM-*` / `BD-AFRICOM-*` / `L3Out-{Kelley,Del-Din}-V2`. Do not reintroduce `RCC` object names.
+- **Do not re-enable `l3outs_apic.tf.disabled` / `vlans_apic.tf.disabled` in CI** until the NDO L3Outs (`L3Out-Kelley-V2` / `L3Out-Del-Din-V2`) are actually deployed — their data sources will fail at plan time otherwise.
+- **Do not rename the internal `*_rcc` HCL resource labels** — intentionally left as-is.
+- **Run terraform plan/validate outside the sandbox** — the provider plugin can't start under sandboxing (handshake failure, not a config error).
+
+### Next concrete step (this repo)
+
+`AFR-PROD-V6` is a NEW VRF name (was `VRF-RCC`), so the next apply will **create** it, not rename in place. Before/after running the `aci-ndo-ipv6` pipeline: if a stale `VRF-RCC` (and `Any_VRF-RCC` / `AppProf-RCC` / old `EPG-RCC-*` BDs) already exist in the NDO `AFRICOM`/`VRF` template from a prior run, delete them so you don't end up with both old and new objects. Then run the `aci-ndo-ipv6` pipeline and confirm a clean plan/apply.
 
 ---
 
@@ -165,7 +226,7 @@ The Phase 0 script and Phase 1 NAC YAML files exist on disk but have never been 
 - **Tenant rename `EUR` → `AFR-DEL.Services` is COMPLETE** across all AFRICOM files in both nac-ndo and ESG repos. Do not reintroduce `EUR` as a tenant name in any AFRICOM file. VRF/EPG/object names (`EUR-AIM`, `EUR-E`, `Any_EUR-*`, `Tenant_EUR_V2`, etc.) are intentionally unchanged — those are actual ACI object names.
 - **Do not use tenant `EUR`** in AFRICOM context. AFRICOM tenant is `AFR-DEL.Services`.
 - **Do not use RCC-E ESG zone names** (ESG-AIM, ESG-AIS, etc.) or VRF names (VRF-AFR-DEL.Services-V2) in AFRICOM context.
-- **Do not modify `aci-apic/`, `aci-ndo/`, `aci-ndo-ipv6/`** — preserved RCC-E working state.
+- **Do not modify `aci-apic/`, `aci-ndo/`** — preserved RCC-E working state. (NOTE: `aci-ndo-ipv6/` was INTENTIONALLY rebranded on 2026-06-25 — see top section. It is no longer "keep as-is".)
 - **`docs/AFRICOM/AFRICOM_Implementation_Plan.docx`** is a binary file in a gitignored path. Do not regenerate it unless the .md changes — conversion requires a temp venv with `python-docx`.
 
 ---
@@ -365,7 +426,7 @@ All L3 BDs: hardware proxy, unicast routing enabled, host-based routing enabled 
 ```
 aci-apic/           RCC-E APIC-direct — KEEP AS-IS (hard-won working state)
 aci-ndo/            RCC-E NDO V2 redesign — KEEP AS-IS
-aci-ndo-ipv6/       RCC-E IPv6 — KEEP AS-IS
+aci-ndo-ipv6/       IPv6 layer — REBRANDED to AFRICOM/AFR-PROD-V6 on 2026-06-25 (no longer keep-as-is)
 africom-aci-apic/   AFRICOM APIC-direct — GITIGNORED staging dir (see below)
 africom-aci-ndo/    AFRICOM NDO — GITIGNORED staging dir
 docs/AFRICOM/       AFRICOM CX deliverables + design docs
@@ -374,7 +435,7 @@ scripts/            Standalone Python operational tools (NOT Terraform helpers)
 
 **`africom-aci-apic/scripts/`** = Terraform shell helpers (`render-vmm-yaml.sh`, etc.) called during terraform plan/apply — NOT the same as `scripts/`.
 
-**Do not modify `aci-apic/`, `aci-ndo/`, `aci-ndo-ipv6/` — these are preserved RCC-E work.**
+**Do not modify `aci-apic/`, `aci-ndo/` — these are preserved RCC-E work.** (`aci-ndo-ipv6/` was rebranded 2026-06-25 — see top section.)
 
 ---
 
