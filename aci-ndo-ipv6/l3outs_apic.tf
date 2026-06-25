@@ -30,15 +30,15 @@
 # ============================================================================
 
 variable "apic_g_url" {
-  description = "APIC URL for Site G (Grafenwoehr)"
+  description = "APIC URL for Del-Din (site2)"
   type        = string
-  default     = "https://198.18.134.252" # Change this
+  default     = "https://198.18.134.254"
 }
 
 variable "apic_k_url" {
-  description = "APIC URL for Site K (Kaiserslautern)"
+  description = "APIC URL for Kelley (site1)"
   type        = string
-  default     = "https://198.18.134.253" # Change this
+  default     = "https://198.18.134.253"
 }
 
 variable "apic_username" {
@@ -57,7 +57,7 @@ variable "apic_password" {
 variable "tenant_name" {
   description = "Tenant name"
   type        = string
-  default     = "EUR"
+  default     = "AFR-DEL.Services"
 }
 
 variable "l3out_vlan" {

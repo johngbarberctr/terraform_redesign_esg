@@ -66,15 +66,15 @@ data "mso_schema" "existing" {
 }
 
 data "mso_site" "site1" {
-  name = "Site1"
+  name = "Kelley"
 }
 
 data "mso_site" "site2" {
-  name = "Site2"
+  name = "Del-Din"
 }
 
 data "mso_tenant" "eur" {
-  name = "EUR"
+  name = "AFR-DEL.Services"
 }
 
 # ============================================================================

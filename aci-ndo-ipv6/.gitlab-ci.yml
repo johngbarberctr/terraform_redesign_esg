@@ -8,10 +8,10 @@
 # Pipeline shape: validate -> plan -> apply (manual)
 #
 # >>> After `apply` succeeds, AFRICOM/L2_Stretched is UPDATED in NDO but the
-# >>> changes are NOT YET deployed to Site1/Site2. YOU MANUALLY click in
+# >>> changes are NOT YET deployed to Kelley/Del-Din. YOU MANUALLY click in
 # >>> the NDO UI:
 # >>>     Application Management -> Schemas -> AFRICOM -> L2_Stretched
-# >>>     -> Deploy to sites -> [Site1, Site2]
+# >>>     -> Deploy to sites -> [Kelley, Del-Din]
 #
 # Phase-1 prerequisite: schema AFRICOM with template L2_Stretched MUST
 # already exist in NDO (created by ~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/).
@@ -77,6 +77,10 @@
   TF_VAR_ndo_username: "${NDO_USERNAME}"
   TF_VAR_ndo_password: "${NDO_PASSWORD}"
   TF_VAR_ndo_url: "${NDO_URL}"
+  TF_VAR_apic_k_url: "${KELLEY_APIC_URL}"
+  TF_VAR_apic_g_url: "${DELDIN_APIC_URL}"
+  TF_VAR_apic_username: "${KELLEY_APIC_USERNAME}"
+  TF_VAR_apic_password: "${KELLEY_APIC_PASSWORD}"
   # vrf_template_name, mso_domain, mso_platform come from the checked-in
   # var-file selected via TF_VARS_FILE (default: lab.tfvars.example). Production
   # GitLab projects override TF_VARS_FILE=prod.tfvars.example in CI/CD variables.
@@ -148,7 +152,7 @@ apply-aci-ndo-ipv6:
     - echo
     - echo 'Manual NDO UI step required:'
     - echo '  Application Management -> Schemas -> AFRICOM ->'
-    - echo '  L2_Stretched -> Deploy to sites -> [Site1, Site2]'
+    - echo '  L2_Stretched -> Deploy to sites -> [Kelley, Del-Din]'
     - echo '============================================================'
   dependencies:
     - plan-aci-ndo-ipv6
