@@ -55,17 +55,17 @@ resource "mso_schema_template_l3out" "l3out_rcc_e_k" {
 # ============================================================================
 
 resource "mso_schema_template_external_epg" "ext_epg_rcc_e_g" {
-  schema_id              = data.mso_schema.existing.id
-  template_name          = "Site1-Specific_Only"
-  external_epg_name      = "ExtEPG-RCC-E-G"
-  display_name           = "ExtEPG-RCC-E-G"
-  external_epg_type      = "on-premise"
-  vrf_name               = mso_schema_template_vrf.vrf_rcc.name
-  vrf_schema_id          = data.mso_schema.existing.id
-  vrf_template_name      = "VRF_Template"
-  l3out_name             = "L3Out-RCC-E-G"
-  l3out_schema_id        = data.mso_schema.existing.id
-  l3out_template_name    = "Site1-Specific_Only"
+  schema_id           = data.mso_schema.existing.id
+  template_name       = "Site1-Specific_Only"
+  external_epg_name   = "ExtEPG-RCC-E-G"
+  display_name        = "ExtEPG-RCC-E-G"
+  external_epg_type   = "on-premise"
+  vrf_name            = mso_schema_template_vrf.vrf_rcc.name
+  vrf_schema_id       = data.mso_schema.existing.id
+  vrf_template_name   = "VRF_Template"
+  l3out_name          = "L3Out-RCC-E-G"
+  l3out_schema_id     = data.mso_schema.existing.id
+  l3out_template_name = "Site1-Specific_Only"
 
   depends_on = [mso_schema_template_l3out.l3out_rcc_e_g]
 }
@@ -110,17 +110,17 @@ resource "mso_schema_template_external_epg_contract" "ext_epg_rcc_e_g_provider" 
 # ============================================================================
 
 resource "mso_schema_template_external_epg" "ext_epg_rcc_e_k" {
-  schema_id              = data.mso_schema.existing.id
-  template_name          = "Site2-Specific_Only"
-  external_epg_name      = "ExtEPG-RCC-E-K"
-  display_name           = "ExtEPG-RCC-E-K"
-  external_epg_type      = "on-premise"
-  vrf_name               = mso_schema_template_vrf.vrf_rcc.name
-  vrf_schema_id          = data.mso_schema.existing.id
-  vrf_template_name      = "VRF_Template"
-  l3out_name             = "L3Out-RCC-E-K"
-  l3out_schema_id        = data.mso_schema.existing.id
-  l3out_template_name    = "Site2-Specific_Only"
+  schema_id           = data.mso_schema.existing.id
+  template_name       = "Site2-Specific_Only"
+  external_epg_name   = "ExtEPG-RCC-E-K"
+  display_name        = "ExtEPG-RCC-E-K"
+  external_epg_type   = "on-premise"
+  vrf_name            = mso_schema_template_vrf.vrf_rcc.name
+  vrf_schema_id       = data.mso_schema.existing.id
+  vrf_template_name   = "VRF_Template"
+  l3out_name          = "L3Out-RCC-E-K"
+  l3out_schema_id     = data.mso_schema.existing.id
+  l3out_template_name = "Site2-Specific_Only"
 
   depends_on = [mso_schema_template_l3out.l3out_rcc_e_k]
 }
