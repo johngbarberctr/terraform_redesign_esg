@@ -30,24 +30,24 @@
 
 resource "mso_schema_template_l3out" "l3out_rcc_e_g" {
   schema_id         = data.mso_schema.existing.id
-  template_name     = "Site1-Specific_Only"
+  template_name     = "Kelley_Unique"
   l3out_name        = "L3Out-Kelley-V2"
   display_name      = "L3Out-Kelley-V2"
   description       = "RCC-E L3Out for Site G (Grafenwoehr) - All BDs"
   vrf_name          = mso_schema_template_vrf.vrf_rcc.name
   vrf_schema_id     = data.mso_schema.existing.id
-  vrf_template_name = "VRF_Template"
+  vrf_template_name = var.vrf_template_name
 }
 
 resource "mso_schema_template_l3out" "l3out_rcc_e_k" {
   schema_id         = data.mso_schema.existing.id
-  template_name     = "Site2-Specific_Only"
+  template_name     = "Del_Din_Unique"
   l3out_name        = "L3Out-Del-Din-V2"
   display_name      = "L3Out-Del-Din-V2"
   description       = "RCC-E L3Out for Site K (Kaiserslautern) - All BDs"
   vrf_name          = mso_schema_template_vrf.vrf_rcc.name
   vrf_schema_id     = data.mso_schema.existing.id
-  vrf_template_name = "VRF_Template"
+  vrf_template_name = var.vrf_template_name
 }
 
 # ============================================================================
@@ -56,23 +56,23 @@ resource "mso_schema_template_l3out" "l3out_rcc_e_k" {
 
 resource "mso_schema_template_external_epg" "ext_epg_rcc_e_g" {
   schema_id           = data.mso_schema.existing.id
-  template_name       = "Site1-Specific_Only"
+  template_name       = "Kelley_Unique"
   external_epg_name   = "ExtEPG-Kelley-V2"
   display_name        = "ExtEPG-Kelley-V2"
   external_epg_type   = "on-premise"
   vrf_name            = mso_schema_template_vrf.vrf_rcc.name
   vrf_schema_id       = data.mso_schema.existing.id
-  vrf_template_name   = "VRF_Template"
+  vrf_template_name   = var.vrf_template_name
   l3out_name          = "L3Out-Kelley-V2"
   l3out_schema_id     = data.mso_schema.existing.id
-  l3out_template_name = "Site1-Specific_Only"
+  l3out_template_name = "Kelley_Unique"
 
   depends_on = [mso_schema_template_l3out.l3out_rcc_e_g]
 }
 
 resource "mso_schema_template_external_epg_subnet" "ext_epg_rcc_e_g_subnet" {
   schema_id         = data.mso_schema.existing.id
-  template_name     = "Site1-Specific_Only"
+  template_name     = "Kelley_Unique"
   external_epg_name = mso_schema_template_external_epg.ext_epg_rcc_e_g.external_epg_name
   ip                = "::/0"
   scope             = ["import-security"]
@@ -83,7 +83,7 @@ resource "mso_schema_template_external_epg_subnet" "ext_epg_rcc_e_g_subnet" {
 
 resource "mso_schema_template_external_epg_contract" "ext_epg_rcc_e_g_consumer" {
   schema_id              = data.mso_schema.existing.id
-  template_name          = "Site1-Specific_Only"
+  template_name          = "Kelley_Unique"
   external_epg_name      = mso_schema_template_external_epg.ext_epg_rcc_e_g.external_epg_name
   relationship_type      = "consumer"
   contract_name          = mso_schema_template_contract.contract_rcc.contract_name
@@ -95,7 +95,7 @@ resource "mso_schema_template_external_epg_contract" "ext_epg_rcc_e_g_consumer" 
 
 resource "mso_schema_template_external_epg_contract" "ext_epg_rcc_e_g_provider" {
   schema_id              = data.mso_schema.existing.id
-  template_name          = "Site1-Specific_Only"
+  template_name          = "Kelley_Unique"
   external_epg_name      = mso_schema_template_external_epg.ext_epg_rcc_e_g.external_epg_name
   relationship_type      = "provider"
   contract_name          = mso_schema_template_contract.contract_rcc.contract_name
@@ -111,23 +111,23 @@ resource "mso_schema_template_external_epg_contract" "ext_epg_rcc_e_g_provider" 
 
 resource "mso_schema_template_external_epg" "ext_epg_rcc_e_k" {
   schema_id           = data.mso_schema.existing.id
-  template_name       = "Site2-Specific_Only"
+  template_name       = "Del_Din_Unique"
   external_epg_name   = "ExtEPG-Del-Din-V2"
   display_name        = "ExtEPG-Del-Din-V2"
   external_epg_type   = "on-premise"
   vrf_name            = mso_schema_template_vrf.vrf_rcc.name
   vrf_schema_id       = data.mso_schema.existing.id
-  vrf_template_name   = "VRF_Template"
+  vrf_template_name   = var.vrf_template_name
   l3out_name          = "L3Out-Del-Din-V2"
   l3out_schema_id     = data.mso_schema.existing.id
-  l3out_template_name = "Site2-Specific_Only"
+  l3out_template_name = "Del_Din_Unique"
 
   depends_on = [mso_schema_template_l3out.l3out_rcc_e_k]
 }
 
 resource "mso_schema_template_external_epg_subnet" "ext_epg_rcc_e_k_subnet" {
   schema_id         = data.mso_schema.existing.id
-  template_name     = "Site2-Specific_Only"
+  template_name     = "Del_Din_Unique"
   external_epg_name = mso_schema_template_external_epg.ext_epg_rcc_e_k.external_epg_name
   ip                = "::/0"
   scope             = ["import-security"]
@@ -138,7 +138,7 @@ resource "mso_schema_template_external_epg_subnet" "ext_epg_rcc_e_k_subnet" {
 
 resource "mso_schema_template_external_epg_contract" "ext_epg_rcc_e_k_consumer" {
   schema_id              = data.mso_schema.existing.id
-  template_name          = "Site2-Specific_Only"
+  template_name          = "Del_Din_Unique"
   external_epg_name      = mso_schema_template_external_epg.ext_epg_rcc_e_k.external_epg_name
   relationship_type      = "consumer"
   contract_name          = mso_schema_template_contract.contract_rcc.contract_name
@@ -150,7 +150,7 @@ resource "mso_schema_template_external_epg_contract" "ext_epg_rcc_e_k_consumer" 
 
 resource "mso_schema_template_external_epg_contract" "ext_epg_rcc_e_k_provider" {
   schema_id              = data.mso_schema.existing.id
-  template_name          = "Site2-Specific_Only"
+  template_name          = "Del_Din_Unique"
   external_epg_name      = mso_schema_template_external_epg.ext_epg_rcc_e_k.external_epg_name
   relationship_type      = "provider"
   contract_name          = mso_schema_template_contract.contract_rcc.contract_name
@@ -168,7 +168,7 @@ resource "mso_schema_template_external_epg_contract" "ext_epg_rcc_e_k_provider" 
 # --- BD-NAC ---
 resource "mso_schema_site_bd_l3out" "bd_nac_l3out_g" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site1.id
   bd_name       = mso_schema_site_bd.bd_nac_g.bd_name
   l3out_name    = "L3Out-Kelley-V2"
@@ -176,7 +176,7 @@ resource "mso_schema_site_bd_l3out" "bd_nac_l3out_g" {
 }
 resource "mso_schema_site_bd_l3out" "bd_nac_l3out_k" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site2.id
   bd_name       = mso_schema_site_bd.bd_nac_k.bd_name
   l3out_name    = "L3Out-Del-Din-V2"
@@ -186,7 +186,7 @@ resource "mso_schema_site_bd_l3out" "bd_nac_l3out_k" {
 # --- BD-CFG-MGMT ---
 resource "mso_schema_site_bd_l3out" "bd_cfg_mgmt_l3out_g" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site1.id
   bd_name       = mso_schema_site_bd.bd_cfg_mgmt_g.bd_name
   l3out_name    = "L3Out-Kelley-V2"
@@ -194,7 +194,7 @@ resource "mso_schema_site_bd_l3out" "bd_cfg_mgmt_l3out_g" {
 }
 resource "mso_schema_site_bd_l3out" "bd_cfg_mgmt_l3out_k" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site2.id
   bd_name       = mso_schema_site_bd.bd_cfg_mgmt_k.bd_name
   l3out_name    = "L3Out-Del-Din-V2"
@@ -204,7 +204,7 @@ resource "mso_schema_site_bd_l3out" "bd_cfg_mgmt_l3out_k" {
 # --- BD-MECM ---
 resource "mso_schema_site_bd_l3out" "bd_mecm_l3out_g" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site1.id
   bd_name       = mso_schema_site_bd.bd_mecm_g.bd_name
   l3out_name    = "L3Out-Kelley-V2"
@@ -212,7 +212,7 @@ resource "mso_schema_site_bd_l3out" "bd_mecm_l3out_g" {
 }
 resource "mso_schema_site_bd_l3out" "bd_mecm_l3out_k" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site2.id
   bd_name       = mso_schema_site_bd.bd_mecm_k.bd_name
   l3out_name    = "L3Out-Del-Din-V2"
@@ -222,7 +222,7 @@ resource "mso_schema_site_bd_l3out" "bd_mecm_l3out_k" {
 # --- BD-LB ---
 resource "mso_schema_site_bd_l3out" "bd_lb_l3out_g" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site1.id
   bd_name       = mso_schema_site_bd.bd_lb_g.bd_name
   l3out_name    = "L3Out-Kelley-V2"
@@ -230,7 +230,7 @@ resource "mso_schema_site_bd_l3out" "bd_lb_l3out_g" {
 }
 resource "mso_schema_site_bd_l3out" "bd_lb_l3out_k" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site2.id
   bd_name       = mso_schema_site_bd.bd_lb_k.bd_name
   l3out_name    = "L3Out-Del-Din-V2"
@@ -240,7 +240,7 @@ resource "mso_schema_site_bd_l3out" "bd_lb_l3out_k" {
 # --- BD-DNS-MGMT ---
 resource "mso_schema_site_bd_l3out" "bd_dns_mgmt_l3out_g" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site1.id
   bd_name       = mso_schema_site_bd.bd_dns_mgmt_g.bd_name
   l3out_name    = "L3Out-Kelley-V2"
@@ -248,7 +248,7 @@ resource "mso_schema_site_bd_l3out" "bd_dns_mgmt_l3out_g" {
 }
 resource "mso_schema_site_bd_l3out" "bd_dns_mgmt_l3out_k" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site2.id
   bd_name       = mso_schema_site_bd.bd_dns_mgmt_k.bd_name
   l3out_name    = "L3Out-Del-Din-V2"
@@ -258,7 +258,7 @@ resource "mso_schema_site_bd_l3out" "bd_dns_mgmt_l3out_k" {
 # --- BD-RCC-DNS ---
 resource "mso_schema_site_bd_l3out" "bd_rcc_dns_l3out_g" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site1.id
   bd_name       = mso_schema_site_bd.bd_rcc_dns_g.bd_name
   l3out_name    = "L3Out-Kelley-V2"
@@ -266,7 +266,7 @@ resource "mso_schema_site_bd_l3out" "bd_rcc_dns_l3out_g" {
 }
 resource "mso_schema_site_bd_l3out" "bd_rcc_dns_l3out_k" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site2.id
   bd_name       = mso_schema_site_bd.bd_rcc_dns_k.bd_name
   l3out_name    = "L3Out-Del-Din-V2"
@@ -276,7 +276,7 @@ resource "mso_schema_site_bd_l3out" "bd_rcc_dns_l3out_k" {
 # --- BD-DHCP-SVR ---
 resource "mso_schema_site_bd_l3out" "bd_dhcp_svr_l3out_g" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site1.id
   bd_name       = mso_schema_site_bd.bd_dhcp_svr_g.bd_name
   l3out_name    = "L3Out-Kelley-V2"
@@ -284,7 +284,7 @@ resource "mso_schema_site_bd_l3out" "bd_dhcp_svr_l3out_g" {
 }
 resource "mso_schema_site_bd_l3out" "bd_dhcp_svr_l3out_k" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site2.id
   bd_name       = mso_schema_site_bd.bd_dhcp_svr_k.bd_name
   l3out_name    = "L3Out-Del-Din-V2"
@@ -294,7 +294,7 @@ resource "mso_schema_site_bd_l3out" "bd_dhcp_svr_l3out_k" {
 # --- BD-SMTP-SVR ---
 resource "mso_schema_site_bd_l3out" "bd_smtp_svr_l3out_g" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site1.id
   bd_name       = mso_schema_site_bd.bd_smtp_svr_g.bd_name
   l3out_name    = "L3Out-Kelley-V2"
@@ -302,7 +302,7 @@ resource "mso_schema_site_bd_l3out" "bd_smtp_svr_l3out_g" {
 }
 resource "mso_schema_site_bd_l3out" "bd_smtp_svr_l3out_k" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site2.id
   bd_name       = mso_schema_site_bd.bd_smtp_svr_k.bd_name
   l3out_name    = "L3Out-Del-Din-V2"
@@ -312,7 +312,7 @@ resource "mso_schema_site_bd_l3out" "bd_smtp_svr_l3out_k" {
 # --- BD-VVOIP-MGMT ---
 resource "mso_schema_site_bd_l3out" "bd_vvoip_mgmt_l3out_g" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site1.id
   bd_name       = mso_schema_site_bd.bd_vvoip_mgmt_g.bd_name
   l3out_name    = "L3Out-Kelley-V2"
@@ -320,7 +320,7 @@ resource "mso_schema_site_bd_l3out" "bd_vvoip_mgmt_l3out_g" {
 }
 resource "mso_schema_site_bd_l3out" "bd_vvoip_mgmt_l3out_k" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site2.id
   bd_name       = mso_schema_site_bd.bd_vvoip_mgmt_k.bd_name
   l3out_name    = "L3Out-Del-Din-V2"
@@ -330,7 +330,7 @@ resource "mso_schema_site_bd_l3out" "bd_vvoip_mgmt_l3out_k" {
 # --- BD-VVOIP-PROXY ---
 resource "mso_schema_site_bd_l3out" "bd_vvoip_proxy_l3out_g" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site1.id
   bd_name       = mso_schema_site_bd.bd_vvoip_proxy_g.bd_name
   l3out_name    = "L3Out-Kelley-V2"
@@ -338,7 +338,7 @@ resource "mso_schema_site_bd_l3out" "bd_vvoip_proxy_l3out_g" {
 }
 resource "mso_schema_site_bd_l3out" "bd_vvoip_proxy_l3out_k" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site2.id
   bd_name       = mso_schema_site_bd.bd_vvoip_proxy_k.bd_name
   l3out_name    = "L3Out-Del-Din-V2"
@@ -348,7 +348,7 @@ resource "mso_schema_site_bd_l3out" "bd_vvoip_proxy_l3out_k" {
 # --- BD-LMR ---
 resource "mso_schema_site_bd_l3out" "bd_lmr_l3out_g" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site1.id
   bd_name       = mso_schema_site_bd.bd_lmr_g.bd_name
   l3out_name    = "L3Out-Kelley-V2"
@@ -356,7 +356,7 @@ resource "mso_schema_site_bd_l3out" "bd_lmr_l3out_g" {
 }
 resource "mso_schema_site_bd_l3out" "bd_lmr_l3out_k" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site2.id
   bd_name       = mso_schema_site_bd.bd_lmr_k.bd_name
   l3out_name    = "L3Out-Del-Din-V2"
@@ -366,7 +366,7 @@ resource "mso_schema_site_bd_l3out" "bd_lmr_l3out_k" {
 # --- BD-E911-SVR ---
 resource "mso_schema_site_bd_l3out" "bd_e911_svr_l3out_g" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site1.id
   bd_name       = mso_schema_site_bd.bd_e911_svr_g.bd_name
   l3out_name    = "L3Out-Kelley-V2"
@@ -374,7 +374,7 @@ resource "mso_schema_site_bd_l3out" "bd_e911_svr_l3out_g" {
 }
 resource "mso_schema_site_bd_l3out" "bd_e911_svr_l3out_k" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site2.id
   bd_name       = mso_schema_site_bd.bd_e911_svr_k.bd_name
   l3out_name    = "L3Out-Del-Din-V2"
@@ -384,7 +384,7 @@ resource "mso_schema_site_bd_l3out" "bd_e911_svr_l3out_k" {
 # --- BD-ACAS-SCANNERS ---
 resource "mso_schema_site_bd_l3out" "bd_acas_scanners_l3out_g" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site1.id
   bd_name       = mso_schema_site_bd.bd_acas_scanners_g.bd_name
   l3out_name    = "L3Out-Kelley-V2"
@@ -392,7 +392,7 @@ resource "mso_schema_site_bd_l3out" "bd_acas_scanners_l3out_g" {
 }
 resource "mso_schema_site_bd_l3out" "bd_acas_scanners_l3out_k" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site2.id
   bd_name       = mso_schema_site_bd.bd_acas_scanners_k.bd_name
   l3out_name    = "L3Out-Del-Din-V2"
@@ -402,7 +402,7 @@ resource "mso_schema_site_bd_l3out" "bd_acas_scanners_l3out_k" {
 # --- BD-C2C-SCANNERS ---
 resource "mso_schema_site_bd_l3out" "bd_c2c_scanners_l3out_g" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site1.id
   bd_name       = mso_schema_site_bd.bd_c2c_scanners_g.bd_name
   l3out_name    = "L3Out-Kelley-V2"
@@ -410,7 +410,7 @@ resource "mso_schema_site_bd_l3out" "bd_c2c_scanners_l3out_g" {
 }
 resource "mso_schema_site_bd_l3out" "bd_c2c_scanners_l3out_k" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site2.id
   bd_name       = mso_schema_site_bd.bd_c2c_scanners_k.bd_name
   l3out_name    = "L3Out-Del-Din-V2"
@@ -420,7 +420,7 @@ resource "mso_schema_site_bd_l3out" "bd_c2c_scanners_l3out_k" {
 # --- BD-OCSP ---
 resource "mso_schema_site_bd_l3out" "bd_ocsp_l3out_g" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site1.id
   bd_name       = mso_schema_site_bd.bd_ocsp_g.bd_name
   l3out_name    = "L3Out-Kelley-V2"
@@ -428,7 +428,7 @@ resource "mso_schema_site_bd_l3out" "bd_ocsp_l3out_g" {
 }
 resource "mso_schema_site_bd_l3out" "bd_ocsp_l3out_k" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site2.id
   bd_name       = mso_schema_site_bd.bd_ocsp_k.bd_name
   l3out_name    = "L3Out-Del-Din-V2"
@@ -438,7 +438,7 @@ resource "mso_schema_site_bd_l3out" "bd_ocsp_l3out_k" {
 # --- BD-PKI-SRV ---
 resource "mso_schema_site_bd_l3out" "bd_pki_srv_l3out_g" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site1.id
   bd_name       = mso_schema_site_bd.bd_pki_srv_g.bd_name
   l3out_name    = "L3Out-Kelley-V2"
@@ -446,7 +446,7 @@ resource "mso_schema_site_bd_l3out" "bd_pki_srv_l3out_g" {
 }
 resource "mso_schema_site_bd_l3out" "bd_pki_srv_l3out_k" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site2.id
   bd_name       = mso_schema_site_bd.bd_pki_srv_k.bd_name
   l3out_name    = "L3Out-Del-Din-V2"
@@ -456,7 +456,7 @@ resource "mso_schema_site_bd_l3out" "bd_pki_srv_l3out_k" {
 # --- BD-AD ---
 resource "mso_schema_site_bd_l3out" "bd_ad_l3out_g" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site1.id
   bd_name       = mso_schema_site_bd.bd_ad_g.bd_name
   l3out_name    = "L3Out-Kelley-V2"
@@ -464,7 +464,7 @@ resource "mso_schema_site_bd_l3out" "bd_ad_l3out_g" {
 }
 resource "mso_schema_site_bd_l3out" "bd_ad_l3out_k" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site2.id
   bd_name       = mso_schema_site_bd.bd_ad_k.bd_name
   l3out_name    = "L3Out-Del-Din-V2"
@@ -474,7 +474,7 @@ resource "mso_schema_site_bd_l3out" "bd_ad_l3out_k" {
 # --- BD-ADFS ---
 resource "mso_schema_site_bd_l3out" "bd_adfs_l3out_g" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site1.id
   bd_name       = mso_schema_site_bd.bd_adfs_g.bd_name
   l3out_name    = "L3Out-Kelley-V2"
@@ -482,7 +482,7 @@ resource "mso_schema_site_bd_l3out" "bd_adfs_l3out_g" {
 }
 resource "mso_schema_site_bd_l3out" "bd_adfs_l3out_k" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site2.id
   bd_name       = mso_schema_site_bd.bd_adfs_k.bd_name
   l3out_name    = "L3Out-Del-Din-V2"
@@ -492,7 +492,7 @@ resource "mso_schema_site_bd_l3out" "bd_adfs_l3out_k" {
 # --- BD-D64-PROXY ---
 resource "mso_schema_site_bd_l3out" "bd_d64_proxy_l3out_g" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site1.id
   bd_name       = mso_schema_site_bd.bd_d64_proxy_g.bd_name
   l3out_name    = "L3Out-Kelley-V2"
@@ -500,7 +500,7 @@ resource "mso_schema_site_bd_l3out" "bd_d64_proxy_l3out_g" {
 }
 resource "mso_schema_site_bd_l3out" "bd_d64_proxy_l3out_k" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site2.id
   bd_name       = mso_schema_site_bd.bd_d64_proxy_k.bd_name
   l3out_name    = "L3Out-Del-Din-V2"
@@ -510,7 +510,7 @@ resource "mso_schema_site_bd_l3out" "bd_d64_proxy_l3out_k" {
 # --- BD-RWEB-PROXY ---
 resource "mso_schema_site_bd_l3out" "bd_rweb_proxy_l3out_g" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site1.id
   bd_name       = mso_schema_site_bd.bd_rweb_proxy_g.bd_name
   l3out_name    = "L3Out-Kelley-V2"
@@ -518,7 +518,7 @@ resource "mso_schema_site_bd_l3out" "bd_rweb_proxy_l3out_g" {
 }
 resource "mso_schema_site_bd_l3out" "bd_rweb_proxy_l3out_k" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site2.id
   bd_name       = mso_schema_site_bd.bd_rweb_proxy_k.bd_name
   l3out_name    = "L3Out-Del-Din-V2"
@@ -528,7 +528,7 @@ resource "mso_schema_site_bd_l3out" "bd_rweb_proxy_l3out_k" {
 # --- BD-FWEB-PROXY ---
 resource "mso_schema_site_bd_l3out" "bd_fweb_proxy_l3out_g" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site1.id
   bd_name       = mso_schema_site_bd.bd_fweb_proxy_g.bd_name
   l3out_name    = "L3Out-Kelley-V2"
@@ -536,7 +536,7 @@ resource "mso_schema_site_bd_l3out" "bd_fweb_proxy_l3out_g" {
 }
 resource "mso_schema_site_bd_l3out" "bd_fweb_proxy_l3out_k" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site2.id
   bd_name       = mso_schema_site_bd.bd_fweb_proxy_k.bd_name
   l3out_name    = "L3Out-Del-Din-V2"
@@ -546,7 +546,7 @@ resource "mso_schema_site_bd_l3out" "bd_fweb_proxy_l3out_k" {
 # --- BD-APP-SVR ---
 resource "mso_schema_site_bd_l3out" "bd_app_svr_l3out_g" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site1.id
   bd_name       = mso_schema_site_bd.bd_app_svr_g.bd_name
   l3out_name    = "L3Out-Kelley-V2"
@@ -554,7 +554,7 @@ resource "mso_schema_site_bd_l3out" "bd_app_svr_l3out_g" {
 }
 resource "mso_schema_site_bd_l3out" "bd_app_svr_l3out_k" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site2.id
   bd_name       = mso_schema_site_bd.bd_app_svr_k.bd_name
   l3out_name    = "L3Out-Del-Din-V2"
@@ -564,7 +564,7 @@ resource "mso_schema_site_bd_l3out" "bd_app_svr_l3out_k" {
 # --- BD-WEB-SVR ---
 resource "mso_schema_site_bd_l3out" "bd_web_svr_l3out_g" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site1.id
   bd_name       = mso_schema_site_bd.bd_web_svr_g.bd_name
   l3out_name    = "L3Out-Kelley-V2"
@@ -572,7 +572,7 @@ resource "mso_schema_site_bd_l3out" "bd_web_svr_l3out_g" {
 }
 resource "mso_schema_site_bd_l3out" "bd_web_svr_l3out_k" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site2.id
   bd_name       = mso_schema_site_bd.bd_web_svr_k.bd_name
   l3out_name    = "L3Out-Del-Din-V2"
@@ -582,7 +582,7 @@ resource "mso_schema_site_bd_l3out" "bd_web_svr_l3out_k" {
 # --- BD-FMWR-SVR ---
 resource "mso_schema_site_bd_l3out" "bd_fmwr_svr_l3out_g" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site1.id
   bd_name       = mso_schema_site_bd.bd_fmwr_svr_g.bd_name
   l3out_name    = "L3Out-Kelley-V2"
@@ -590,7 +590,7 @@ resource "mso_schema_site_bd_l3out" "bd_fmwr_svr_l3out_g" {
 }
 resource "mso_schema_site_bd_l3out" "bd_fmwr_svr_l3out_k" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site2.id
   bd_name       = mso_schema_site_bd.bd_fmwr_svr_k.bd_name
   l3out_name    = "L3Out-Del-Din-V2"
@@ -600,7 +600,7 @@ resource "mso_schema_site_bd_l3out" "bd_fmwr_svr_l3out_k" {
 # --- BD-RCC-SVR ---
 resource "mso_schema_site_bd_l3out" "bd_rcc_svr_l3out_g" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site1.id
   bd_name       = mso_schema_site_bd.bd_rcc_svr_g.bd_name
   l3out_name    = "L3Out-Kelley-V2"
@@ -608,7 +608,7 @@ resource "mso_schema_site_bd_l3out" "bd_rcc_svr_l3out_g" {
 }
 resource "mso_schema_site_bd_l3out" "bd_rcc_svr_l3out_k" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site2.id
   bd_name       = mso_schema_site_bd.bd_rcc_svr_k.bd_name
   l3out_name    = "L3Out-Del-Din-V2"
@@ -618,7 +618,7 @@ resource "mso_schema_site_bd_l3out" "bd_rcc_svr_l3out_k" {
 # --- BD-RCC-DCO ---
 resource "mso_schema_site_bd_l3out" "bd_rcc_dco_l3out_g" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site1.id
   bd_name       = mso_schema_site_bd.bd_rcc_dco_g.bd_name
   l3out_name    = "L3Out-Kelley-V2"
@@ -626,7 +626,7 @@ resource "mso_schema_site_bd_l3out" "bd_rcc_dco_l3out_g" {
 }
 resource "mso_schema_site_bd_l3out" "bd_rcc_dco_l3out_k" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site2.id
   bd_name       = mso_schema_site_bd.bd_rcc_dco_k.bd_name
   l3out_name    = "L3Out-Del-Din-V2"
@@ -636,7 +636,7 @@ resource "mso_schema_site_bd_l3out" "bd_rcc_dco_l3out_k" {
 # --- BD-RCC-UNIX ---
 resource "mso_schema_site_bd_l3out" "bd_rcc_unix_l3out_g" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site1.id
   bd_name       = mso_schema_site_bd.bd_rcc_unix_g.bd_name
   l3out_name    = "L3Out-Kelley-V2"
@@ -644,7 +644,7 @@ resource "mso_schema_site_bd_l3out" "bd_rcc_unix_l3out_g" {
 }
 resource "mso_schema_site_bd_l3out" "bd_rcc_unix_l3out_k" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site2.id
   bd_name       = mso_schema_site_bd.bd_rcc_unix_k.bd_name
   l3out_name    = "L3Out-Del-Din-V2"
@@ -654,7 +654,7 @@ resource "mso_schema_site_bd_l3out" "bd_rcc_unix_l3out_k" {
 # --- BD-PRINT-SVR ---
 resource "mso_schema_site_bd_l3out" "bd_print_svr_l3out_g" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site1.id
   bd_name       = mso_schema_site_bd.bd_print_svr_g.bd_name
   l3out_name    = "L3Out-Kelley-V2"
@@ -662,7 +662,7 @@ resource "mso_schema_site_bd_l3out" "bd_print_svr_l3out_g" {
 }
 resource "mso_schema_site_bd_l3out" "bd_print_svr_l3out_k" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site2.id
   bd_name       = mso_schema_site_bd.bd_print_svr_k.bd_name
   l3out_name    = "L3Out-Del-Din-V2"
@@ -672,7 +672,7 @@ resource "mso_schema_site_bd_l3out" "bd_print_svr_l3out_k" {
 # --- BD-FILE-SVR ---
 resource "mso_schema_site_bd_l3out" "bd_file_svr_l3out_g" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site1.id
   bd_name       = mso_schema_site_bd.bd_file_svr_g.bd_name
   l3out_name    = "L3Out-Kelley-V2"
@@ -680,7 +680,7 @@ resource "mso_schema_site_bd_l3out" "bd_file_svr_l3out_g" {
 }
 resource "mso_schema_site_bd_l3out" "bd_file_svr_l3out_k" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site2.id
   bd_name       = mso_schema_site_bd.bd_file_svr_k.bd_name
   l3out_name    = "L3Out-Del-Din-V2"
@@ -691,7 +691,7 @@ resource "mso_schema_site_bd_l3out" "bd_file_svr_l3out_k" {
 
 resource "mso_schema_site_bd_l3out" "bd_nms_l3out_g" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site1.id
   bd_name       = mso_schema_site_bd.bd_nms_g.bd_name
   l3out_name    = "L3Out-Kelley-V2"
@@ -701,7 +701,7 @@ resource "mso_schema_site_bd_l3out" "bd_nms_l3out_g" {
 
 resource "mso_schema_site_bd_l3out" "bd_nms_l3out_k" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site2.id
   bd_name       = mso_schema_site_bd.bd_nms_k.bd_name
   l3out_name    = "L3Out-Del-Din-V2"
@@ -713,7 +713,7 @@ resource "mso_schema_site_bd_l3out" "bd_nms_l3out_k" {
 
 resource "mso_schema_site_bd_l3out" "bd_vhost_mgmt_l3out_g" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site1.id
   bd_name       = mso_schema_site_bd.bd_vhost_mgmt_g.bd_name
   l3out_name    = "L3Out-Kelley-V2"
@@ -723,7 +723,7 @@ resource "mso_schema_site_bd_l3out" "bd_vhost_mgmt_l3out_g" {
 
 resource "mso_schema_site_bd_l3out" "bd_vhost_mgmt_l3out_k" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site2.id
   bd_name       = mso_schema_site_bd.bd_vhost_mgmt_k.bd_name
   l3out_name    = "L3Out-Del-Din-V2"
@@ -735,7 +735,7 @@ resource "mso_schema_site_bd_l3out" "bd_vhost_mgmt_l3out_k" {
 
 resource "mso_schema_site_bd_l3out" "bd_adm_dco_l3out_g" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site1.id
   bd_name       = mso_schema_site_bd.bd_adm_dco_g.bd_name
   l3out_name    = "L3Out-Kelley-V2"
@@ -745,7 +745,7 @@ resource "mso_schema_site_bd_l3out" "bd_adm_dco_l3out_g" {
 
 resource "mso_schema_site_bd_l3out" "bd_adm_dco_l3out_k" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site2.id
   bd_name       = mso_schema_site_bd.bd_adm_dco_k.bd_name
   l3out_name    = "L3Out-Del-Din-V2"
@@ -757,7 +757,7 @@ resource "mso_schema_site_bd_l3out" "bd_adm_dco_l3out_k" {
 
 resource "mso_schema_site_bd_l3out" "bd_sysman_l3out_g" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site1.id
   bd_name       = mso_schema_site_bd.bd_sysman_g.bd_name
   l3out_name    = "L3Out-Kelley-V2"
@@ -767,7 +767,7 @@ resource "mso_schema_site_bd_l3out" "bd_sysman_l3out_g" {
 
 resource "mso_schema_site_bd_l3out" "bd_sysman_l3out_k" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site2.id
   bd_name       = mso_schema_site_bd.bd_sysman_k.bd_name
   l3out_name    = "L3Out-Del-Din-V2"
@@ -779,7 +779,7 @@ resource "mso_schema_site_bd_l3out" "bd_sysman_l3out_k" {
 
 resource "mso_schema_site_bd_l3out" "bd_acas_mgmt_l3out_g" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site1.id
   bd_name       = mso_schema_site_bd.bd_acas_mgmt_g.bd_name
   l3out_name    = "L3Out-Kelley-V2"
@@ -789,7 +789,7 @@ resource "mso_schema_site_bd_l3out" "bd_acas_mgmt_l3out_g" {
 
 resource "mso_schema_site_bd_l3out" "bd_acas_mgmt_l3out_k" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site2.id
   bd_name       = mso_schema_site_bd.bd_acas_mgmt_k.bd_name
   l3out_name    = "L3Out-Del-Din-V2"
@@ -801,7 +801,7 @@ resource "mso_schema_site_bd_l3out" "bd_acas_mgmt_l3out_k" {
 
 resource "mso_schema_site_bd_l3out" "bd_patch_l3out_g" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site1.id
   bd_name       = mso_schema_site_bd.bd_patch_g.bd_name
   l3out_name    = "L3Out-Kelley-V2"
@@ -811,7 +811,7 @@ resource "mso_schema_site_bd_l3out" "bd_patch_l3out_g" {
 
 resource "mso_schema_site_bd_l3out" "bd_patch_l3out_k" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site2.id
   bd_name       = mso_schema_site_bd.bd_patch_k.bd_name
   l3out_name    = "L3Out-Del-Din-V2"
@@ -826,7 +826,7 @@ resource "mso_schema_site_bd_l3out" "bd_patch_l3out_k" {
 # --- BD-GEF-MGMT (Site1-Specific_Only - Site G only) ---
 resource "mso_schema_site_bd_l3out" "bd_gef_mgmt_l3out_g" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "Site1-Specific_Only"
+  template_name = "Kelley_Unique"
   site_id       = data.mso_site.site1.id
   bd_name       = mso_schema_site_bd.bd_gef_mgmt_g.bd_name
   l3out_name    = "L3Out-Kelley-V2"
@@ -836,7 +836,7 @@ resource "mso_schema_site_bd_l3out" "bd_gef_mgmt_l3out_g" {
 # --- BD-BACKUP-SVR (Site2-Specific_Only - Site K only) ---
 resource "mso_schema_site_bd_l3out" "bd_backup_svr_l3out_k" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "Site2-Specific_Only"
+  template_name = "Del_Din_Unique"
   site_id       = data.mso_site.site2.id
   bd_name       = mso_schema_site_bd.bd_backup_svr_k_site.bd_name
   l3out_name    = "L3Out-Del-Din-V2"
@@ -850,7 +850,7 @@ resource "mso_schema_site_bd_l3out" "bd_backup_svr_l3out_k" {
 # --- BD-DB-SVR ---
 resource "mso_schema_site_bd_l3out" "bd_db_svr_l3out_g" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Non-Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site1.id
   bd_name       = mso_schema_site_bd.bd_db_svr_g.bd_name
   l3out_name    = "L3Out-Kelley-V2"
@@ -858,7 +858,7 @@ resource "mso_schema_site_bd_l3out" "bd_db_svr_l3out_g" {
 }
 resource "mso_schema_site_bd_l3out" "bd_db_svr_l3out_k" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Non-Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site2.id
   bd_name       = mso_schema_site_bd.bd_db_svr_k_site.bd_name
   l3out_name    = "L3Out-Del-Din-V2"
@@ -868,7 +868,7 @@ resource "mso_schema_site_bd_l3out" "bd_db_svr_l3out_k" {
 # --- BD-SYSLOG ---
 resource "mso_schema_site_bd_l3out" "bd_syslog_l3out_g" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Non-Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site1.id
   bd_name       = mso_schema_site_bd.bd_syslog_g.bd_name
   l3out_name    = "L3Out-Kelley-V2"
@@ -876,7 +876,7 @@ resource "mso_schema_site_bd_l3out" "bd_syslog_l3out_g" {
 }
 resource "mso_schema_site_bd_l3out" "bd_syslog_l3out_k" {
   schema_id     = data.mso_schema.existing.id
-  template_name = "L2_Non-Stretched"
+  template_name = "Stretched_Services"
   site_id       = data.mso_site.site2.id
   bd_name       = mso_schema_site_bd.bd_syslog_k_site.bd_name
   l3out_name    = "L3Out-Del-Din-V2"
