@@ -36,7 +36,7 @@ This creates:
 - VRF-RCC with vzAny contracts
 - 35 Bridge Domains with IPv6 subnets
 - 35 EPGs with domain associations
-- L3Out-RCC-E-G (Site G) and L3Out-RCC-E-K (Site K)
+- L3Out-Kelley-V2 (Site G) and L3Out-Del-Din-V2 (Site K)
 - External EPGs for each site
 - BD-to-L3Out associations
 
@@ -144,7 +144,7 @@ terraform apply
 
 ### "L3Out must be deployed before ExternalEPG" Error
 **Cause**: External EPG references L3Out that isn't associated with the site
-**Fix**: Ensure L3Outs use unique names per site (L3Out-RCC-E-G, L3Out-RCC-E-K)
+**Fix**: Ensure L3Outs use unique names per site (L3Out-Kelley-V2, L3Out-Del-Din-V2)
 
 ### NDO Deploy Button Grayed Out
 **Cause**: Template not associated with site, or validation errors
@@ -162,8 +162,8 @@ terraform apply
 
 | Resource Type | Site G | Site K |
 |--------------|--------|--------|
-| L3Out | L3Out-RCC-E-G | L3Out-RCC-E-K |
-| External EPG | ExtEPG-RCC-E-G | ExtEPG-RCC-E-K |
+| L3Out | L3Out-Kelley-V2 | L3Out-Del-Din-V2 |
+| External EPG | ExtEPG-Kelley-V2 | ExtEPG-Del-Din-V2 |
 | BDs | BD-{NAME} | BD-{NAME} |
 | EPGs | EPG-{NAME} | EPG-{NAME} |
 

@@ -74,10 +74,10 @@ Deployed **27 IPv6 Bridge Domains** with associated subnets across the following
 #### NDO-Managed L3Outs
 | Component | Site G | Site K |
 |-----------|--------|--------|
-| L3Out Name | L3Out-RCC-E-G | L3Out-RCC-E-K |
+| L3Out Name | L3Out-Kelley-V2 | L3Out-Del-Din-V2 |
 | Template | Site1-Specific_Only | Site2-Specific_Only |
 | VRF | VRF-RCC | VRF-RCC |
-| External EPG | ExtEPG-RCC-E-G | ExtEPG-RCC-E-K |
+| External EPG | ExtEPG-Kelley-V2 | ExtEPG-Del-Din-V2 |
 
 #### APIC-Level Configuration (per site)
 - **Logical Node Profiles** for spine/border leaf connectivity
@@ -127,8 +127,8 @@ All 27 Bridge Domains are associated with their respective site-local L3Out for 
     └───────┬───────┘                               └───────┬───────┘
             │                                               │
     ┌───────┴───────┐                               ┌───────┴───────┐
-    │ L3Out-RCC-E-G │                               │ L3Out-RCC-E-K │
-    │ ExtEPG-RCC-E-G│                               │ ExtEPG-RCC-E-K│
+    │ L3Out-Kelley-V2 │                               │ L3Out-Del-Din-V2 │
+    │ ExtEPG-Kelley-V2│                               │ ExtEPG-Del-Din-V2│
     └───────────────┘                               └───────────────┘
 ```
 
@@ -137,8 +137,8 @@ All 27 Bridge Domains are associated with their respective site-local L3Out for 
 |----------|-------|----------|
 | VRF_Template | Stretched | VRF-RCC, Any_VRF-RCC contract |
 | L2_Stretched | Stretched | All BDs, EPGs, ANP |
-| Site1-Specific_Only | Site G only | L3Out-RCC-E-G, ExtEPG-RCC-E-G |
-| Site2-Specific_Only | Site K only | L3Out-RCC-E-K, ExtEPG-RCC-E-K |
+| Site1-Specific_Only | Site G only | L3Out-Kelley-V2, ExtEPG-Kelley-V2 |
+| Site2-Specific_Only | Site K only | L3Out-Del-Din-V2, ExtEPG-Del-Din-V2 |
 
 ---
 

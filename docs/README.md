@@ -109,10 +109,10 @@ attach the same VMM domain.
 |--------|------|----------|
 | VRF | `VRF-RCC` | UpgradeTemplate1 |
 | Contract | `Any_VRF-RCC` | UpgradeTemplate1 |
-| L3Out (Site G) | `L3Out-RCC-E-G` | Site1-Specific_Only |
-| L3Out (Site K) | `L3Out-RCC-E-K` | Site2-Specific_Only |
-| External EPG (Site G) | `ExtEPG-RCC-E-G` | Site1-Specific_Only |
-| External EPG (Site K) | `ExtEPG-RCC-E-K` | Site2-Specific_Only |
+| L3Out (Site G) | `L3Out-Kelley-V2` | Site1-Specific_Only |
+| L3Out (Site K) | `L3Out-Del-Din-V2` | Site2-Specific_Only |
+| External EPG (Site G) | `ExtEPG-Kelley-V2` | Site1-Specific_Only |
+| External EPG (Site K) | `ExtEPG-Del-Din-V2` | Site2-Specific_Only |
 
 ### Bridge Domains & EPGs (39 total)
 
@@ -351,13 +351,13 @@ Schema: AFRICOM
 ├── Site1-Specific_Only
 │   ├── BD-GEF-MGMT
 │   ├── EPG-GEF-MGMT
-│   ├── L3Out-RCC-E-G
-│   └── ExtEPG-RCC-E-G
+│   ├── L3Out-Kelley-V2
+│   └── ExtEPG-Kelley-V2
 └── Site2-Specific_Only
     ├── BD-BACKUP-SVR
     ├── EPG-BACKUP-SVR
-    ├── L3Out-RCC-E-K
-    └── ExtEPG-RCC-E-K
+    ├── L3Out-Del-Din-V2
+    └── ExtEPG-Del-Din-V2
 ```
 
 ---

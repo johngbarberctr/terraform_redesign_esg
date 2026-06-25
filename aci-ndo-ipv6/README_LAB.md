@@ -293,7 +293,7 @@ Three files form a strict ordered chain. They must be applied in sequence after 
 
 | Stage | File | Provider | Manages | Hard prerequisite |
 |---|---|---|---|---|
-| 6a | `l3outs_ndo.tf` | `mso` | Site-local L3Outs (`L3Out-RCC-E-G`, `L3Out-RCC-E-K`), External EPGs (`ExtEPG-RCC-E-G/K`), `Any_RCC` contract consumer/provider on each ExtEPG | `bds_epgs.tf` applied (provides `Any_RCC` contract); bindings pushed |
+| 6a | `l3outs_ndo.tf` | `mso` | Site-local L3Outs (`L3Out-Kelley-V2`, `L3Out-Del-Din-V2`), External EPGs (`ExtEPG-Kelley-V2`, `ExtEPG-Del-Din-V2`), `Any_RCC` contract consumer/provider on each ExtEPG | `bds_epgs.tf` applied (provides `Any_RCC` contract); bindings pushed |
 | 6b | `l3outs_apic.tf` | `aci` (per-site aliases `aci.apic_g`, `aci.apic_k`) | OSPF interface policy (`OSPF-IntPol-L3Out` in tenant EUR), logical node/interface profiles, IPv6 SVI path attachments directly on each APIC | Stage 6a applied **and** NDO has pushed the L3Outs to **both** APICs (verify in APIC UI before proceeding) |
 | 6c | `vlans_apic.tf` | `aci` (reuses `aci.apic_g`, `aci.apic_k` from stage 6b) | Creates VLAN pool `VLAN_All_Combined` (static) on both APICs and adds 39 encap entries (VLANs 3001–3442) | Stage 6b applied |
 
@@ -311,7 +311,7 @@ apic_password = "C1sco12345"
    terraform plan -var-file=lab.tfvars -refresh=false -parallelism=3 -out=l3outs_ndo.tfplan
    terraform apply -parallelism=3 l3outs_ndo.tfplan
    # Deploy affected templates from the NDO UI; confirm both APICs show
-   # L3Out-RCC-E-G / L3Out-RCC-E-K under tn-EUR before doing stage 6b.
+   # L3Out-Kelley-V2 / L3Out-Del-Din-V2 under tn-EUR before doing stage 6b.
    ```
 2. **Stage 6b — APIC L3Out details.** Remove the `/* ... */` block comment wrapping the resources before planning (the file ships commented to prevent accidental apply before the parent L3Out exists):
    ```bash

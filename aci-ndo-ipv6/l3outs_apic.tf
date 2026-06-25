@@ -163,7 +163,7 @@ resource "aci_ospf_interface_policy" "ospf_int_pol_k" {
 data "aci_l3_outside" "l3out_rcc_e_g" {
   provider  = aci.apic_g
   tenant_dn = "uni/tn-${var.tenant_name}"
-  name      = "L3Out-RCC-E-G"
+  name      = "L3Out-Kelley-V2"
 }
 
 # OSPF External Policy for Site G L3Out
@@ -254,7 +254,7 @@ resource "aci_l3out_path_attachment" "l3out_rcc_e_g_ftd_b" {
 # Route Control Enforcement = Import + Export (export is always enforced in ACI)
 resource "aci_rest_managed" "l3out_rcc_e_g_enforce_rtctrl" {
   provider   = aci.apic_g
-  dn         = "uni/tn-${var.tenant_name}/out-L3Out-RCC-E-G"
+  dn         = "uni/tn-${var.tenant_name}/out-L3Out-Kelley-V2"
   class_name = "l3extOut"
   content = {
     enforceRtctrl = "import,export"
@@ -264,7 +264,7 @@ resource "aci_rest_managed" "l3out_rcc_e_g_enforce_rtctrl" {
 # L3 Domain Association
 resource "aci_rest_managed" "l3out_rcc_e_g_l3dom" {
   provider   = aci.apic_g
-  dn         = "uni/tn-${var.tenant_name}/out-L3Out-RCC-E-G/rsl3DomAtt"
+  dn         = "uni/tn-${var.tenant_name}/out-L3Out-Kelley-V2/rsl3DomAtt"
   class_name = "l3extRsL3DomAtt"
   content = {
     tDn = "uni/l3dom-L3_Dom_Ext_Routes"
@@ -299,7 +299,7 @@ resource "aci_rest_managed" "match_rule_allow_ipv6_default_dest_g" {
 # Route Control Profile: default-import (under L3Out)
 resource "aci_rest_managed" "l3out_rcc_e_g_rtctrl_profile" {
   provider   = aci.apic_g
-  dn         = "uni/tn-${var.tenant_name}/out-L3Out-RCC-E-G/prof-default-import"
+  dn         = "uni/tn-${var.tenant_name}/out-L3Out-Kelley-V2/prof-default-import"
   class_name = "rtctrlProfile"
   content = {
     name = "default-import"
@@ -339,7 +339,7 @@ resource "aci_rest_managed" "l3out_rcc_e_g_rtctrl_scope" {
 data "aci_l3_outside" "l3out_rcc_e_k" {
   provider  = aci.apic_k
   tenant_dn = "uni/tn-${var.tenant_name}"
-  name      = "L3Out-RCC-E-K"
+  name      = "L3Out-Del-Din-V2"
 }
 
 # OSPF External Policy for Site K L3Out
@@ -430,7 +430,7 @@ resource "aci_l3out_path_attachment" "l3out_rcc_e_k_ftd_b" {
 # Route Control Enforcement = Import + Export (export is always enforced in ACI)
 resource "aci_rest_managed" "l3out_rcc_e_k_enforce_rtctrl" {
   provider   = aci.apic_k
-  dn         = "uni/tn-${var.tenant_name}/out-L3Out-RCC-E-K"
+  dn         = "uni/tn-${var.tenant_name}/out-L3Out-Del-Din-V2"
   class_name = "l3extOut"
   content = {
     enforceRtctrl = "import,export"
@@ -440,7 +440,7 @@ resource "aci_rest_managed" "l3out_rcc_e_k_enforce_rtctrl" {
 # L3 Domain Association
 resource "aci_rest_managed" "l3out_rcc_e_k_l3dom" {
   provider   = aci.apic_k
-  dn         = "uni/tn-${var.tenant_name}/out-L3Out-RCC-E-K/rsl3DomAtt"
+  dn         = "uni/tn-${var.tenant_name}/out-L3Out-Del-Din-V2/rsl3DomAtt"
   class_name = "l3extRsL3DomAtt"
   content = {
     tDn = "uni/l3dom-L3_Dom_Ext_Routes"
@@ -475,7 +475,7 @@ resource "aci_rest_managed" "match_rule_allow_ipv6_default_dest_k" {
 # Route Control Profile: default-import (under L3Out)
 resource "aci_rest_managed" "l3out_rcc_e_k_rtctrl_profile" {
   provider   = aci.apic_k
-  dn         = "uni/tn-${var.tenant_name}/out-L3Out-RCC-E-K/prof-default-import"
+  dn         = "uni/tn-${var.tenant_name}/out-L3Out-Del-Din-V2/prof-default-import"
   class_name = "rtctrlProfile"
   content = {
     name = "default-import"

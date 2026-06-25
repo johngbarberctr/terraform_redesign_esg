@@ -21,10 +21,10 @@
               │        Grafenwoehr            │                         │       Kaiserslautern          │
               │                               │                         │                               │
               │  ┌─────────────────────────┐  │                         │  ┌─────────────────────────┐  │
-              │  │    L3Out-RCC-E-G        │  │                         │  │    L3Out-RCC-E-K        │  │
+              │  │    L3Out-Kelley-V2        │  │                         │  │    L3Out-Del-Din-V2        │  │
               │  │  (Site1-Specific_Only)      │  │                         │  │  (Site2-Specific_Only)      │  │
               │  │                         │  │                         │  │                         │  │
-              │  │  ExtEPG-RCC-E-G         │  │                         │  │  ExtEPG-RCC-E-K         │  │
+              │  │  ExtEPG-Kelley-V2         │  │                         │  │  ExtEPG-Del-Din-V2         │  │
               │  │  Subnet: ::/0           │  │                         │  │  Subnet: ::/0           │  │
               │  └─────────────────────────┘  │                         │  └─────────────────────────┘  │
               │                               │                         │                               │
@@ -44,8 +44,8 @@
 │  │                     │    │                     │    │                     │    │                │ │
 │  │  • VRF-RCC          │    │  • 29 BDs           │    │  • BD-GEF-MGMT      │    │ • BD-BACKUP-SVR│ │
 │  │  • vzAny enabled    │    │  • 29 EPGs          │    │  • EPG-GEF-MGMT     │    │ • EPG-BACKUP-  │ │
-│  │  • Any_VRF-RCC      │    │  • AppProf-RCC      │    │  • L3Out-RCC-E-G    │    │   SVR          │ │
-│  │    contract         │    │                     │    │  • ExtEPG-RCC-E-G   │    │ • L3Out-RCC-E-K│ │
+│  │  • Any_VRF-RCC      │    │  • AppProf-RCC      │    │  • L3Out-Kelley-V2    │    │   SVR          │ │
+│  │    contract         │    │                     │    │  • ExtEPG-Kelley-V2   │    │ • L3Out-Del-Din-V2│ │
 │  │  • "Any" filter     │    │                     │    │                     │    │ • ExtEPG-RCC-  │ │
 │  │                     │    │                     │    │                     │    │   E-K          │ │
 │  │  Sites: G, K        │    │  Sites: G, K        │    │  Site: G only       │    │ Site: K only   │ │
@@ -84,8 +84,8 @@
         │   Internal EPGs   │       │   Internal EPGs   │       │   External EPGs   │
         │   (L2_Stretched)  │       │  (Site-Specific)  │       │   (Site-Local)    │
         │                   │       │                   │       │                   │
-        │  EPG-NAC          │       │  EPG-GEF-MGMT (G) │       │  ExtEPG-RCC-E-G   │
-        │  EPG-CFG-MGMT     │       │  EPG-BACKUP-SVR(K)│       │  ExtEPG-RCC-E-K   │
+        │  EPG-NAC          │       │  EPG-GEF-MGMT (G) │       │  ExtEPG-Kelley-V2   │
+        │  EPG-CFG-MGMT     │       │  EPG-BACKUP-SVR(K)│       │  ExtEPG-Del-Din-V2   │
         │  EPG-MECM         │       │                   │       │                   │
         │  EPG-NMS          │       │                   │       │  Provider/Consumer│
         │  ... (35 total)   │       │                   │       │  of Any_VRF-RCC   │
@@ -98,14 +98,14 @@
                                     L2_Stretched Template
     ┌──────────────────────────────────────────────────────────────────────────────┐
     │                                                                              │
-    │   BD-NAC ────────┬─────────► L3Out-RCC-E-G (Site G)                         │
-    │                  └─────────► L3Out-RCC-E-K (Site K)                         │
+    │   BD-NAC ────────┬─────────► L3Out-Kelley-V2 (Site G)                         │
+    │                  └─────────► L3Out-Del-Din-V2 (Site K)                         │
     │                                                                              │
-    │   BD-CFG-MGMT ──┬─────────► L3Out-RCC-E-G (Site G)                         │
-    │                  └─────────► L3Out-RCC-E-K (Site K)                         │
+    │   BD-CFG-MGMT ──┬─────────► L3Out-Kelley-V2 (Site G)                         │
+    │                  └─────────► L3Out-Del-Din-V2 (Site K)                         │
     │                                                                              │
-    │   BD-MECM ──────┬─────────► L3Out-RCC-E-G (Site G)                         │
-    │                  └─────────► L3Out-RCC-E-K (Site K)                         │
+    │   BD-MECM ──────┬─────────► L3Out-Kelley-V2 (Site G)                         │
+    │                  └─────────► L3Out-Del-Din-V2 (Site K)                         │
     │                                                                              │
     │   ... (29 BDs with dual L3Out associations)                                 │
     │                                                                              │
@@ -113,20 +113,20 @@
 
                                     Site1-Specific_Only Template
     ┌──────────────────────────────────────────────────────────────────────────────┐
-    │   BD-GEF-MGMT ─────────────► L3Out-RCC-E-G (Site G only)                    │
+    │   BD-GEF-MGMT ─────────────► L3Out-Kelley-V2 (Site G only)                    │
     └──────────────────────────────────────────────────────────────────────────────┘
 
                                     Site2-Specific_Only Template
     ┌──────────────────────────────────────────────────────────────────────────────┐
-    │   BD-BACKUP-SVR ───────────► L3Out-RCC-E-K (Site K only)                    │
+    │   BD-BACKUP-SVR ───────────► L3Out-Del-Din-V2 (Site K only)                    │
     └──────────────────────────────────────────────────────────────────────────────┘
 
                                     L2_Non-Stretched Template
     ┌──────────────────────────────────────────────────────────────────────────────┐
-    │   BD-DB-SVR (G) ───────────► L3Out-RCC-E-G                                  │
-    │   BD-DB-SVR (K) ───────────► L3Out-RCC-E-K                                  │
-    │   BD-SYSLOG (G) ───────────► L3Out-RCC-E-G                                  │
-    │   BD-SYSLOG (K) ───────────► L3Out-RCC-E-K                                  │
+    │   BD-DB-SVR (G) ───────────► L3Out-Kelley-V2                                  │
+    │   BD-DB-SVR (K) ───────────► L3Out-Del-Din-V2                                  │
+    │   BD-SYSLOG (G) ───────────► L3Out-Kelley-V2                                  │
+    │   BD-SYSLOG (K) ───────────► L3Out-Del-Din-V2                                  │
     └──────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -261,14 +261,14 @@ graph TB
         end
         
         subgraph G_Only["Site1-Specific_Only (Site G)"]
-            L3OUT_G[L3Out-RCC-E-G]
-            EXTEPG_G[ExtEPG-RCC-E-G]
+            L3OUT_G[L3Out-Kelley-V2]
+            EXTEPG_G[ExtEPG-Kelley-V2]
             BD_GEF[BD-GEF-MGMT]
         end
         
         subgraph K_Only["Site2-Specific_Only (Site K)"]
-            L3OUT_K[L3Out-RCC-E-K]
-            EXTEPG_K[ExtEPG-RCC-E-K]
+            L3OUT_K[L3Out-Del-Din-V2]
+            EXTEPG_K[ExtEPG-Del-Din-V2]
             BD_BACKUP[BD-BACKUP-SVR]
         end
     end

@@ -194,7 +194,7 @@ cd ~/DC/ACI/sac-johbarbe-AFRICOM-terraform-esg-nac-ndo
 
 `sac-johbarbe-AFRICOM-terraform-nac-ndo` has no `--prod` mode because its CI file references only `MSO_*` (one NDO instance is targeted at a time). To repoint that project at production NDO on the same GitLab, edit the values directly in `Settings → CI/CD → Variables`, or re-run its bootstrap with the prod block uncommented in `.env`.
 
-> **Don't forget the IPv6 RCC deferred chain at prod cutover.** The lab already has L3Out-RCC-E-G / L3Out-RCC-E-K and their APIC-side OSPF / interface / VLAN-pool entries live (stages 6a / 6b / 6c). Production starts without them. After production Phases 1 → 5 are applied and Phase 6 bindings have been pushed, replay the same three stages against the prod APICs by following `aci-ndo-ipv6/README_LAB.md` → "Deferred — re-enable after bindings" with prod APIC URLs / credentials in `terraform.tfvars`. Order is still NDO → wait for NDO sync → APIC L3Out details → APIC VLAN entries — same chain, prod values.
+> **Don't forget the IPv6 RCC deferred chain at prod cutover.** The lab already has L3Out-Kelley-V2 / L3Out-Del-Din-V2 and their APIC-side OSPF / interface / VLAN-pool entries live (stages 6a / 6b / 6c). Production starts without them. After production Phases 1 → 5 are applied and Phase 6 bindings have been pushed, replay the same three stages against the prod APICs by following `aci-ndo-ipv6/README_LAB.md` → "Deferred — re-enable after bindings" with prod APIC URLs / credentials in `terraform.tfvars`. Order is still NDO → wait for NDO sync → APIC L3Out details → APIC VLAN entries — same chain, prod values.
 
 ---
 
