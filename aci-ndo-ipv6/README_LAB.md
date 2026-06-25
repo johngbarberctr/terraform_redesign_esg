@@ -294,8 +294,8 @@ Three files form a strict ordered chain. They must be applied in sequence after 
 | Stage | File | Provider | Manages | Hard prerequisite |
 |---|---|---|---|---|
 | 6a | `l3outs_ndo.tf` | `mso` | Site-local L3Outs (`L3Out-Kelley-V2`, `L3Out-Del-Din-V2`), External EPGs (`ExtEPG-Kelley-V2`, `ExtEPG-Del-Din-V2`), `Any_RCC` contract consumer/provider on each ExtEPG | `bds_epgs.tf` applied (provides `Any_RCC` contract); bindings pushed |
-| 6b | `l3outs_apic.tf` | `aci` (per-site aliases `aci.apic_g`, `aci.apic_k`) | OSPF interface policy (`OSPF-IntPol-L3Out` in tenant EUR), logical node/interface profiles, IPv6 SVI path attachments directly on each APIC | Stage 6a applied **and** NDO has pushed the L3Outs to **both** APICs (verify in APIC UI before proceeding) |
-| 6c | `vlans_apic.tf` | `aci` (reuses `aci.apic_g`, `aci.apic_k` from stage 6b) | Creates VLAN pool `VLAN_All_Combined` (static) on both APICs and adds 39 encap entries (VLANs 3001–3442) | Stage 6b applied |
+| 6b | `l3outs_apic.tf.disabled` (rename to `.tf` to enable) | `aci` (per-site aliases `aci.apic_g`, `aci.apic_k`) | OSPF interface policy (`OSPF-IntPol-L3Out` in tenant EUR), logical node/interface profiles, IPv6 SVI path attachments directly on each APIC | Stage 6a applied **and** NDO has pushed the L3Outs to **both** APICs (verify in APIC UI before proceeding) |
+| 6c | `vlans_apic.tf.disabled` (rename to `.tf` to enable) | `aci` (reuses `aci.apic_g`, `aci.apic_k` from stage 6b) | Creates VLAN pool `VLAN_All_Combined` (static) on both APICs and adds 39 encap entries (VLANs 3001–3442) | Stage 6b applied |
 
 **APIC credentials** — stage 6b and 6c both require APIC access. Add to `terraform.tfvars` (gitignored):
 ```hcl
@@ -313,16 +313,16 @@ apic_password = "C1sco12345"
    # Deploy affected templates from the NDO UI; confirm both APICs show
    # L3Out-Kelley-V2 / L3Out-Del-Din-V2 under tn-EUR before doing stage 6b.
    ```
-2. **Stage 6b — APIC L3Out details.** Remove the `/* ... */` block comment wrapping the resources before planning (the file ships commented to prevent accidental apply before the parent L3Out exists):
+2. **Stage 6b — APIC L3Out details.** This file ships as `l3outs_apic.tf.disabled` so neither CI nor the NDO-only plan tries to read the parent L3Outs before NDO has pushed them to APIC. It also carries the `aci.apic_g` / `aci.apic_k` provider blocks that stage 6c depends on, so enable it first. Enable by renaming, then plan/apply:
    ```bash
-   # edit l3outs_apic.tf: delete the line containing only `/*` (around line 135)
-   # and the matching `*/` near the end of the file
+   mv l3outs_apic.tf.disabled l3outs_apic.tf
    terraform plan -var-file=lab.tfvars -refresh=false -parallelism=3 -out=l3outs_apic.tfplan
    terraform apply -parallelism=3 l3outs_apic.tfplan
    # Creates: OSPF-IntPol-L3Out, NodeProfile-RCC-E, IntProfile-RCC-E, SVI path attachments
    ```
-3. **Stage 6c — VLAN pool and entries.**
+3. **Stage 6c — VLAN pool and entries.** Also ships disabled (and needs the providers from stage 6b above):
    ```bash
+   mv vlans_apic.tf.disabled vlans_apic.tf
    terraform plan -var-file=lab.tfvars -refresh=false -parallelism=3 -out=vlans_apic.tfplan
    terraform apply -parallelism=3 vlans_apic.tfplan
    # Creates: VLAN_All_Combined (static) pool + 39 encap entries on Kelley and Del-Din
