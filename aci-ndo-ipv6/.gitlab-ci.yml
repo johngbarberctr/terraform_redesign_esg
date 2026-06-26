@@ -155,7 +155,11 @@ apply-aci-ndo-ipv6:
     - |
       if [ "${TF_COMBINED_APPLY:-false}" = "true" ]; then
         echo "Combined refresh+apply mode (no saved plan file)"
-        terraform apply -input=false -auto-approve -parallelism=3 -refresh=true -var-file="${TF_VARS_FILE}"
+        # TF_REPLACE may contain one or more '-replace=<addr>' flags (space
+        # separated). Used to force destroy+recreate of L3Out/ExtEPG pairs so
+        # they move to the new VRF atomically (NDO rejects an L3Out and its
+        # ExtEPG on different VRFs, and the provider can't change both in one save).
+        terraform apply -input=false -auto-approve -parallelism=3 -refresh=true ${TF_REPLACE:-} -var-file="${TF_VARS_FILE}"
       else
         terraform apply -input=false -auto-approve -parallelism=3 plan.tfplan
       fi
