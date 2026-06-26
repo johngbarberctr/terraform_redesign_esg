@@ -7,7 +7,7 @@
 #
 #   - 2 VRFs (VRF-AFR-DEL.Services-V2, VRF-DMZ-V2) with vzAny enforced
 #   - 2 contracts (Any_VRF-AFR-DEL.Services-V2, Any_VRF-DMZ-V2), filter cross-ref to
-#     AFRICOM/VRF_Template/Any (filter names are unique per tenant)
+#     AFRICOM/VRF/Any (filter names are unique per tenant)
 #   - 39 stretched BDs (l2_stretch=true is the default in nac-ndo)
 #   - 2 ANPs (AppProf-NetCentric-V2, AppProf-DMZ-V2) with 39 EPGs total
 #     (a third ANP, AppProf-AppCentric-V2, is created APIC-direct in
@@ -33,7 +33,7 @@
 #     (each rename = destroy+recreate of that one BD/EPG, so it carries a
 #     brief drop on that object's traffic). Most operators just keep -V2.
 #   * Filter "Any" in the contracts below is INTENTIONALLY left un-suffixed
-#     -- it is referenced cross-schema from AFRICOM/VRF_Template/Any, not
+#     -- it is referenced cross-schema from AFRICOM/VRF/Any, not
 #     redefined here, so there is nothing to collide.
 #
 # Why single template:
@@ -41,7 +41,7 @@
 #   * No cross-template references => no risk of NDO 4.0+ cyclical dep error.
 #   * One deploy click in the NDO UI per change.
 #   * One rollback unit per coherent change set.
-#   * Aligns with the existing AFRICOM/VRF_Template single-template pattern.
+#   * Aligns with the existing AFRICOM/VRF single-template pattern.
 #
 # Deploy / cutover:
 #   * The ndo/ Terraform root runs with deploy_templates=false. This file
@@ -55,7 +55,7 @@
 #
 # Notes:
 #   * Filter "Any" intentionally NOT defined here. Tenant AFR-DEL.Services already has
-#     filter Any in schema AFRICOM / template VRF_Template (created by the
+#     filter Any in schema AFRICOM / template VRF (created by the
 #     sac-johbarbe-AFRICOM-terraform-nac-ndo stack). NDO enforces unique object names per
 #     tenant, so the two contracts below cross-reference that existing filter.
 #   * L3Outs and External EPGs are NOT declared in this schema. North-south
@@ -139,7 +139,7 @@ ndo:
               filters:
                 - name: Any
                   schema: AFRICOM
-                  template: VRF_Template
+                  template: VRF
 
             - name: Any_VRF-DMZ-V2
               scope: context
@@ -147,7 +147,7 @@ ndo:
               filters:
                 - name: Any
                   schema: AFRICOM
-                  template: VRF_Template
+                  template: VRF
 
           # ─────────────────────────────────────────────────────────────────────
           # Bridge Domains (39 total: 36 in VRF-AFR-DEL.Services-V2, 3 in VRF-DMZ-V2)
