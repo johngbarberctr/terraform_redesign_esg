@@ -147,7 +147,18 @@ apply-aci-ndo-ipv6:
   script:
     - cd aci-ndo-ipv6
     - terraform init -input=false
-    - terraform apply -input=false -auto-approve -parallelism=3 plan.tfplan
+    # TF_COMBINED_APPLY=true runs an atomic refresh+plan+apply in a single
+    # invocation (no saved plan file). This is required to recover from a
+    # partial migration: it avoids "Saved plan is stale" (one lock, no gap) and
+    # reconciles Terraform state with live NDO so every remaining BD is
+    # re-pointed before the deposed VRF-RCC is destroyed (create_before_destroy).
+    - |
+      if [ "${TF_COMBINED_APPLY:-false}" = "true" ]; then
+        echo "Combined refresh+apply mode (no saved plan file)"
+        terraform apply -input=false -auto-approve -parallelism=3 -refresh=true -var-file="${TF_VARS_FILE}"
+      else
+        terraform apply -input=false -auto-approve -parallelism=3 plan.tfplan
+      fi
     - echo
     - echo '============================================================'
     - echo 'NDO schema AFRICOM / L2_Stretched has been UPDATED in NDO.'
