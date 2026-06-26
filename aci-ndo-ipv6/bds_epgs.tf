@@ -88,6 +88,14 @@ resource "mso_schema_template_vrf" "vrf_rcc" {
   display_name     = "AFR-PROD-V6"
   layer3_multicast = false
   vzany            = true
+
+  # The VRF identity is its name, so renaming VRF-RCC -> AFR-PROD-V6 is a
+  # replacement. Create the new VRF before destroying the old one so the ~35
+  # service BDs can be re-pointed first; otherwise NDO rejects the delete with
+  # "Err Missing Ref" because BDs still reference VRF-RCC.
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 # ============================================================================
