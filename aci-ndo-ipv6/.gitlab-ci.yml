@@ -114,7 +114,10 @@ plan-aci-ndo-ipv6:
     - cd aci-ndo-ipv6
     - terraform init -input=false
     - 'echo "Using var-file: ${TF_VARS_FILE}"'
-    - terraform plan -out=plan.tfplan -input=false -parallelism=3 -refresh=false -var-file="${TF_VARS_FILE}"
+    # TF_REFRESH defaults to false (fast). Set the CI variable TF_REFRESH=true to
+    # reconcile state with the live NDO before planning (needed after a partial
+    # apply leaves Terraform state and NDO out of sync).
+    - terraform plan -out=plan.tfplan -input=false -parallelism=3 -refresh=${TF_REFRESH:-false} -var-file="${TF_VARS_FILE}"
     - terraform show -no-color plan.tfplan > plan.txt
     - terraform show -json    plan.tfplan | jq > plan.json
     - terraform show -json    plan.tfplan | jq '([.resource_changes[]?.change.actions?]|flatten)|{"create":(map(select(.=="create"))|length),"update":(map(select(.=="update"))|length),"delete":(map(select(.=="delete"))|length)}' > plan_gitlab.json
