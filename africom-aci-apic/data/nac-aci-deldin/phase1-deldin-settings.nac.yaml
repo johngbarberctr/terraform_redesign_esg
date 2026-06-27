@@ -1,0 +1,39 @@
+# Phase 1 — Fabric Health: Del Din-specific settings
+# Applied to Del Din (NAIT03) only.
+#
+# Implements AFRICOM_Implementation_Plan.md:
+#
+#   1.1  Rogue EP Control — enable on Del Din (already enabled on Kelley)
+#
+# Finding: Rogue EP Control is inconsistently configured — enabled on Kelley
+# but NOT on Del Din. Rogue EP Control monitors endpoint move frequency. If
+# a MAC/IP moves more than (detection_interval × multiplication_factor) times
+# it is declared rogue, held static for hold_interval, and the moves stop.
+# This protects against bridging loops (rapid endpoint flapping) and
+# misbehaving hypervisors cloning VMs rapidly.
+#
+# NOTE: Enabling Rogue EP Control automatically DISABLES BD-level loop
+# prevention on Del Din. This is EXPECTED and CORRECT — Rogue EP Control is
+# the superior mechanism (per-endpoint rather than per-BD). Kelley already
+# operates this way. The BD loop-prevention disable will appear as a change
+# in the terraform plan — this is intentional.
+#
+# Parameters match Kelley for consistency:
+#   detection_interval = 60 s
+#   multiplication_factor = 4  (max 4 moves per 60 s before declared rogue)
+#   hold_interval = 1800 s     (hold static for 30 min before re-evaluating)
+#
+# Traffic impact: negligible in steady state. Only triggers if an endpoint is
+# actively flapping at the moment the policy is applied. Stable endpoints
+# are completely unaffected.
+---
+
+apic:
+  system_settings:
+    # ── 1.1  Rogue EP Control ───────────────────────────────────────────────
+    endpoint_controls:
+      rogue_ep_control:
+        admin_state: enabled
+        detection_interval: 60
+        multiplication_factor: 4
+        hold_interval: 1800

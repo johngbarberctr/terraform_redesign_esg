@@ -1,0 +1,30 @@
+# Phase 1 — Fabric Health: Kelley-specific settings
+# Applied to Kelley (NADE02) only.
+#
+# Implements AFRICOM_Implementation_Plan.md:
+#
+#   1.2  Port Tracking — enable on Kelley (already enabled on Del Din)
+#
+# Finding: Port Tracking is inconsistently configured — enabled on Del Din
+# but NOT on Kelley. Without Port Tracking, if a leaf loses all fabric
+# uplinks, its host-facing downlinks stay up. Hosts continue forwarding to
+# the leaf which has no path to the fabric — a silent black hole until
+# the hosts detect the loss themselves (can take 30+ s).
+#
+# threshold = 0:  triggers only when ALL uplinks are lost (leaf is completely
+# isolated). This avoids false positives on a partially-degraded leaf.
+# delay_restore = 120 s: after fabric uplinks recover, waits 120 s before
+# re-enabling host ports to allow IS-IS/BGP to converge first.
+#
+# Traffic impact: zero in normal operation. Only fires if a leaf loses every
+# fabric uplink — which is already a complete outage for that leaf.
+---
+
+apic:
+  fabric_policies:
+    # ── 1.2  Port Tracking ──────────────────────────────────────────────────
+    port_tracking:
+      admin_state: 'on'
+      delay_restore_timer: 120
+      # 0 = "keep active but only trigger when ALL uplinks go down"
+      port_tracking_uplinks: 0

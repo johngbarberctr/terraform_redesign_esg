@@ -95,9 +95,12 @@ vault_plaintext.yml
 # per fabric per environment, all gitignored). The wildcard covers both lab
 # (-rendered) and production (-prod-rendered) outputs.
 aci-apic/data/nac-aci-*-rendered/
+africom-aci-apic/data/nac-aci-*-rendered/
 
-# Staging sub-projects (full Terraform trees; tracked separately when ready)
-africom-aci-apic/
+# Staging sub-projects (full Terraform trees; tracked separately when ready).
+# africom-aci-apic/ is now fully tracked. Its rendered VMM dirs are ignored
+# above; lab.tfvars/prod.tfvars (*.tfvars) and scripts/set-apic-password.sh
+# (*password*) remain ignored by the global rules earlier in this file.
 africom-aci-ndo/
 
 # Utility/exploratory scripts in docs/ that are not part of the deliverable

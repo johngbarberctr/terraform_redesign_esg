@@ -1,0 +1,30 @@
+# Example per-fabric APIC connection settings. Copy to terraform.tfvars and
+# adjust for your environment.
+#
+# Sensitive values are NOT declared here -- they come from TF_VAR_* env vars
+# so they cannot be committed accidentally:
+#
+#   export TF_VAR_site1_apic_password='<Site1 admin password>'
+#   export TF_VAR_site2_apic_password='<Site2 admin password>'
+#   eval  "$(./scripts/generate-mcp-key.sh site1)"  # sets TF_VAR_site1_mcp_key
+#   eval  "$(./scripts/generate-mcp-key.sh site2)"  # sets TF_VAR_site2_mcp_key
+#
+# vCenter values (read by scripts/render-vmm-yaml.sh, not Terraform):
+#   export TF_VAR_vcenter_hostname_ip='VCENTER-IP-OR-FQDN'
+#   export TF_VAR_vcenter_datacenter='DATACENTER-NAME'
+#   export TF_VAR_vcenter_username='<vCenter service account>'
+#   export TF_VAR_vcenter_password='<vCenter service account password>'
+#   export TF_VAR_vcenter_dvs_version='unmanaged'
+#       # The pinned netascode/nac-aci module validator only accepts:
+#       #   unmanaged | 5.1 | 5.5 | 6.0 | 6.5 | 6.6
+#       # For lab/prod vCenter on 7.x or 8.x, use "unmanaged" -- APIC then
+#       # adopts each existing VDS (Site1-VDS, Site2-VDS) at whatever VDS
+#       # version vCenter has, which is the right semantic for adoption.
+#
+# See aci-redesign/README.md sections 4-5.
+
+site1_apic_url      = "https://SITE1-APIC-URL"
+site1_apic_username = "admin"
+
+site2_apic_url      = "https://SITE2-APIC-URL"
+site2_apic_username = "admin"

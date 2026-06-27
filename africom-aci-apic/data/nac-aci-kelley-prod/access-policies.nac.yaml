@@ -1,0 +1,104 @@
+# Access policies for AFRICOM NIPR -- Kelley fabric, PRODUCTION.
+#
+# This directory is loaded by the production Terraform run (prod.tfvars).
+# The lab run uses ../nac-aci-kelley/ which mirrors this file.
+#
+# Leaf nodes: NADE02LF101 (node 101), NADE02LF102 (node 102)
+# Infra VLAN: 3967
+# VPC policy: AFR-KEL.L101L102-VPC-FW1
+#
+# TODO: populate VLAN pool ranges from APIC (moquery -c fvnsEncapBlk)
+# TODO: confirm VMM domain name from APIC (moquery -c vmmDomP)
+# TODO: confirm actual port assignments from APIC before enabling prod run
+#
+# When both lab and prod share identical access policy topology (same VLAN
+# pools, same port layout), you can keep this file identical to
+# ../nac-aci-kelley/access-policies.nac.yaml. Add overrides only when prod
+# and lab genuinely differ.
+---
+apic:
+  access_policies:
+    vlan_pools:
+      - name: vmm-vlan-pool-kelley
+        allocation: dynamic
+        ranges:
+          - from: 1     # TODO: actual start VLAN
+            to: 1       # TODO: actual end VLAN
+
+      - name: static-vlan-pool-kelley
+        allocation: static
+        ranges:
+          - from: 1     # TODO: actual VLAN ranges
+            to: 1
+
+    physical_domains:
+      - name: phys-domain-kelley
+        vlan_pool: static-vlan-pool-kelley
+
+    routed_domains:
+      - name: L3_Dom_ND
+        vlan_pool: static-vlan-pool-kelley
+
+    interface_policies:
+      cdp_policies:
+        - name: cdp-enabled
+          admin_state: true
+
+      lldp_policies:
+        - name: lldp-enabled
+          admin_rx_state: true
+          admin_tx_state: true
+
+      port_channel_policies:
+        - name: mac-pinning
+          mode: mac-pin
+
+        - name: lacp-active
+          mode: active
+
+      link_level_policies:
+        - name: 10G
+          speed: "10G"
+          auto: true
+
+    aaeps:
+      - name: vmm-aaep-kelley
+        infra_vlan: true
+        vmware_vmm_domains:
+          - TODO-VMM-DOMAIN-KELLEY   # TODO: confirm from APIC/NDO
+        physical_domains:
+          - phys-domain-kelley
+
+      - name: AAEP_ACI_Nexus
+        routed_domains:
+          - L3_Dom_ND
+
+    leaf_interface_policy_groups:
+      - name: vpc-vmm-hosts-kelley
+        type: vpc
+        aaep: vmm-aaep-kelley
+        link_level_policy: 10G
+        cdp_policy: cdp-enabled
+        lldp_policy: lldp-enabled
+        port_channel_policy: mac-pinning
+
+    leaf_interface_profiles:
+      - name: leaf-101-102-intprof
+        interface_selectors:
+          - name: vmm-host-ports
+            policy_group: vpc-vmm-hosts-kelley
+            port_blocks:
+              - name: block1
+                from_port: 1    # TODO: confirm actual port range
+                to_port: 48
+
+    leaf_switch_profiles:
+      - name: leaf-101-102-prof
+        selectors:
+          - name: leaf-101-102-sel
+            node_blocks:
+              - name: block1
+                from: 101
+                to: 102
+        interface_profiles:
+          - leaf-101-102-intprof

@@ -1,0 +1,68 @@
+# =============================================================================
+# tenant-afrdel-esgs.nac.yaml -- APIC-direct ESG layer for AFRICOM NIPR.
+#
+# What this file owns:
+#   * Tenant AFR-DEL.Services (name only -- see "Tenant ownership" below).
+#   * ESG layer -- TODO: populate after:
+#       1. NDO schema export (AFRICOM NIPR → Download Schema) to get EPG names
+#       2. vzAny provider+consumer removed from VRF AFR-DEL.Services
+#       3. EPG-level Permit-Any contract removed from the VRF
+#     Both vzAny entries must be removed BEFORE ESGs enforce anything. Creating
+#     ESGs with vzAny still active is safe (no reachability change) but pointless
+#     -- the policy is still unenforced until vzAny is gone.
+#
+# Why ESGs live here (APIC-direct) instead of in NDO:
+#   The netascode/nac-ndo/mso v1.2.x module does not model
+#   endpoint_security_groups. The Cisco mso provider also lacks ESG resource
+#   types as of v1.7.x. ESGs must be pushed via netascode/nac-aci/aci@0.7.0,
+#   which does model endpoint_security_groups natively in YAML.
+#
+#   Trade-off: NDO will not show these ESGs in its tenant template view.
+#   To inspect them use the APIC GUI on each fabric:
+#     Tenants -> AFR-DEL.Services -> Application Profiles -> <ANP> -> Endpoint Security Groups
+#
+# Tenant ownership (FIRST-PLAN HEADS-UP):
+#   AFR-DEL.Services already exists on APIC. When manage_tenants=true in
+#   main.tf, the nac-aci wrapper becomes Terraform owner of the tenant
+#   attributes. The first plan will show drift on description/alias if APIC
+#   has manually-set values not declared here. Either:
+#     1. Accept the drift (empty strings replace any manual values).
+#     2. Pre-set description/alias to match APIC current state before apply.
+#   Inspect: APIC GUI → Tenants → AFR-DEL.Services → overview pane.
+#
+# vzAny removal sequence:
+#   1. Confirm EPG-level Permit-Any contract name from NDO schema export.
+#   2. Remove EPG-level Permit-Any contract from all EPGs (NDO schema YAML).
+#   3. Remove vzAny provider+consumer from VRF AFR-DEL.Services (NDO YAML).
+#   4. Run terraform plan on africom-aci-ndo/ and validate no unintended drops.
+#   5. Apply NDO changes (templates update via NDO UI or set deploy_templates=true).
+#   6. Only after vzAny is removed: populate ESGs in this file and apply APIC root.
+# =============================================================================
+---
+apic:
+  tenants:
+    - name: AFR-DEL.Services
+      # See "Tenant ownership" note in the file header. Intentionally
+      # no description/alias/annotation until vzAny removal sequence is complete.
+
+      application_profiles:
+        # TODO: populate ESG ANP and ESGs after NDO schema export + vzAny removal.
+        # ESG naming pattern (from CX optimization recommendation):
+        #   One ESG per logical zone (e.g. ESG-Services, ESG-DMZ, ESG-MGMT).
+        #   Phase 1: lift-and-shift (one ESG for all EPGs in the VRF).
+        #   Phase 2: split by zone/function using tag_selectors.
+        #
+        # Example structure (DO NOT uncomment until ready):
+        # - name: AppProf-AppCentric
+        #   description: "AFRICOM NIPR app-centric layer (ESGs)"
+        #   endpoint_security_groups:
+        #     - name: ESG-All-Services
+        #       description: "Phase 1: all EPGs in AFR-DEL.Services VRF"
+        #       vrf: AFR-DEL.Services
+        #       shutdown: false
+        #       intra_esg_isolation: false
+        #       preferred_group: false
+        #       epg_selectors:
+        #         # TODO: list all EPG names from NDO schema export
+        #         - application_profile: TODO-ANP-NAME
+        #           endpoint_group: TODO-EPG-NAME

@@ -1,0 +1,66 @@
+# Phase 1 — Fabric Health: APIC Settings
+# Applied to BOTH Kelley and Del Din via the nac-aci-shared directory.
+#
+# Implements AFRICOM_Implementation_Plan.md Phase 1 items that apply to
+# every site in the multi-site fabric:
+#
+#   1.3  BFD on fabric-facing interfaces (both sites)
+#   1.5  Disable Remote EP Learning (both sites)
+#
+# Site-specific items are in their respective data directories:
+#   nac-aci-kelley/phase1-kelley-settings.nac.yaml   (1.2 Port Tracking)
+#   nac-aci-deldin/phase1-deldin-settings.nac.yaml   (1.1 Rogue EP Control)
+#
+# FISAC (1.4) cannot be managed via NAC YAML — it must be set per APIC
+# controller node via the GUI or REST API:
+#   APIC → System → Controllers → <node> → Cluster as Seen by Node → FISAC Mode: Strict
+# See AFRICOM_Implementation_Plan.md §1.4 for step-by-step procedure.
+#
+# References:
+#   CX Optimization Assessment (Sept 2025)
+#   CX Resiliency Assessment (March 2026)
+---
+
+apic:
+
+  # ── 1.5  Disable Remote EP Learning ─────────────────────────────────────
+  # When enabled, border leaves cache remote EP locations which can go stale
+  # on L3Out-connected border leaves. Disabling forces unknown remote
+  # destinations through the spine COOP proxy (authoritative) instead of
+  # a potentially stale leaf cache.
+  #
+  # "unicastXrEpLearnDisable: yes" = the feature is disabled (confusing
+  # naming — the setting is a double-negative in the APIC data model).
+  #
+  # Traffic impact: brief (~10-30 sec) latency increase while leaf caches
+  # flush — no drops. Monitor faults for 5 min after apply.
+  fabric_policies:
+    fabric_wide_settings:
+      unicast_xr_ep_learn_disable: true
+
+  # ── 1.3  BFD on fabric-facing interfaces ─────────────────────────────────
+  # BFD sends rapid hellos (50 ms default) on spine-leaf fabric links.
+  # Without BFD, IS-IS/BGP take 30-90 s to detect a failed link. With BFD,
+  # failover triggers in < 1 s.
+  #
+  # The BFD interface policy is attached to the default L3 interface policy,
+  # which is inherited by all fabric-facing routed interfaces automatically.
+  #
+  # Traffic impact: BFD sessions negotiate in ~150 ms. On a healthy fabric
+  # they establish cleanly (no impact). If a fabric link has borderline
+  # latency, BFD might declare it down and trigger IS-IS/BGP reconvergence
+  # (~2-5 s). Monitor fabric faults for 5 min after apply.
+    pod_policy_groups:
+      - name: default
+        bfd_interface_policy: bfd-fabric-default
+
+    interface_policies:
+      bfd_interface_policies:
+        - name: bfd-fabric-default
+          admin_state: true
+          detection_multiplier: 3
+          min_rx_interval: 50
+          min_tx_interval: 50
+          echo_rx_interval: 50
+          echo_admin_state: false
+          interface_control: ''
