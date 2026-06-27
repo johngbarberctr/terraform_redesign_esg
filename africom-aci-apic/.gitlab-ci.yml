@@ -1,0 +1,395 @@
+# africom-aci-apic — AFRICOM NIPR APIC Implementation Pipeline
+#
+# Implements the staged rollout from AFRICOM_Implementation_Plan.md.
+# Included by the root .gitlab-ci.yml via `include: local:`.
+#
+# ──────────────────────────────────────────────────────────────────────────────
+# Pipeline shape
+# ──────────────────────────────────────────────────────────────────────────────
+#
+#   validate   │ phase0-validate-africom     (auto — every run)
+#              │
+#   plan       │ phase1-plan-africom         (auto after validate passes)
+#              │
+#   deploy     │ phase1-apply-africom        ← MANUAL GATE
+#              │   fabric-wide + per-site settings (Phase 1.1-1.5)
+#              │   FISAC is NOT automated — see manual checklist below.
+#
+# Phase 2 (ESG creation), Phase 3 (vzAny removal), Phase 5 (NDO V2 schema),
+# Phase 6 (workload migration), and Phase 7 (v1 cleanup) each have their own
+# pipeline entry points:
+#   Phase 2 : africom-aci-apic/  (same Terraform root, tenant scope)
+#   Phase 5/7: africom-aci-ndo/.gitlab-ci.yml  (separate NDO Terraform root)
+#   Phase 3 : manual procedure on APIC — no CI job
+#   Phase 6 : manual endpoint migration — no CI job
+#
+# ──────────────────────────────────────────────────────────────────────────────
+# Trigger rules
+# ──────────────────────────────────────────────────────────────────────────────
+#
+#   Auto:   push/MR that changes africom-aci-apic/** or scripts/validate_fabric.py
+#   Manual: GitLab UI → Run pipeline → set PROJECT=africom-apic
+#
+# ──────────────────────────────────────────────────────────────────────────────
+# Required CI/CD variables (set in GitLab → Settings → CI/CD → Variables)
+# ──────────────────────────────────────────────────────────────────────────────
+#
+#   KELLEY_APIC_URL          https://...   (Lab Kelley APIC)
+#   KELLEY_APIC_USERNAME     admin
+#   KELLEY_APIC_PASSWORD     *** Masked ***
+#   DELDIN_APIC_URL          https://...   (Lab Del Din APIC)
+#   DELDIN_APIC_USERNAME     admin
+#   DELDIN_APIC_PASSWORD     *** Masked ***
+#   NDO_URL                  https://...
+#   NDO_USERNAME             admin
+#   NDO_PASSWORD             *** Masked ***
+#
+#   vCenter (for the VMware VMM-domain render step — required now that the VMM
+#   integration is configured; render-vmm-yaml.sh fails if any are empty):
+#   VCENTER_HOSTNAME_IP      vCenter FQDN/IP
+#   VCENTER_DATACENTER       vCenter datacenter name
+#   VCENTER_USERNAME         vCenter service account
+#   VCENTER_PASSWORD         *** Masked ***
+#   (dvs_version is pinned to "unmanaged" in the var anchor — no CI variable.)
+#
+#   (Production variants: suffix all of the above with _PROD)
+#
+# ──────────────────────────────────────────────────────────────────────────────
+# FISAC manual checklist (Phase 1.4 — NOT automated)
+# ──────────────────────────────────────────────────────────────────────────────
+#
+#   Perform this on EACH APIC controller node ONE AT A TIME:
+#     APIC GUI → System → Controllers → <Node N> → Cluster as Seen by Node
+#       → FISAC Mode → change "Permissive" to "Strict" → Submit
+#   Wait for the node to re-synchronise (Status = "in-service") before
+#   repeating on the next node. Rushing this step can briefly destabilise
+#   the APIC cluster.
+#   There is no Terraform/NAC resource for FISAC — it is a controller-level
+#   setting not exposed in the nac-aci provider.
+#
+# ──────────────────────────────────────────────────────────────────────────────
+
+# ─── Shared anchor ────────────────────────────────────────────────────────────
+.africom-apic-vars: &africom-apic-vars
+  # Terraform HTTP state backend — per-job CI token, no PAT/expiry.
+  TF_HTTP_ADDRESS:        "${GITLAB_API_URL}/projects/${CI_PROJECT_ID}/terraform/state/africom-apic"
+  TF_HTTP_LOCK_ADDRESS:   "${GITLAB_API_URL}/projects/${CI_PROJECT_ID}/terraform/state/africom-apic/lock"
+  TF_HTTP_LOCK_METHOD:    POST
+  TF_HTTP_UNLOCK_ADDRESS: "${GITLAB_API_URL}/projects/${CI_PROJECT_ID}/terraform/state/africom-apic/lock"
+  TF_HTTP_UNLOCK_METHOD:  DELETE
+  TF_HTTP_USERNAME:       "gitlab-ci-token"
+  TF_HTTP_PASSWORD:       "${CI_JOB_TOKEN}"
+  # APIC provider credentials injected as TF_VARs.
+  TF_VAR_kelley_apic_url:      "${KELLEY_APIC_URL}"
+  TF_VAR_kelley_apic_username: "${KELLEY_APIC_USERNAME}"
+  TF_VAR_kelley_apic_password: "${KELLEY_APIC_PASSWORD}"
+  TF_VAR_kelley_apic_insecure: "true"
+  TF_VAR_deldin_apic_url:      "${DELDIN_APIC_URL}"
+  TF_VAR_deldin_apic_username: "${DELDIN_APIC_USERNAME}"
+  TF_VAR_deldin_apic_password: "${DELDIN_APIC_PASSWORD}"
+  TF_VAR_deldin_apic_insecure: "true"
+  # vCenter values for the VMware VMM-domain render step. scripts/render-vmm-yaml.sh
+  # consumes these BEFORE `terraform plan` to produce the (gitignored) rendered
+  # vmm-domain.nac.yaml for each fabric. Both fabrics share one vCenter today.
+  # The script exits non-zero if any of these are empty.
+  TF_VAR_vcenter_hostname_ip:  "${VCENTER_HOSTNAME_IP}"
+  TF_VAR_vcenter_datacenter:   "${VCENTER_DATACENTER}"
+  TF_VAR_vcenter_username:     "${VCENTER_USERNAME}"
+  TF_VAR_vcenter_password:     "${VCENTER_PASSWORD}"
+  # "unmanaged" => APIC adopts the existing VDS at vCenter's version. The pinned
+  # nac-aci module's validator rejects concrete 7.0/8.0 values, so keep this.
+  TF_VAR_vcenter_dvs_version:  "unmanaged"
+
+.africom-apic-vars-prod: &africom-apic-vars-prod
+  TF_HTTP_ADDRESS:        "${GITLAB_API_URL}/projects/${CI_PROJECT_ID}/terraform/state/africom-apic-prod"
+  TF_HTTP_LOCK_ADDRESS:   "${GITLAB_API_URL}/projects/${CI_PROJECT_ID}/terraform/state/africom-apic-prod/lock"
+  TF_HTTP_LOCK_METHOD:    POST
+  TF_HTTP_UNLOCK_ADDRESS: "${GITLAB_API_URL}/projects/${CI_PROJECT_ID}/terraform/state/africom-apic-prod/lock"
+  TF_HTTP_UNLOCK_METHOD:  DELETE
+  TF_HTTP_USERNAME:       "gitlab-ci-token"
+  TF_HTTP_PASSWORD:       "${CI_JOB_TOKEN}"
+  TF_VAR_kelley_apic_url:      "${KELLEY_APIC_URL_PROD}"
+  TF_VAR_kelley_apic_username: "${KELLEY_APIC_USERNAME_PROD}"
+  TF_VAR_kelley_apic_password: "${KELLEY_APIC_PASSWORD_PROD}"
+  TF_VAR_kelley_apic_insecure: "true"
+  TF_VAR_deldin_apic_url:      "${DELDIN_APIC_URL_PROD}"
+  TF_VAR_deldin_apic_username: "${DELDIN_APIC_USERNAME_PROD}"
+  TF_VAR_deldin_apic_password: "${DELDIN_APIC_PASSWORD_PROD}"
+  TF_VAR_deldin_apic_insecure: "true"
+  # Production vCenter for the VMM-domain render step (see lab anchor above).
+  TF_VAR_vcenter_hostname_ip:  "${VCENTER_HOSTNAME_IP_PROD}"
+  TF_VAR_vcenter_datacenter:   "${VCENTER_DATACENTER_PROD}"
+  TF_VAR_vcenter_username:     "${VCENTER_USERNAME_PROD}"
+  TF_VAR_vcenter_password:     "${VCENTER_PASSWORD_PROD}"
+  TF_VAR_vcenter_dvs_version:  "unmanaged"
+
+# ─── Trigger rules ────────────────────────────────────────────────────────────
+.africom-apic-rules: &africom-apic-rules
+  - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    changes:
+      - africom-aci-apic/**
+      - scripts/validate_fabric.py
+  - if: $CI_COMMIT_BRANCH == "main"
+    changes:
+      - africom-aci-apic/**
+      - scripts/validate_fabric.py
+  - if: $PROJECT == "africom-apic"
+
+.africom-apic-rules-prod: &africom-apic-rules-prod
+  - if: $CI_COMMIT_BRANCH == "main"
+    changes:
+      - africom-aci-apic/**
+    when: manual
+    allow_failure: true
+  - if: $PROJECT == "africom-apic-prod"
+
+# ──────────────────────────────────────────────────────────────────────────────
+# PHASE 0 — Pre-flight validation
+# Runs on every pipeline before any Terraform step.
+# Saves a baseline JSON as a CI artifact (90-day retention).
+# Exits non-zero if a critical check fails — blocks subsequent stages.
+# ──────────────────────────────────────────────────────────────────────────────
+phase0-validate-africom:
+  extends: .tf-job
+  stage: validate
+  variables:
+    KELLEY_APIC_URL:      "${KELLEY_APIC_URL}"
+    KELLEY_APIC_USERNAME: "${KELLEY_APIC_USERNAME}"
+    KELLEY_APIC_PASSWORD: "${KELLEY_APIC_PASSWORD}"
+    DELDIN_APIC_URL:      "${DELDIN_APIC_URL}"
+    DELDIN_APIC_USERNAME: "${DELDIN_APIC_USERNAME}"
+    DELDIN_APIC_PASSWORD: "${DELDIN_APIC_PASSWORD}"
+    NDO_URL:              "${NDO_URL}"
+    NDO_USERNAME:         "${NDO_USERNAME}"
+    NDO_PASSWORD:         "${NDO_PASSWORD}"
+    # PHASE0_FULL=true triggers APIC snapshots, NDO backup, and schema export.
+    # Leave unset on PR/MR pipelines (read-only); set to "true" on main or
+    # manually via Run Pipeline variables before a change window.
+    PHASE0_FULL: ""
+  script:
+    - ARTIFACTS="scripts/baseline/pre-${CI_PIPELINE_ID}"
+    - mkdir -p "${ARTIFACTS}"
+    - |
+      EXTRA_FLAGS=""
+      if [ "${PHASE0_FULL}" = "true" ]; then
+        EXTRA_FLAGS="--phase0"
+        echo "Phase 0 full mode: APIC snapshots + NDO backup + schema export enabled."
+      fi
+      python3 scripts/validate_fabric.py \
+        ${EXTRA_FLAGS} \
+        --artifacts-dir "${ARTIFACTS}" \
+        --output        "${ARTIFACTS}/baseline.json" \
+        --label         "pre-${CI_PIPELINE_ID}"
+  artifacts:
+    name: "africom-phase0-${CI_PIPELINE_ID}"
+    paths:
+      - scripts/baseline/pre-${CI_PIPELINE_ID}/
+    expire_in: 90 days
+    when: always
+  cache: []
+  rules: *africom-apic-rules
+
+# ──────────────────────────────────────────────────────────────────────────────
+# PHASE 1 — Terraform plan (APIC fabric/system settings)
+#
+# What this plans:
+#   • 1.1 Rogue EP Control on Del Din (data/nac-aci-deldin/phase1-deldin-settings.nac.yaml)
+#   • 1.2 Port Tracking on Kelley    (data/nac-aci-kelley/phase1-kelley-settings.nac.yaml)
+#   • 1.3 BFD on fabric interfaces   (data/nac-aci-shared/phase1-fabric-settings.nac.yaml)
+#   • 1.5 Disable Remote EP Learning (data/nac-aci-shared/phase1-fabric-settings.nac.yaml)
+#   • 1.4 FISAC = NOT in plan (manual — see header checklist above)
+#
+# The VMM render step must run first (same as the aci-apic jobs) because
+# the VMM domain YAML is gitignored and must be produced at plan time.
+# ──────────────────────────────────────────────────────────────────────────────
+phase1-plan-africom:
+  extends: .tf-job
+  stage: plan
+  variables:
+    <<: *africom-apic-vars
+  script:
+    - cd africom-aci-apic
+    # Render VMM YAML for both sites (produces the gitignored rendered dirs).
+    - bash scripts/render-vmm-yaml.sh kelley
+    - bash scripts/render-vmm-yaml.sh deldin
+    # Terraform plan — saves plan file for apply gate.
+    - terraform init
+    - terraform plan -input=false -out=tfplan-phase1
+  artifacts:
+    name: "africom-apic-phase1-plan-${CI_PIPELINE_ID}"
+    paths:
+      - africom-aci-apic/tfplan-phase1
+      - africom-aci-apic/data/nac-aci-kelley-rendered/
+      - africom-aci-apic/data/nac-aci-deldin-rendered/
+    expire_in: 7 days
+  cache:
+    key: "africom-apic-${CI_COMMIT_REF_SLUG}"
+    paths:
+      - africom-aci-apic/.terraform/
+  needs:
+    - phase0-validate-africom
+  rules: *africom-apic-rules
+
+# ──────────────────────────────────────────────────────────────────────────────
+# PHASE 1 — Terraform apply (MANUAL GATE)
+#
+# Pre-apply checklist (confirm in MR/ticket before clicking play):
+#   [ ] Phase 0 baseline saved and reviewed — no pre-existing criticals
+#   [ ] Change window open and approved (if prod)
+#   [ ] Network team aware: brief EP flush expected when Remote EP
+#       Learning is disabled (see plan output for fabric_wide_settings)
+#   [ ] FISAC Strict change scheduled separately (manual, per controller)
+#   [ ] MR approved and pipeline green
+#
+# Post-apply checklist (run validate_fabric.py with --compare):
+#   [ ] All APIC cluster nodes still fully-fit
+#   [ ] No new critical faults after apply (allow 5 min settle)
+#   [ ] Rogue EP Control confirmed on Del Din APIC
+#   [ ] Port Tracking confirmed on Kelley APIC
+#   [ ] BFD sessions confirmed on fabric links (moquery -c bfdIf)
+# ──────────────────────────────────────────────────────────────────────────────
+phase1-apply-africom:
+  extends: .tf-job
+  stage: deploy
+  when: manual
+  variables:
+    <<: *africom-apic-vars
+  script:
+    - cd africom-aci-apic
+    # Re-render VMM YAML to handle any staleness between plan and apply.
+    - bash scripts/render-vmm-yaml.sh kelley
+    - bash scripts/render-vmm-yaml.sh deldin
+    - terraform init
+    # Apply the saved plan from the plan job.
+    - terraform apply -input=false tfplan-phase1
+    # Post-apply validation — compare against the pre-change baseline.
+    - POST_DIR="../scripts/baseline/post-phase1-${CI_PIPELINE_ID}"
+    - mkdir -p "${POST_DIR}"
+    - |
+      python3 ../scripts/validate_fabric.py \
+        --compare "../scripts/baseline/pre-${CI_PIPELINE_ID}/baseline.json" \
+        --artifacts-dir "${POST_DIR}" \
+        --output        "${POST_DIR}/baseline.json" \
+        --label         "post-phase1-${CI_PIPELINE_ID}"
+  artifacts:
+    name: "africom-apic-phase1-post-${CI_PIPELINE_ID}"
+    paths:
+      - scripts/baseline/post-phase1-${CI_PIPELINE_ID}/
+    expire_in: 90 days
+    when: always
+  cache:
+    key: "africom-apic-${CI_COMMIT_REF_SLUG}"
+    paths:
+      - africom-aci-apic/.terraform/
+  needs:
+    - phase1-plan-africom
+  environment:
+    name: africom-nipr-lab/phase1
+    action: start
+  rules: *africom-apic-rules
+
+# ──────────────────────────────────────────────────────────────────────────────
+# PRODUCTION variants
+#
+# Disabled until KELLEY_APIC_URL_PROD / DELDIN_APIC_URL_PROD variables are
+# populated in GitLab CI/CD settings. Jobs are `when: manual` at the rule
+# level — they never run automatically on main.
+# ──────────────────────────────────────────────────────────────────────────────
+phase0-validate-africom-prod:
+  extends: .tf-job
+  stage: validate
+  variables:
+    KELLEY_APIC_URL:      "${KELLEY_APIC_URL_PROD}"
+    KELLEY_APIC_USERNAME: "${KELLEY_APIC_USERNAME_PROD}"
+    KELLEY_APIC_PASSWORD: "${KELLEY_APIC_PASSWORD_PROD}"
+    DELDIN_APIC_URL:      "${DELDIN_APIC_URL_PROD}"
+    DELDIN_APIC_USERNAME: "${DELDIN_APIC_USERNAME_PROD}"
+    DELDIN_APIC_PASSWORD: "${DELDIN_APIC_PASSWORD_PROD}"
+    NDO_URL:              "${NDO_URL}"
+    NDO_USERNAME:         "${NDO_USERNAME}"
+    NDO_PASSWORD:         "${NDO_PASSWORD}"
+    PHASE0_FULL:          ""
+  script:
+    - ARTIFACTS="scripts/baseline/prod-pre-${CI_PIPELINE_ID}"
+    - mkdir -p "${ARTIFACTS}"
+    - |
+      EXTRA_FLAGS=""
+      if [ "${PHASE0_FULL}" = "true" ]; then
+        EXTRA_FLAGS="--phase0"
+      fi
+      python3 scripts/validate_fabric.py \
+        ${EXTRA_FLAGS} \
+        --artifacts-dir "${ARTIFACTS}" \
+        --output        "${ARTIFACTS}/baseline.json" \
+        --label         "prod-pre-${CI_PIPELINE_ID}"
+  artifacts:
+    name: "africom-baseline-prod-${CI_PIPELINE_ID}"
+    paths:
+      - scripts/baseline/prod-pre-${CI_PIPELINE_ID}/
+    expire_in: 90 days
+    when: always
+  cache: []
+  rules: *africom-apic-rules-prod
+
+phase1-plan-africom-prod:
+  extends: .tf-job
+  stage: plan
+  variables:
+    <<: *africom-apic-vars-prod
+  script:
+    - cd africom-aci-apic
+    - bash scripts/render-vmm-yaml.sh kelley
+    - bash scripts/render-vmm-yaml.sh deldin
+    - terraform init
+    - terraform plan -input=false -out=tfplan-phase1-prod
+  artifacts:
+    name: "africom-apic-phase1-prod-plan-${CI_PIPELINE_ID}"
+    paths:
+      - africom-aci-apic/tfplan-phase1-prod
+      - africom-aci-apic/data/nac-aci-kelley-rendered/
+      - africom-aci-apic/data/nac-aci-deldin-rendered/
+    expire_in: 7 days
+  cache:
+    key: "africom-apic-prod-${CI_COMMIT_REF_SLUG}"
+    paths:
+      - africom-aci-apic/.terraform/
+  needs:
+    - phase0-validate-africom-prod
+  rules: *africom-apic-rules-prod
+
+phase1-apply-africom-prod:
+  extends: .tf-job
+  stage: deploy
+  when: manual
+  variables:
+    <<: *africom-apic-vars-prod
+  script:
+    - cd africom-aci-apic
+    - bash scripts/render-vmm-yaml.sh kelley
+    - bash scripts/render-vmm-yaml.sh deldin
+    - terraform init
+    - terraform apply -input=false tfplan-phase1-prod
+    - POST_DIR="../scripts/baseline/prod-post-phase1-${CI_PIPELINE_ID}"
+    - mkdir -p "${POST_DIR}"
+    - |
+      python3 ../scripts/validate_fabric.py \
+        --compare "../scripts/baseline/prod-pre-${CI_PIPELINE_ID}/baseline.json" \
+        --artifacts-dir "${POST_DIR}" \
+        --output        "${POST_DIR}/baseline.json" \
+        --label         "prod-post-phase1-${CI_PIPELINE_ID}"
+  artifacts:
+    name: "africom-apic-phase1-prod-post-${CI_PIPELINE_ID}"
+    paths:
+      - scripts/baseline/prod-post-phase1-${CI_PIPELINE_ID}/
+    expire_in: 90 days
+    when: always
+  cache:
+    key: "africom-apic-prod-${CI_COMMIT_REF_SLUG}"
+    paths:
+      - africom-aci-apic/.terraform/
+  needs:
+    - phase1-plan-africom-prod
+  environment:
+    name: africom-nipr-prod/phase1
+    action: start
+  rules: *africom-apic-rules-prod

@@ -1,0 +1,53 @@
+# VMware VMM Domain -- rendered by scripts/render-vmm-yaml.sh from this
+# template BEFORE `terraform plan` runs. The rendered output goes to
+# ../data/nac-aci-<fabric>-rendered/vmm-domain.nac.yaml, which is gitignored.
+#
+# DO NOT EDIT THE RENDERED FILE -- edit this template or the env vars that
+# feed it:
+#   TF_VAR_vcenter_hostname_ip, TF_VAR_vcenter_datacenter,
+#   TF_VAR_vcenter_username,    TF_VAR_vcenter_password,
+#   TF_VAR_vcenter_dvs_version  -- "unmanaged" recommended (APIC adopts the
+#       existing VDS at whatever version vCenter has, instead of trying to
+#       upgrade/downgrade it). The pinned netascode/nac-aci module's
+#       validator only accepts: unmanaged, 5.1, 5.5, 6.0, 6.5, 6.6 -- so
+#       newer concrete values like 7.0 / 8.0 / 8.0.2 are rejected at plan
+#       time. "unmanaged" both works and is the right semantic for adoption.
+#
+# vmm_domain_name (= VMM domain / VDS name) is NOT an env var. It is fabric-
+# specific: Kelley -> Kelley-VDS1, Del-Din -> Del-Din-VDS1. The mapping lives
+# in scripts/render-vmm-yaml.sh and is keyed off the fabric arg passed to it.
+# Each fabric creates/owns its own VDS in vCenter. The vlan_pool name below
+# (vmm-vlan-pool) must match the dynamic VLAN pool declared in that fabric's
+# data/nac-aci-<fabric>/access-policies.nac.yaml.
+#
+# Source the sensitive values from env vars / GitLab CI masked variables /
+# Vault. See aci-redesign/README.md section 5.
+# The $$-placeholders below are interpreted by Python string.Template in
+# render-vmm-yaml.sh (not by Terraform's templatefile()).
+---
+apic:
+  fabric_policies:
+    vmware_vmm_domains:
+      - name: ${vmm_domain_name}
+        access_mode: read-write
+        tag_collection: true
+        vlan_pool: vmm-vlan-pool
+        vswitch:
+          cdp_policy: cdp-enabled
+          lldp_policy: lldp-enabled
+          port_channel_policy: mac-pinning
+        credential_policies:
+          - name: vcenter-creds
+            username: "${vcenter_username}"
+            password: "${vcenter_password}"
+        vcenters:
+          - name: vcenter01
+            hostname_ip: "${vcenter_hostname_ip}"
+            datacenter: "${vcenter_datacenter}"
+            credential_policy: vcenter-creds
+            dvs_version: "${vcenter_dvs_version}"
+        uplinks:
+          - id: 1
+            name: uplink1
+          - id: 2
+            name: uplink2
