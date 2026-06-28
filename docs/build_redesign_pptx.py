@@ -1012,7 +1012,7 @@ def vmm_vlan_slide():
         ["Port channel policy", "mac-pin"],
         ["Uplinks", "uplink1, uplink2"],
         ["Leaf interface profile",
-         "leaf-152-153-intprof (ports 1-48, Site1 nodes 152-153)"],
+         "leaf-101-102-intprof (ports 1-48, nodes 101-102)"],
     ]
     add_table(s, Inches(0.5), Inches(3.3), Inches(7.8), Inches(3.6),
               ["Component", "Configuration"], rows,
@@ -1022,7 +1022,7 @@ def vmm_vlan_slide():
         s, Inches(8.6), Inches(3.3), Inches(4.3), Inches(3.6),
         "Production config touch-points (Design A: UCS-FI direct attach)",
         [
-            "data/nac-aci-{site1,site2}-prod/access-policies.nac.yaml - fi-static-vlan-pool (213 VLANs), fi-aaep, PC_FI_A/PC_FI_B policy groups, leaf 152/153 (Site1) and 119/191 (Site2) split between VMM ports (8-48) and FI uplinks (eth1/6, eth1/7).",
+            "data/nac-aci-{site1,site2}-prod/access-policies.nac.yaml - fi-static-vlan-pool (213 VLANs), fi-aaep, PC_FI_A/PC_FI_B policy groups, leaf 101/102 (both sites) split between VMM ports (8-48) and FI uplinks (eth1/6, eth1/7).",
             "data/nac-aci-shared/modules.nac.yaml - aci_mcp sub-module disabled so MCP InstP is managed inline in apic-vmware-prod/main.tf.",
             "data/nac-ndo/schema-africom-v2.nac.yaml - 39 EPG site entries bound to APCG-VDS1 (Site1) and APCK-VDS1 (Site2).",
             "vCenter creds flow in via TF_VAR_vcenter_* env vars (no CHANGE_ME placeholders in tracked YAML).",
@@ -1053,9 +1053,9 @@ def deployed_objects_slide():
         ["AAEP", "vmm-aaep - linked to VMM domain"],
         ["VPC interface policy group", "vpc-vmm-hosts"],
         ["Leaf interface profile",
-         "Site1: leaf-152-153-intprof / Site2: leaf-119-191-intprof"],
+         "leaf-101-102-intprof (both sites)"],
         ["Leaf switch profile",
-         "Site1: leaf-152-153-prof (152-153) / Site2: leaf-119-191-prof (119, 191)"],
+         "leaf-101-102-prof (nodes 101-102, both sites)"],
     ]
     add_table(s, Inches(0.5), Inches(1.6), Inches(6.1), Inches(5.3),
               ["Object", "Detail"], rows_af,

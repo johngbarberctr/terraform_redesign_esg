@@ -319,29 +319,21 @@ walkthrough including port classification rules and FEX-to-leaf mapping.
 
 ## Phase 3 — APIC-direct fabric (`aci-apic/`)
 
-Builds access policies and MCP Instance Policies (per fabric, with per-fabric
-keys). Manages the UCS Fabric Interconnect uplink access policies as **real
-vPCs (dual-homed across leaves 101 + 102)**: `fi-static-vlan-pool` (213 VLANs),
-`phys-fi-domain`, `fi-aaep`, `VPC_FI-A`/`VPC_FI-B` vPC policy groups (LACP
-active), and **one shared** `leaf-101-102-intprof` whose `fi-a-uplink`
-(eth1/6) and `fi-b-uplink` (eth1/7) selectors form a vPC per FI across both
-leaves; plus the legacy IPv4 infrastructure objects: `VLAN_All_Combined`
-static pool (5 broad ranges, ~2148 VLANs), `PhysDom_ACI_Nexus` physical
-domain, `L3_Dom_ND` routed domain, and `AAEP_ACI_Nexus` (used by all N5K
-migration VPC/PC policy groups). Only eth1/6-7 connect to the FIs — ESXi
-attaches behind the FIs, not directly to the leaves, so there are no host
-ports on the leaves. Independent of Phase 2 — could technically run in
-parallel — but in practice do it after.
+Builds the **legacy IPv4 infrastructure** access policies + MCP Instance
+Policies (per fabric, with per-fabric keys): `VLAN_All_Combined` static pool
+(5 broad ranges, ~2148 VLANs), `PhysDom_ACI_Nexus` physical domain, `L3_Dom_ND`
+routed domain, `AAEP_ACI_Nexus` (used by all N5K migration VPC/PC policy
+groups), and the shared CDP/LLDP/port-channel/link-level interface policies
+those migration groups reference. Independent of Phase 2 — could technically
+run in parallel — but in practice do it after.
 
-> **VMM domain pre-exists in APIC; `fi-aaep` now binds it.** The VMM domain
-> *object* (`Kelley-VDS1` / `Del-Din-VDS1`) is already configured in APIC, so
-> the `vmm-vlan-pool` / `phys-vmm-domain` / domain-definition blocks stay
-> commented out (Terraform does not create the domain). The `fi-aaep` now
-> **references** the existing VMM domain by name (`Kelley-VDS1` for Site1 /
-> Kelley, `Del-Din-VDS1` for Site2 / Del Din) alongside `phys-fi-domain`, so
-> the VDS trunks to ESXi over the FI vPCs and EPGs get dynamic VLANs. Because
-> the domain is only referenced (not created), vCenter env vars are **not
-> required** for this phase.
+> **FI uplinks + VMM are NOT in this phase.** The UCS Fabric Interconnect vPCs
+> (`VPC_FI-A`/`VPC_FI-B` on eth1/6-7, dual-homed across leaves 101/102) and the
+> VMware VMM domain (`Kelley-VDS1`/`Del-Din-VDS1` on `fi-aaep`) are owned by the
+> **`africom-aci-apic/`** stack — see its `README.md`. Keeping FI/VMM in a
+> single stack avoids two Terraform states fighting over the same APIC MOs.
+> Because there is no VMM domain here, vCenter env vars are **not required** for
+> this phase.
 
 > **No Python venv needed for this phase.** `make` calls bash scripts and
 > `terraform` only. The scripts use `python3` stdlib (`json`, `os`, `sys`) for
@@ -357,8 +349,8 @@ cd ~/DC/ACI/sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/aci-apic
 source scripts/set-apic-password.sh                 # both fabrics, same lab password
 eval "$(./scripts/generate-mcp-key.sh kelley)"       # TF_VAR_kelley_mcp_key
 eval "$(./scripts/generate-mcp-key.sh deldin)"       # TF_VAR_deldin_mcp_key
-# NOTE: vCenter env vars (TF_VAR_vcenter_*) are no longer needed — VMM is
-#       commented out and render-vmm-yaml.sh is not called.
+# NOTE: vCenter env vars (TF_VAR_vcenter_*) are not needed here — FI/VMM are
+#       owned by africom-aci-apic/. This phase manages only legacy IPv4 objects.
 
 # 3.3 Init (first time or after module/provider bumps)
 make init
@@ -369,12 +361,8 @@ make plan
 make apply
 ```
 
-After Phase 3, on each APIC: `fi-static-vlan-pool` (static, 213 VLANs),
-`phys-fi-domain`, `fi-aaep` (carries `phys-fi-domain` **and** the existing VMM
-domain `Kelley-VDS1`/`Del-Din-VDS1`), `VPC_FI-A` and `VPC_FI-B` vPC policy
-groups (LACP active), one shared `leaf-101-102-intprof` applied to both leaves
-101/102 (forming a vPC per FI on eth1/6 = FI-A and eth1/7 = FI-B), and the
-legacy IPv4 objects: `VLAN_All_Combined` static pool, `PhysDom_ACI_Nexus`,
+After Phase 3, on each APIC, the legacy IPv4 objects exist:
+`VLAN_All_Combined` static pool, `PhysDom_ACI_Nexus`,
 `L3_Dom_ND`, and `AAEP_ACI_Nexus`.
 
 ### Triggering the CI pipeline
@@ -576,7 +564,7 @@ strategy rationale).
 
 | Where | Check |
 |---|---|
-| Kelley APIC GUI — FI uplinks | `Fabric → Access Policies → Pools → VLAN → fi-static-vlan-pool` exists (static, 213 VLANs). `fi-aaep` references both `phys-fi-domain` and `Kelley-VDS1`. `Interfaces → Leaf Interfaces → Policy Groups → VPC` contains `VPC_FI-A` and `VPC_FI-B` (type **vPC**, LACP active). `Profiles → leaf-101-102-intprof` (one profile, applied to both leaves 101/102) has `fi-a-uplink` (eth1/6) and `fi-b-uplink` (eth1/7) selectors, so each FI forms a vPC dual-homed across 101 and 102. |
+| Kelley APIC GUI — FI uplinks (created by `africom-aci-apic/`, not Phase 3) | `Fabric → Access Policies → Pools → VLAN → fi-static-vlan-pool` exists (static, 213 VLANs). `fi-aaep` references both `phys-fi-domain` and `Kelley-VDS1`. `Interfaces → Leaf Interfaces → Policy Groups → VPC` contains `VPC_FI-A` and `VPC_FI-B` (type **vPC**, LACP active). `Profiles → leaf-101-102-intprof` (one profile, applied to both leaves 101/102) has `fi-a-uplink` (eth1/6) and `fi-b-uplink` (eth1/7) selectors, so each FI forms a vPC dual-homed across 101 and 102. |
 | Del-Din APIC GUI — FI uplinks | Same as Kelley. `leaf-101-fi-intprof` (port 6) and `leaf-102-fi-intprof` (port 7). |
 | Kelley APIC GUI — legacy objects | `Pools → VLAN → VLAN_All_Combined` exists (static, 5 ranges: 5-54, 66-67, 80-998, 1000-2176, 2205). `Domains → Physical → PhysDom_ACI_Nexus` references `VLAN_All_Combined`. `Domains → L3 → L3_Dom_ND` references `VLAN_All_Combined`. `Global Policies → AEP → AAEP_ACI_Nexus` references both `PhysDom_ACI_Nexus` and `L3_Dom_ND`. |
 | Del-Din APIC GUI — legacy objects | Same names and structure as Kelley — `VLAN_All_Combined`, `PhysDom_ACI_Nexus`, `L3_Dom_ND`, `AAEP_ACI_Nexus`. |

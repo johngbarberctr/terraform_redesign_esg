@@ -92,7 +92,7 @@ against the lab) and that all the YAML changes have merged to `main`.
        --source-schema AFRICOM \
        --source-anp    AppProf-NetCentric \
        --target-schema AFRICOM-V2 \
-       --leaves        152,153,119,191 \
+       --leaves        101,102 \
        --keep-vlan \
        --output prod_bindings.json
    ```
@@ -107,7 +107,7 @@ against the lab) and that all the YAML changes have merged to `main`.
    make auth-check                 # confirm both APIC creds work
    make plan                       # renders VMM YAML for both fabrics, then plans
    #   - review plan.txt -- expect CREATE for fi-static-vlan-pool, fi-aaep,
-   #     PC_FI_A/B policy groups, leaf-{152,153,119,191}-fi-intprof, the new
+   #     PC_FI_A/B policy groups, leaf-{101,102}-fi-intprof, the new
    #     leaf-*-prof switch profiles, and APCG/APCK-VDS1 VMM domains.
    #   - any DESTROY here is a red flag; stop and investigate.
 
@@ -121,8 +121,10 @@ against the lab) and that all the YAML changes have merged to `main`.
    #     manages AFRICOM-V2.
    ```
 6. **Verify cabling and UCS plan.** The UCS team must confirm:
-   - FI-A is currently single-homed to **leaf 152 (Site1)** / **leaf 119 (Site2)** through what will become `eth1/6`.
-   - FI-B is single-homed to **leaf 153 (Site1)** / **leaf 191 (Site2)** through `eth1/7`.
+   - FI-A attaches to **leaf 101** (both Site1 and Site2) through `eth1/6`.
+   - FI-B attaches to **leaf 102** (both Site1 and Site2) through `eth1/7`.
+     (Leaves were previously 152/153 Site1, 119/191 Site2 — placeholders from
+     another customer; renumbered to AFRICOM fabric leaves 101/102.)
    - LACP is configured **mac-pin** on the FI vNIC templates (matches `port_channel_policies: mac-pinning` in the prod data dirs). Note: the **lab** data dirs (`nac-aci-site1/`, `nac-aci-site2/`) use `lacp-active` instead of `mac-pinning` for the FI IPGs — if running against the lab, the FI vNIC templates should match `active` mode.
    - If port assignments differ in production, edit `data/nac-aci-site1-prod/access-policies.nac.yaml` (`leaf_interface_profiles` sections) and `data/nac-aci-site2-prod/access-policies.nac.yaml` BEFORE running `make plan`. **Never commit a plan you didn't review against the cabling worksheet.**
 7. **Check `fi-static-vlan-pool` against today's NDO state.** The pool was
@@ -164,7 +166,7 @@ make apply                                             # applies plan.tfplan
 
 - APIC GUI on each fabric: `Fabric → Access Policies → Pools → VLAN → fi-static-vlan-pool` exists with the expected ranges.
 - `fi-aaep` exists and references both `phys-fi-domain` and `APCG-VDS1` / `APCK-VDS1`.
-- `Fabric → Access Policies → Switches → Leaf Switches → Profiles → leaf-152-prof` (and `153`, `119`, `191`) each contain the new FI interface profile.
+- `Fabric → Access Policies → Switches → Leaf Switches → Profiles → leaf-101-prof` (and `102`) each contain the new FI interface profile.
 - No new APIC faults of `severity ≥ minor` other than the expected "interface down" on the FI uplink ports (which haven't been wired yet).
 
 This stage adds new policies. It does **not** modify existing VMM
@@ -233,12 +235,12 @@ Stage 2) so the new `staticPorts[]` push to the APICs.
 This is run by the UCS team and the vSphere admin, **not** Terraform. The
 required changes:
 
-1. UCS: re-cable FI-A uplink from current N5K port to ACI leaf-152 (Site1) / leaf-119 (Site2) on `eth1/6`. Same for FI-B → leaf-153 / leaf-191 on `eth1/7`. Confirm `port-channel summary` on both FIs shows the bundle up with the new uplink.
+1. UCS: re-cable FI-A uplink from current N5K port to ACI leaf-101 (both sites) on `eth1/6`. Same for FI-B → leaf-102 on `eth1/7`. Confirm `port-channel summary` on both FIs shows the bundle up with the new uplink.
 2. vCenter: for each ESXi host behind a moved FI, migrate the VDS uplinks from the legacy VDS to `APCG-VDS1` / `APCK-VDS1`. Use **Migrate VMs to another network** in the VDS UI to drop VMs onto the new port-groups (named per the redesign EPGs).
 
 **Verify:**
 
-- APIC GUI: `Fabric → Inventory → <leaf> → Interfaces → Physical → eth1/6` shows `oper-state = up` on Site1-152 and Site2-119 (and `eth1/7` up on -153/-191).
+- APIC GUI: `Fabric → Inventory → <leaf> → Interfaces → Physical → eth1/6` shows `oper-state = up` on leaf-101 (both sites) and `eth1/7` up on leaf-102.
 - vCenter: VMs are now on port-groups whose names match redesign EPGs.
 - `fvCEp` count on the new EPGs grows as VMs are migrated.
 

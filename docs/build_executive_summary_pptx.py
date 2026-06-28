@@ -644,7 +644,7 @@ def status_slide():
             "and lints clean; mirrors lab structure.",
             "Production access policies committed for both fabrics: "
             "PC_FI_A/B, fi-static-vlan-pool (213 VLANs), "
-            "leaf 152/153 + 119/191 split.",
+            "leaf 101/102 (both sites).",
             "GitLab CI jobs added: validate-aci-prod, plan-aci-prod, "
             "deploy-aci-prod (manual gate). Same for ndo-redesign root.",
             "Cutover runbook documented in aci-redesign/README.md.",

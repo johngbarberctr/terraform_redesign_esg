@@ -686,15 +686,15 @@ Two shapes per EPG, both validated at load time (before any NDO connection):
   "_comment": "underscore-prefixed top-level keys are ignored",
 
   "EPG-NAC": [
-    {"site": "Kelley", "leaf": 152, "port": "eth1/10"},
-    {"site": "Del-Din", "leaf": 119, "port": "eth1/10"}
+    {"site": "Kelley", "leaf": 101, "port": "eth1/10"},
+    {"site": "Del-Din", "leaf": 101, "port": "eth1/10"}
   ],
 
   "EPG-WEB-SVR": {
     "mode": "replace",
     "bindings": [
-      {"site": "Kelley", "leaf": 152, "port": "eth1/8"},
-      {"site": "Kelley", "leaf": 153, "port": "eth1/8"}
+      {"site": "Kelley", "leaf": 101, "port": "eth1/8"},
+      {"site": "Kelley", "leaf": 102, "port": "eth1/8"}
     ]
   }
 }
@@ -713,8 +713,8 @@ A working example lives in `ports_override.example.json` next to the script.
 
 ACI does not allow a physical interface to host an individual `type='port'` static binding while it is also a member of a port-channel/vPC policy group — the policy group owns the interface. The script knows the Design A PC composition (sourced from the access-policies YAMLs in `nac-aci-aedc{g,k}-prod`) and rejects any override that targets a known PC member at load time, before talking to NDO. Today:
 
-- `eth1/6` on Kelley-152 / Del-Din-119 → member of `PC_FI_A`
-- `eth1/7` on Kelley-153 / Del-Din-191 → member of `PC_FI_B`
+- `eth1/6` on Kelley-101 / Del-Din-101 → member of `PC_FI_A`
+- `eth1/7` on Kelley-102 / Del-Din-102 → member of `PC_FI_B`
 
 To bind to those PCs, use `type='dpc'` with path `topology/pod-1/paths-{leaf}/pathep-[PC_FI_A]` (or `PC_FI_B`) instead. The error message includes the suggested replacement path verbatim. If access policies change, update the `PC_MEMBER_INTERFACES` constant near the top of the override section in `generate_ipv6_bindings3.py`.
 

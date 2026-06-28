@@ -137,7 +137,7 @@ data/
 ├── nac-aci-site1-rendered/     gitignored; rebuilt by `render-vmm-yaml.sh site1`
 │   └── vmm-domain.nac.yaml       VMware VMM domain w/ vCenter creds substituted in
 ├── nac-aci-site2/              Site2-only access/fabric policies
-│   └── access-policies.nac.yaml  same shape as Site1; leaf nodes 119+191 (non-contiguous)
+│   └── access-policies.nac.yaml  same shape as Site1; leaf nodes 101/102
 └── nac-aci-site2-rendered/     gitignored; rebuilt by `render-vmm-yaml.sh site2`
     └── vmm-domain.nac.yaml       same template, same vCenter (today), per-fabric output
 ```
@@ -185,9 +185,9 @@ The recommended path is partial-fabric apply via `-target`:
    against the lab Site1 APIC.
 2. **Validate Site2 in lab** independently: `make apply-site2`. Site2 leaf
    node IDs in `data/nac-aci-site2/access-policies.nac.yaml` are currently
-   119 and 191 (non-contiguous, so two single-node `node_blocks`). Re-check
-   those IDs whenever the lab gets recabled and confirm them against the
-   production Site2 fabric before any production apply.
+   101 and 102 (a contiguous range). Re-check those IDs whenever the lab gets
+   recabled and confirm them against the production Site2 fabric before any
+   production apply.
 3. **Promote to production** by changing `site1_apic_url` / `site2_apic_url`
    in `terraform.tfvars` and the corresponding `Site1_APIC_*` /
    `Site2_APIC_*` GitLab CI masked variables. `terraform.tfvars` is
@@ -479,10 +479,16 @@ leaves, so there are no host ports on the leaves. The lab and prod data dirs are
 kept separate but are **identical in design**; only environment values
 (APIC / vCenter / NDO IPs and credentials) differ, via tfvars / CI variables.
 
-| Fabric | Lab data dir (consumed by `apic-vmware/`) | Prod data dir (consumed by `apic-vmware-prod/`) |
-|--------|--------------------------------------------|-------------------------------------------------|
-| Site1 (Kelley)  | `data/nac-aci-site1/`            | `data/nac-aci-site1-prod/`                      |
-| Site2 (Del Din) | `data/nac-aci-site2/`            | `data/nac-aci-site2-prod/`                      |
+> **Single owner: `africom-aci-apic/`.** The FI vPC + VMM access policies are
+> owned exclusively by the canonical `africom-aci-apic/` stack. The
+> `aci-apic/` stack (`data/nac-aci-site{1,2}/`) manages **only** the legacy
+> IPv4 objects (`VLAN_All_Combined`, `PhysDom_ACI_Nexus`, `L3_Dom_ND`,
+> `AAEP_ACI_Nexus`) — it no longer defines any FI/VMM objects.
+
+| Fabric | Lab data dir (in `africom-aci-apic/`) | Prod data dir (in `africom-aci-apic/`) |
+|--------|----------------------------------------|----------------------------------------|
+| Site1 (Kelley)  | `data/nac-aci-kelley/`        | `data/nac-aci-kelley-prod/`            |
+| Site2 (Del Din) | `data/nac-aci-deldin/`        | `data/nac-aci-deldin-prod/`            |
 
 Both lab and prod dirs define the same objects:
 
@@ -502,15 +508,25 @@ inside the schema (all existing EPGs are VMM-bound; static-path bindings are
 reserved for bare-metal only).
 
 Cutover sequence for prod (when the prod Terraform root is in place):
-`apic-vmware-prod/` apply (creates fi-aaep, VPC_FI-A/B, static pool; references
-the existing VMM domain) → ESX admin moves the FI uplinks onto `VPC_FI-A` /
-`VPC_FI-B` → `ndo/` apply (binds EPGs to per-fabric VMM domains) → APIC
-dynamically allocates VLANs from `vmm-vlan-pool` for VMM EPGs and pushes
-port-groups onto the existing per-fabric VDS in vCenter.
+`africom-aci-apic/` prod apply (creates fi-aaep, VPC_FI-A/B, static pool;
+references the existing VMM domain) → ESX admin moves the FI uplinks onto
+`VPC_FI-A` / `VPC_FI-B` → NDO apply (binds EPGs to per-fabric VMM domains) →
+APIC dynamically allocates VLANs for VMM EPGs and pushes port-groups onto the
+existing per-fabric VDS in vCenter.
 
 ---
 
 ## What gets created
+
+> **Historical (original `apic-vmware/` design).** The two tables below describe
+> the original dynamic-VMM access-policy design (`vmm-vlan-pool`, `vmm-aaep`,
+> `vpc-vmm-hosts`, `APCG-VDS1`/`APCK-VDS1`). The **current** FI vPC + VMM design
+> (`VPC_FI-A`/`VPC_FI-B` on eth1/6-7, `fi-aaep`, `Kelley-VDS1`/`Del-Din-VDS1`,
+> leaf profiles on nodes **101/102**) lives in **`africom-aci-apic/`** — see the
+> "Production config" section above and `africom-aci-apic/README.md`. Leaf node
+> IDs below have been updated to the AFRICOM fabric leaves (101/102); they were
+> previously placeholder values (152/153 Kelley, 119/191 Del Din) carried over
+> from another customer and may change again.
 
 `apic-vmware/` creates only the **APIC-direct** stack on BOTH fabrics:
 access/fabric policies, MCP Instance Policy, and the VMware VMM domain.
@@ -534,8 +550,8 @@ sequence.
 | Link Level Policy | `nac-aci-site1/access-policies.nac.yaml` | `10G` |
 | AAEP | `nac-aci-site1/access-policies.nac.yaml` | `vmm-aaep` linked to VMM domain |
 | VPC Interface Policy Group | `nac-aci-site1/access-policies.nac.yaml` | `vpc-vmm-hosts` |
-| Leaf Interface Profile | `nac-aci-site1/access-policies.nac.yaml` | `leaf-152-153-intprof` (ports 1-48) |
-| Leaf Switch Profile | `nac-aci-site1/access-policies.nac.yaml` | `leaf-152-153-prof` (nodes 152-153, contiguous range) |
+| Leaf Interface Profile | `nac-aci-site1/access-policies.nac.yaml` | `leaf-101-102-intprof` (ports 1-48) |
+| Leaf Switch Profile | `nac-aci-site1/access-policies.nac.yaml` | `leaf-101-102-prof` (nodes 101-102, contiguous range) |
 | VMware VMM Domain | `nac-aci-site1-rendered/vmm-domain.nac.yaml` | `APCG-VDS1` (read-write, adopts the existing per-fabric VDS in vCenter) |
 | vCenter Controller | `nac-aci-site1-rendered/vmm-domain.nac.yaml` | `vcenter01` with credential policy |
 | Virtual Distributed Switch | `nac-aci-site1-rendered/vmm-domain.nac.yaml` | Adopted from vCenter via `dvs_version: unmanaged` |
@@ -544,15 +560,14 @@ sequence.
 ### Access & fabric policies — Site2 (`module.aci_site2` + `module.aci_mcp_site2`)
 
 Same object shape as Site1 but read from `nac-aci-site2/` and pushed via
-the aliased `aci.site2` provider. Site2 leaf nodes are 119 and 191 (non-
-contiguous, so the switch profile uses two single-node `node_blocks` rather
-than a `from`/`to` range).
+the aliased `aci.site2` provider. Site2 leaf nodes are 101 and 102 (a
+contiguous range, like Site1).
 
 | ACI Object | File | Description |
 |------------|------|-------------|
 | VLAN Pool / CDP / LLDP / Port-Channel / LinkLevel / AAEP / VPC PG | `nac-aci-site2/access-policies.nac.yaml` | identical names + values to Site1 (names are scoped per-APIC, so this is safe) |
-| Leaf Interface Profile | `nac-aci-site2/access-policies.nac.yaml` | `leaf-119-191-intprof` (ports 1-48) |
-| Leaf Switch Profile | `nac-aci-site2/access-policies.nac.yaml` | `leaf-119-191-prof` (nodes 119 + 191, two single-node node_blocks) |
+| Leaf Interface Profile | `nac-aci-site2/access-policies.nac.yaml` | `leaf-101-102-intprof` (ports 1-48) |
+| Leaf Switch Profile | `nac-aci-site2/access-policies.nac.yaml` | `leaf-101-102-prof` (nodes 101-102, contiguous range) |
 | VMware VMM Domain / vCenter / VDS / Uplinks | `nac-aci-site2-rendered/vmm-domain.nac.yaml` | `APCK-VDS1` adopting the per-fabric VDS for Site2 |
 | MCP Instance Policy | `apic-vmware/main.tf` (`module.aci_mcp_site2`) | `default` w/ key from `TF_VAR_site2_mcp_key` |
 
@@ -647,7 +662,7 @@ aci-redesign/
     ├── nac-aci-site1-rendered/       gitignored; rebuilt every `make plan`
     │   └── vmm-domain.nac.yaml         VMware VMM with vCenter creds substituted in
     ├── nac-aci-site2/                Site2-only access/fabric policies
-    │   └── access-policies.nac.yaml    same shape as Site1; leaf 119+191 (non-contiguous)
+    │   └── access-policies.nac.yaml    same shape as Site1; leaf 101/102
     ├── nac-aci-site2-rendered/       gitignored; rebuilt every `make plan`
     │   └── vmm-domain.nac.yaml         per-fabric VMM (same vCenter today)
     ├── nac-aci-{site1,site2}-prod/   production access/fabric policies (identical design to lab; vPC FI uplinks)

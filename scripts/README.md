@@ -193,8 +193,16 @@ Whenever you need to (re-)seed the bindings JSON. Typical cases:
 | `--source-schema` | `AFRICOM` | The IPv6 RCC redesign schema in NDO. |
 | `--source-anp`    | `AppProf-AFR-PROD-V6` | The single ANP holding all 39 IPv6 EPGs. |
 | `--target-schema` | `AFRICOM-V2` | Used for validation (EPG name parity). Set `''` to skip. |
-| `--exclude-leaves` | `101,102` | Border leaves -- L2 collection only in IPv6, not relevant for V2 EPGs. |
-| `--leaves`        | (empty) | If set, INCLUDE-only filter. For the Kelley/Del-Din lab use `152,153,119,191`. |
+| `--exclude-leaves` | `101,102` | Border leaves -- L2 collection only in IPv6, not relevant for V2 EPGs. **See collision note below.** |
+| `--leaves`        | (empty) | If set, INCLUDE-only filter. For the Kelley/Del-Din lab use `101,102` (the UCS-FI compute leaves; previously `152,153,119,191` from another customer). |
+
+> **Leaf-number collision to resolve.** The UCS-FI compute leaves were renumbered
+> to `101,102` to match the canonical FI design (`africom-aci-apic/`). But the
+> `--exclude-leaves` default is *also* `101,102` ("border leaves"), which is a
+> leftover from the old topology. Include and exclude can no longer both be
+> `101,102`. Before running the examples below, confirm the real AFRICOM
+> border-leaf node IDs and update `--exclude-leaves` accordingly (or drop the
+> `--leaves` include filter if 101/102 are the only compute leaves).
 | `--strip-vlan`    | on | V2 EPGs are VMM-dynamic (3501-3967); IPv6 VLANs (3001-3500) would be rejected by APIC. |
 | `--dmz-epgs`      | `EPG-D64-PROXY-V2,EPG-FWEB-PROXY-V2,EPG-RWEB-PROXY-V2` | Routes those three to `AppProf-DMZ-V2`; everything else to `AppProf-NetCentric-V2`. (The third ANP, `AppProf-AppCentric-V2`, is APIC-direct and holds only the two Phase-2 ESGs -- never a binding target.) |
 
@@ -212,10 +220,12 @@ export NDO_HOST=<ndo-ip>
 export NDO_USER=admin
 
 # Preview only -- prints summary, sample bindings, EPG-parity warnings.
-./dump_bindings.py --leaves 152,153,119,191 --dry-run
+# NOTE: 101,102 are the UCS-FI compute leaves; set --exclude-leaves to the real
+#       border-leaf node IDs first (see collision note above).
+./dump_bindings.py --leaves 101,102 --exclude-leaves '' --dry-run
 
 # Write the file (mode 0600).
-./dump_bindings.py --leaves 152,153,119,191 --output current_bindings.json
+./dump_bindings.py --leaves 101,102 --exclude-leaves '' --output current_bindings.json
 
 # Keep VLANs in the output (NOT recommended for VMM-only target EPGs).
 ./dump_bindings.py --keep-vlan --output bindings_with_vlan.json
@@ -341,8 +351,10 @@ Always run `--dry-run` first against a new bindings file.
 Generates a UCS-FI static-port bindings JSON for `deploy_bindings.py` to
 consume. Reads the EPG list from `../data/nac-ndo/schema-africom-v2.nac.yaml`
 and emits one binding per (site, FI port-channel) tuple, hardcoded to the
-Design A topology: `PC_FI_A` on leaf 152 (Kelley) / 119 (Del-Din), `PC_FI_B`
-on leaf 153 (Kelley) / 191 (Del-Din).
+Design A topology: `PC_FI_A` on leaf 101 (Kelley and Del-Din), `PC_FI_B`
+on leaf 102 (Kelley and Del-Din). (Leaves were previously 152/153 Kelley,
+119/191 Del-Din — placeholders from another customer; renumbered to the
+AFRICOM fabric leaves 101/102, may change again.)
 
 The schema parser also detects whether each EPG is VMM-bound (any
 `vmware_vmm_domains:` block, or a `sites: *epg_sites_internal` anchor
