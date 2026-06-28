@@ -1,40 +1,159 @@
 # Access policies for AFRICOM NIPR -- Del Din fabric, PRODUCTION.
 #
 # This directory is loaded by the production Terraform run (prod.tfvars).
-# The lab run uses ../nac-aci-deldin/ which mirrors this file.
+# It is intentionally IDENTICAL in design to ../nac-aci-deldin/ (the lab/base
+# copy): same VLAN pools, same VPC_FI-A/B vPC uplinks on eth1/6-7, same fi-aaep
+# carrying the Del-Din-VDS1 VMM domain + phys-fi-domain. The ONLY prod/lab
+# differences are environment values (APIC / vCenter / NDO IP addresses and the
+# device usernames/passwords), which live in prod.tfvars and CI masked
+# variables -- never in this access-policies file. Keep this file in sync with
+# ../nac-aci-deldin/access-policies.nac.yaml.
 #
 # Leaf nodes:   NAIT03LF101 (node 101), NAIT03LF102 (node 102)
 # Border leafs: NAIT03BL103 (node 103), NAIT03BL104 (node 104)
 # Infra VLAN: 450
-# VPC policy: AFR-DEL.L103L104-vPC-FW1 (border leafs)
 #
-# TODO: populate VLAN pool ranges from APIC (moquery -c fvnsEncapBlk)
-# TODO: confirm VMM domain name from APIC (moquery -c vmmDomP)
-# TODO: confirm actual port assignments from APIC before enabling prod run
-# TODO: add border leaf interface profiles (BL103/BL104) when ports confirmed
+# UCS Fabric Interconnect uplinks (real vPCs, dual-homed):
+#   VPC_FI-A  -> vPC across Leaf-101 + Leaf-102, eth1/6  (to UCS FI-A)
+#   VPC_FI-B  -> vPC across Leaf-101 + Leaf-102, eth1/7  (to UCS FI-B)
+# Both vPCs land on the fi-aaep, which carries BOTH the VMware VMM domain
+# (Del-Din-VDS1, dynamic VLANs) and the physical domain (static EPG VLANs that
+# the NDO schema trunks over the FI vPCs).
+#
+# The vPC explicit protection group for nodes 101/102 is NOT managed here
+# (main.tf sets manage_node_policies = false). It already exists in the
+# production fabric (the legacy N5K-migration vPCs use the same 101/102 pair).
+#
+# The VMM domain object (Del-Din-VDS1) itself is defined under fabric_policies
+# in the rendered data/nac-aci-deldin-rendered/vmm-domain.nac.yaml, produced by
+# scripts/render-vmm-yaml.sh deldin from templates/vmm-domain.nac.yaml.tftpl.
+#
+# NOTE: Del Din has 4 leaf-role nodes (LF101/102 + BL103/104). The border leafs
+# (BL103/104) are L3Out-attached and are NOT part of the FI vPCs. Their
+# selectors are left as a TODO (managed out of band today).
+#
+# NOTE: Tenant objects (AFR-DEL.Services BDs, EPGs, ESGs) are managed by
+# ../africom-aci-ndo/ and ../nac-aci-shared/tenant-afrdel-esgs.nac.yaml,
+# not here.
 ---
 apic:
   access_policies:
     vlan_pools:
-      - name: vmm-vlan-pool-deldin
+      # Dynamic pool for the VMware VMM domain (Del-Din-VDS1). Del Din infra
+      # VLAN is 450 (outside this range). Confirm the intended dynamic range
+      # with the customer.
+      - name: vmm-vlan-pool
         allocation: dynamic
         ranges:
-          - from: 1     # TODO: actual start VLAN
-            to: 1       # TODO: actual end VLAN
+          - { from: 3501, to: 3967 }
 
-      - name: static-vlan-pool-deldin
+      # Static pool for the EPG VLANs trunked to ESXi over the FI vPCs. Exact
+      # union of every `vlan:` used by ANP EPGs in the AFRICOM NDO schema
+      # (data/ndo/schema_AFRICOM.nac.yaml): 205 VLANs in 92 ranges. Same union
+      # is used at both sites (the schema binds both sites on the same VLANs).
+      - name: fi-static-vlan-pool
         allocation: static
         ranges:
-          - from: 1     # TODO: actual VLAN ranges
-            to: 1
+          - { from: 5, to: 6 }
+          - { from: 9, to: 10 }
+          - { from: 14, to: 17 }
+          - { from: 20, to: 22 }
+          - { from: 33, to: 33 }
+          - { from: 91, to: 92 }
+          - { from: 99, to: 99 }
+          - { from: 106, to: 106 }
+          - { from: 108, to: 108 }
+          - { from: 110, to: 110 }
+          - { from: 120, to: 120 }
+          - { from: 122, to: 122 }
+          - { from: 125, to: 125 }
+          - { from: 140, to: 140 }
+          - { from: 142, to: 142 }
+          - { from: 144, to: 144 }
+          - { from: 150, to: 150 }
+          - { from: 160, to: 164 }
+          - { from: 170, to: 174 }
+          - { from: 176, to: 176 }
+          - { from: 178, to: 179 }
+          - { from: 191, to: 194 }
+          - { from: 210, to: 210 }
+          - { from: 216, to: 216 }
+          - { from: 218, to: 220 }
+          - { from: 222, to: 222 }
+          - { from: 229, to: 240 }
+          - { from: 250, to: 251 }
+          - { from: 253, to: 256 }
+          - { from: 260, to: 268 }
+          - { from: 272, to: 272 }
+          - { from: 276, to: 276 }
+          - { from: 292, to: 294 }
+          - { from: 310, to: 314 }
+          - { from: 316, to: 316 }
+          - { from: 322, to: 322 }
+          - { from: 350, to: 350 }
+          - { from: 372, to: 373 }
+          - { from: 376, to: 376 }
+          - { from: 410, to: 410 }
+          - { from: 419, to: 420 }
+          - { from: 422, to: 422 }
+          - { from: 441, to: 441 }
+          - { from: 444, to: 445 }
+          - { from: 450, to: 450 }
+          - { from: 454, to: 455 }
+          - { from: 470, to: 476 }
+          - { from: 478, to: 479 }
+          - { from: 481, to: 481 }
+          - { from: 491, to: 491 }
+          - { from: 501, to: 501 }
+          - { from: 503, to: 505 }
+          - { from: 510, to: 510 }
+          - { from: 512, to: 514 }
+          - { from: 516, to: 516 }
+          - { from: 520, to: 522 }
+          - { from: 524, to: 524 }
+          - { from: 528, to: 532 }
+          - { from: 540, to: 540 }
+          - { from: 542, to: 542 }
+          - { from: 544, to: 544 }
+          - { from: 546, to: 546 }
+          - { from: 550, to: 550 }
+          - { from: 570, to: 570 }
+          - { from: 572, to: 572 }
+          - { from: 574, to: 576 }
+          - { from: 580, to: 582 }
+          - { from: 591, to: 591 }
+          - { from: 595, to: 595 }
+          - { from: 610, to: 613 }
+          - { from: 616, to: 616 }
+          - { from: 790, to: 794 }
+          - { from: 809, to: 809 }
+          - { from: 820, to: 820 }
+          - { from: 860, to: 861 }
+          - { from: 863, to: 863 }
+          - { from: 950, to: 954 }
+          - { from: 956, to: 956 }
+          - { from: 970, to: 972 }
+          - { from: 976, to: 976 }
+          - { from: 1116, to: 1117 }
+          - { from: 1119, to: 1119 }
+          - { from: 1140, to: 1149 }
+          - { from: 1581, to: 1581 }
+          - { from: 1583, to: 1583 }
+          - { from: 1591, to: 1594 }
+          - { from: 1777, to: 1777 }
+          - { from: 2001, to: 2005 }
+          - { from: 2150, to: 2150 }
+          - { from: 2170, to: 2176 }
+          - { from: 2205, to: 2205 }
+          - { from: 2250, to: 2250 }
 
     physical_domains:
-      - name: phys-domain-deldin
-        vlan_pool: static-vlan-pool-deldin
+      - name: phys-fi-domain
+        vlan_pool: fi-static-vlan-pool
 
     routed_domains:
       - name: L3_Dom_ND
-        vlan_pool: static-vlan-pool-deldin
+        vlan_pool: fi-static-vlan-pool
 
     interface_policies:
       cdp_policies:
@@ -59,35 +178,61 @@ apic:
           auto: true
 
     aaeps:
-      - name: vmm-aaep-deldin
+      # AAEP for the UCS FI vPC uplinks. Carries the VMware VMM domain
+      # (Del-Din-VDS1, VDS trunk to the ESXi hosts behind the FIs) AND the
+      # static physical domain (the EPG VLANs trunked as static paths).
+      # infra_vlan is true so ESXi VTEPs get the infra VLAN for OpFlex.
+      - name: fi-aaep
         infra_vlan: true
         vmware_vmm_domains:
-          - TODO-VMM-DOMAIN-DELDIN   # TODO: confirm from APIC/NDO
+          - Del-Din-VDS1
         physical_domains:
-          - phys-domain-deldin
+          - phys-fi-domain
 
       - name: AAEP_ACI_Nexus
         routed_domains:
           - L3_Dom_ND
 
     leaf_interface_policy_groups:
-      - name: vpc-vmm-hosts-deldin
+      # Real vPCs to the UCS Fabric Interconnects (dual-homed across 101/102).
+      - name: VPC_FI-A
         type: vpc
-        aaep: vmm-aaep-deldin
+        aaep: fi-aaep
         link_level_policy: 10G
         cdp_policy: cdp-enabled
         lldp_policy: lldp-enabled
-        port_channel_policy: mac-pinning
+        port_channel_policy: lacp-active
 
+      - name: VPC_FI-B
+        type: vpc
+        aaep: fi-aaep
+        link_level_policy: 10G
+        cdp_policy: cdp-enabled
+        lldp_policy: lldp-enabled
+        port_channel_policy: lacp-active
+
+    # One interface profile shared by both leaves of the 101/102 switch profile.
+    # Because the policy groups are type: vpc, applying the same profile to both
+    # leaves forms a vPC per FI. eth1/6 = FI-A, eth1/7 = FI-B.
+    # TODO: confirm the actual leaf ports the FIs land on before deploying.
     leaf_interface_profiles:
       - name: leaf-101-102-intprof
         interface_selectors:
-          - name: vmm-host-ports
-            policy_group: vpc-vmm-hosts-deldin
+          - name: fi-a-uplink
+            policy_group: VPC_FI-A
             port_blocks:
               - name: block1
-                from_port: 1    # TODO: confirm actual port range
-                to_port: 48
+                from_port: 6
+                to_port: 6
+          - name: fi-b-uplink
+            policy_group: VPC_FI-B
+            port_blocks:
+              - name: block1
+                from_port: 7
+                to_port: 7
+
+      # TODO: add border leaf interface profiles for BL103/BL104 (L3Out uplinks,
+      # separate AAEP/routed domain). Not part of the FI vPCs.
 
     leaf_switch_profiles:
       - name: leaf-101-102-prof
@@ -99,3 +244,5 @@ apic:
                 to: 102
         interface_profiles:
           - leaf-101-102-intprof
+
+      # TODO: add switch profile for BL103/BL104 when border leaf ports are confirmed.

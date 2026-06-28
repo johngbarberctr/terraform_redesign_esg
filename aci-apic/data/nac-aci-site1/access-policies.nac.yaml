@@ -2,9 +2,9 @@
 #
 # Mirrors data/nac-aci-site1-prod/access-policies.nac.yaml so the lab Site1
 # fabric gets the same structure as production:
-#   FI-A is single-homed to Leaf-101 via PC_FI_A (eth1/6).
-#   FI-B is single-homed to Leaf-102 via PC_FI_B (eth1/7).
-#   No vPC explicit protection group: FIs are not peered with each other.
+#   VPC_FI-A -> vPC across Leaf-101 + Leaf-102, eth1/6 (to UCS FI-A).
+#   VPC_FI-B -> vPC across Leaf-101 + Leaf-102, eth1/7 (to UCS FI-B).
+#   The vPC explicit protection group for 101/102 already exists in the fabric.
 #
 # fi-static-vlan-pool mirrors every VLAN currently in use on production NDO
 # schema AFRICOM / ANP AppProf-NetCentric (213 VLANs, 93 contiguous ranges).
@@ -179,8 +179,8 @@ apic:
 #       - name: vmm-aaep
 #         infra_vlan: true
 #         vmware_vmm_domains:
-#           # APCG-VDS1 is the existing VDS in the shared lab vCenter.
-#           - APCG-VDS1
+#           # Kelley-VDS1 is the VDS for this fabric (now active on fi-aaep below).
+#           - Kelley-VDS1
 #         physical_domains:
 #           - phys-vmm-domain
 
@@ -189,7 +189,8 @@ apic:
       # infra_vlan is true because ESXi VTEPs need the infra VLAN for OpFlex.
       - name: fi-aaep
         infra_vlan: true
-        # vmware_vmm_domains: [APCG-VDS1]  # commented out — VMM already configured in APIC
+        vmware_vmm_domains:
+          - Kelley-VDS1
         physical_domains:
           - phys-fi-domain
 
@@ -211,51 +212,40 @@ apic:
 #         lldp_policy: lldp-enabled
 #         port_channel_policy: mac-pinning
 
-      # Per-leaf port-channels to UCS Fabric Interconnects (Design A).
-      # FI-A homes to Leaf-101 (PC_FI_A, eth1/6).
-      # FI-B homes to Leaf-102 (PC_FI_B, eth1/7).
-      - name: PC_FI_A
-        type: pc
+      # Real vPCs to the UCS Fabric Interconnects (dual-homed across 101/102).
+      # VPC_FI-A on eth1/6 (FI-A), VPC_FI-B on eth1/7 (FI-B).
+      - name: VPC_FI-A
+        type: vpc
         aaep: fi-aaep
         link_level_policy: 10G
         cdp_policy: cdp-enabled
         lldp_policy: lldp-enabled
         port_channel_policy: lacp-active
 
-      - name: PC_FI_B
-        type: pc
+      - name: VPC_FI-B
+        type: vpc
         aaep: fi-aaep
         link_level_policy: 10G
         cdp_policy: cdp-enabled
         lldp_policy: lldp-enabled
         port_channel_policy: lacp-active
 
-    # VMM port range trimmed from 1-48 to 8-48 to reserve eth1/6 and eth1/7
-    # for the FI uplink profiles below (avoids selector collision). Eth1/1-5
-    # is held in reserve.
+    # Both FI uplinks live on the SAME interface profile applied to the 101/102
+    # switch profile. Because the policy groups are type: vpc, applying one
+    # profile to both leaves forms a vPC per FI. eth1/6 = FI-A, eth1/7 = FI-B.
+    # Eth1/1-5 and 1/8-48 are held in reserve (no host ports on the leaves --
+    # ESXi attaches behind the FIs, not directly to the leaves).
     leaf_interface_profiles:
       - name: leaf-101-102-intprof
         interface_selectors:
-#           - name: vmm-host-ports
-#             policy_group: vpc-vmm-hosts
-#             port_blocks:
-#               - name: block1
-#                 from_port: 8
-#                 to_port: 48
-
-      - name: leaf-101-fi-intprof
-        interface_selectors:
           - name: fi-a-uplink
-            policy_group: PC_FI_A
+            policy_group: VPC_FI-A
             port_blocks:
               - name: block1
                 from_port: 6
                 to_port: 6
-
-      - name: leaf-102-fi-intprof
-        interface_selectors:
           - name: fi-b-uplink
-            policy_group: PC_FI_B
+            policy_group: VPC_FI-B
             port_blocks:
               - name: block1
                 from_port: 7
@@ -271,23 +261,3 @@ apic:
                 to: 102
         interface_profiles:
           - leaf-101-102-intprof
-
-      - name: leaf-101-prof
-        selectors:
-          - name: leaf-101-sel
-            node_blocks:
-              - name: block1
-                from: 101
-                to: 101
-        interface_profiles:
-          - leaf-101-fi-intprof
-
-      - name: leaf-102-prof
-        selectors:
-          - name: leaf-102-sel
-            node_blocks:
-              - name: block1
-                from: 102
-                to: 102
-        interface_profiles:
-          - leaf-102-fi-intprof

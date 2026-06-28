@@ -469,42 +469,44 @@ a port group on the VDS in vCenter.
 | **3501-3967** | **VMM domain (IPv4 EPGs)** | **Dynamic** |
 | 3968-4095 | ACI reserved (do not use) | N/A |
 
-### Production config (Design A: UCS-FI direct attach)
+### Production config (UCS-FI direct attach via vPC)
 
-The production fabric layout differs from the lab simulator because UCS
-Fabric Interconnects (FIs) replace the legacy N5Ks: each leaf has a single-
-leaf port-channel to one FI (FI-A↔Leaf-A, FI-B↔Leaf-B; FIs do not vPC-peer
-with each other). The redesign keeps the lab and prod data dirs separate so
-the lab simulator topology is never accidentally pushed against prod, or
-vice versa.
+UCS Fabric Interconnects (FIs) replace the legacy N5Ks. Each FI is attached to
+the fabric as a **real vPC, dual-homed across leaves 101 + 102**: `VPC_FI-A` on
+eth1/6 (to UCS FI-A) and `VPC_FI-B` on eth1/7 (to UCS FI-B). Only eth1/6-7
+connect to the FIs — ESXi hosts attach behind the FIs, not directly to the
+leaves, so there are no host ports on the leaves. The lab and prod data dirs are
+kept separate but are **identical in design**; only environment values
+(APIC / vCenter / NDO IPs and credentials) differ, via tfvars / CI variables.
 
 | Fabric | Lab data dir (consumed by `apic-vmware/`) | Prod data dir (consumed by `apic-vmware-prod/`) |
 |--------|--------------------------------------------|-------------------------------------------------|
-| Site1  | `data/nac-aci-site1/`                      | `data/nac-aci-site1-prod/`                      |
-| Site2  | `data/nac-aci-site2/`                      | `data/nac-aci-site2-prod/`                      |
+| Site1 (Kelley)  | `data/nac-aci-site1/`            | `data/nac-aci-site1-prod/`                      |
+| Site2 (Del Din) | `data/nac-aci-site2/`            | `data/nac-aci-site2-prod/`                      |
 
-The `*-prod` dirs add (vs the lab dirs):
+Both lab and prod dirs define the same objects:
 
 | Object | Notes |
 |--------|-------|
 | `fi-static-vlan-pool` | Static VLAN pool, 213 distinct VLANs in 93 contiguous ranges — the union of every VLAN in production NDO schema `AFRICOM / AppProf-NetCentric` (sourced live). Both sites use the same union for symmetry. |
-| `phys-fi-domain` | Physical domain attached to `fi-static-vlan-pool` for non-VMM workloads riding the FI uplinks. |
-| `fi-aaep` | Carries BOTH the per-fabric VMM domain (so VM traffic via the VDS reaches ESXi behind FIs over `PC_FI_A`/`PC_FI_B`) AND `phys-fi-domain` (for static bare-metal VLANs). `infra_vlan: true` so ESXi VTEPs work for OpFlex. |
-| `PC_FI_A`, `PC_FI_B` | Single-leaf port-channels (`type: pc`, not vpc) using `mac-pinning`. AAEP = `fi-aaep`. |
-| `leaf-<X>-fi-intprof`, `leaf-<X>-prof` | Per-leaf interface and switch profiles binding eth1/6 (FI-A) and eth1/7 (FI-B). VMM port range trimmed from 1-48 to 8-48 to reserve eth1/1-7 for FI uplinks. |
+| `phys-fi-domain` | Physical domain attached to `fi-static-vlan-pool` for non-VMM / bare-metal workloads riding the FI uplinks. |
+| `fi-aaep` | Carries BOTH the per-fabric VMM domain (so VM traffic via the VDS reaches ESXi behind the FIs over `VPC_FI-A`/`VPC_FI-B`) AND `phys-fi-domain` (for static bare-metal VLANs). `infra_vlan: true` so ESXi VTEPs work for OpFlex. |
+| `VPC_FI-A`, `VPC_FI-B` | Real vPCs (`type: vpc`, LACP active) dual-homed across leaves 101 + 102. AAEP = `fi-aaep`. |
+| `leaf-101-102-intprof`, `leaf-101-102-prof` | One shared interface profile applied to the 101/102 switch profile; its `fi-a-uplink` (eth1/6) and `fi-b-uplink` (eth1/7) selectors form a vPC per FI across both leaves. No host ports on the leaves (eth1/1-5, 1/8-48 reserved). |
 
 NDO schema `data/nac-ndo/schema-africom-v2.nac.yaml` is shared between lab
 and prod — there is one schema definition because the EPG model itself is
 identical; only the underlying APIC access policy differs. EPGs bind to the
-per-fabric VMM domains (`APCG-VDS1`, `APCK-VDS1`) at the site-local level
-inside the schema.
+per-fabric VMM domains (`Kelley-VDS1`, `Del-Din-VDS1`) at the site-local level
+inside the schema (all existing EPGs are VMM-bound; static-path bindings are
+reserved for bare-metal only).
 
 Cutover sequence for prod (when the prod Terraform root is in place):
-`apic-vmware-prod/` apply (creates fi-aaep, PC_FI_A/B, static pool, VMM
-domain) → ESX admin moves uplinks onto `PC_FI_A` / `PC_FI_B` → `ndo/` apply
-(binds EPGs to per-fabric VMM domains) → APIC dynamically allocates VLANs
-from `vmm-vlan-pool` for VMM EPGs and pushes port-groups onto the existing
-per-fabric VDS in vCenter.
+`apic-vmware-prod/` apply (creates fi-aaep, VPC_FI-A/B, static pool; references
+the existing VMM domain) → ESX admin moves the FI uplinks onto `VPC_FI-A` /
+`VPC_FI-B` → `ndo/` apply (binds EPGs to per-fabric VMM domains) → APIC
+dynamically allocates VLANs from `vmm-vlan-pool` for VMM EPGs and pushes
+port-groups onto the existing per-fabric VDS in vCenter.
 
 ---
 
@@ -608,7 +610,7 @@ aci-redesign/
 │   ├── README.md                     reference (env vars, error catalog)
 │   └── README_LAB.md                 lab daily-driver
 │
-├── apic-vmware-prod/               APIC-direct Terraform root (prod, Design A)
+├── apic-vmware-prod/               APIC-direct Terraform root (prod; same vPC FI design as lab)
 │   └── README.md                     prod-specific reference
 │
 ├── ndo/                            NDO-managed Terraform root (tenant policy)
@@ -625,7 +627,7 @@ aci-redesign/
 ├── scripts/                        cross-cutting Python tools (run after NDO apply)
 │   ├── dump_bindings.py              read AFRICOM/AppProf-AFR-PROD-V6, write JSON for AFRICOM-V2
 │   ├── deploy_bindings.py            PATCH per-EPG staticPorts[] into AFRICOM-V2
-│   ├── generate_fi_bindings.py       FI port-channel binding generator (Design A)
+│   ├── generate_fi_bindings.py       FI vPC static-binding generator (legacy; bare-metal only — EPGs are VMM-bound)
 │   ├── check_fi_bindings_parity.py   CI guard for schema/manifest drift
 │   ├── test_fi_bindings.py           unittest suite
 │   ├── bindings.example.json         starter input
@@ -648,7 +650,7 @@ aci-redesign/
     │   └── access-policies.nac.yaml    same shape as Site1; leaf 119+191 (non-contiguous)
     ├── nac-aci-site2-rendered/       gitignored; rebuilt every `make plan`
     │   └── vmm-domain.nac.yaml         per-fabric VMM (same vCenter today)
-    ├── nac-aci-{site1,site2}-prod/   production access/fabric policies (Design A)
+    ├── nac-aci-{site1,site2}-prod/   production access/fabric policies (identical design to lab; vPC FI uplinks)
     ├── _archive/                     deprecated YAMLs (reference only)
     │   ├── tenant-epg-nac.nac.yaml.archived  old APIC-direct tenant model
     │   └── README.md                   archive note

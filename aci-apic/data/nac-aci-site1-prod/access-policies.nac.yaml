@@ -1,27 +1,18 @@
-# Access policies for VMM host connectivity and direct UCS-FI uplinks (Site1, PROD).
+# Access policies for VMM host connectivity and direct UCS-FI uplinks (Site1 = Kelley, PRODUCTION).
 #
-# This directory targets the PRODUCTION fabric (Design A: UCS-FI direct attach
-# without vPC). It is NOT consumed by the lab Terraform root in
-# ../../apic-vmware/ -- the lab continues to read ../nac-aci-site1/, which
-# describes the simulator topology (3 ESXi hosts attached directly to
-# simulated leaves, no FIs, no UCS chassis).
-#
-# Production topology after the N5K -> ACI cutover:
-#   FI-A is single-homed to Leaf-101 via PC_FI_A (eth1/6).
-#   FI-B is single-homed to Leaf-102 via PC_FI_B (eth1/7).
-#   No vPC explicit protection group: FIs are not peered with each other.
-#   All VM traffic rides the same FI port-channels via the VDS pushed by the
-#   VMM domain; static (non-VM) traffic uses the static physical domain.
-#   Therefore the new fi-aaep carries BOTH the VMM domain and the static
-#   physical domain.
+# IDENTICAL in design to ../nac-aci-site1/ (the lab copy). The only prod/lab
+# differences are environment values (APIC / vCenter / NDO IP addresses and the
+# device usernames/passwords), which live in prod.tfvars / CI variables -- never
+# in this file. Keep in sync with ../nac-aci-site1/access-policies.nac.yaml:
+#   VPC_FI-A -> vPC across Leaf-101 + Leaf-102, eth1/6 (to UCS FI-A).
+#   VPC_FI-B -> vPC across Leaf-101 + Leaf-102, eth1/7 (to UCS FI-B).
+#   The vPC explicit protection group for 101/102 already exists in the fabric.
 #
 # fi-static-vlan-pool mirrors every VLAN currently in use on production NDO
-# schema AFRICOM / ANP AppProf-NetCentric (sourced live 2026-04-29). Both sites
-# use the same union (213 VLANs, 93 contiguous ranges) for symmetry; per-site
-# differences are tiny (3 VLANs across both sites).
+# schema AFRICOM / ANP AppProf-NetCentric (213 VLANs, 93 contiguous ranges).
+# Both sites use the same union for symmetry.
 #
-# The VMM-only policy group (vpc-vmm-hosts) is retained as additive,
-# unused infrastructure for any future direct-attach ESXi need.
+# VMM domain itself is defined in vmm-domain.nac.yaml under fabric_policies.
 ---
 apic:
   access_policies:
@@ -34,7 +25,21 @@ apic:
 
       # Static pool for FI-attached, non-VMM workloads. Union of every VLAN
       # in use today across Site1 + Site2 production EPGs (213 VLANs in 93
-      # contiguous ranges). Identical to the Site2 prod pool.
+      # contiguous ranges). Identical to the Site2 pool.
+      # Legacy IPv4 infrastructure pool. Matches production APIC object
+      # "Pool_VLAN_All_Combined" (2024-03-08 backup). Named VLAN_All_Combined
+      # to align with the ndo-terraform-ipv6 stack, which also declares this
+      # pool and adds IPv6 SVI entries (3001-3083) outside these ranges.
+      # Range 66-67 extended from the backup (66 only) to match fi-static-vlan-pool.
+      - name: VLAN_All_Combined
+        allocation: static
+        ranges:
+          - { from: 5,    to: 54   }
+          - { from: 66,   to: 67   }
+          - { from: 80,   to: 998  }
+          - { from: 1000, to: 2176 }
+          - { from: 2205, to: 2205 }
+
       - name: fi-static-vlan-pool
         allocation: static
         ranges:
@@ -139,11 +144,17 @@ apic:
       - name: phys-fi-domain
         vlan_pool: fi-static-vlan-pool
 
+      - name: PhysDom_ACI_Nexus
+        vlan_pool: VLAN_All_Combined
+
+    routed_domains:
+      - name: L3_Dom_ND
+        vlan_pool: VLAN_All_Combined
+
     # netascode/nac-aci 0.7.0 reads CDP/LLDP/Port-Channel/Link-Level policies
-    # from access_policies.interface_policies.* -- not directly under
-    # access_policies. The module has no lacp_policies key (lacpLagPol is
-    # created from port_channel_policies, and PGs reference it via
-    # port_channel_policy:).
+    # from access_policies.interface_policies.*. The module has no lacp_policies
+    # key -- lacpLagPol is created from port_channel_policies, and PGs reference
+    # it via port_channel_policy:.
     interface_policies:
       cdp_policies:
         - name: cdp-enabled
@@ -158,6 +169,9 @@ apic:
         - name: mac-pinning
           mode: mac-pin
 
+        - name: lacp-active
+          mode: active
+
       link_level_policies:
         - name: 10G
           speed: "10G"
@@ -167,20 +181,29 @@ apic:
 #       - name: vmm-aaep
 #         infra_vlan: true
 #         vmware_vmm_domains:
-#           # APCG-VDS1: existing per-fabric VDS in shared vCenter (Option A).
-#           - APCG-VDS1
+#           # Kelley-VDS1 is the VDS for this fabric (now active on fi-aaep below).
+#           - Kelley-VDS1
 #         physical_domains:
 #           - phys-vmm-domain
 
-      # AAEP for FI uplinks. Carries BOTH the VMM domain (so the VDS
-      # programmed by APIC reaches ESXi behind FIs over PC_FI_A/PC_FI_B) AND
-      # the static physical domain (for non-VM workloads). infra_vlan is
-      # true because ESXi VTEPs need the infra VLAN for OpFlex.
+      # AAEP for FI uplinks. Carries BOTH the VMM domain (VDS trunk to ESXi
+      # behind FIs) AND the static physical domain (non-VM workloads).
+      # infra_vlan is true because ESXi VTEPs need the infra VLAN for OpFlex.
       - name: fi-aaep
         infra_vlan: true
-        # vmware_vmm_domains: [APCG-VDS1]  # commented out — VMM already configured in APIC
+        vmware_vmm_domains:
+          - Kelley-VDS1
         physical_domains:
           - phys-fi-domain
+
+      # Legacy AAEP for N5K migration VPC/PC policy groups (VPC_D1A-B, etc.).
+      # Matches the pre-existing production APIC object. L3_Dom_ND provides
+      # the routed-domain binding used by Nexus Dashboard.
+      - name: AAEP_ACI_Nexus
+        physical_domains:
+          - PhysDom_ACI_Nexus
+        routed_domains:
+          - L3_Dom_ND
 
     leaf_interface_policy_groups:
 #       - name: vpc-vmm-hosts
@@ -191,61 +214,45 @@ apic:
 #         lldp_policy: lldp-enabled
 #         port_channel_policy: mac-pinning
 
-      # Per-leaf port-channels to UCS Fabric Interconnects (Design A).
-      # Single-member PCs initially (matches migration tfvars data); add a
-      # second member port without re-creating the PG once UCS-side bundles
-      # grow. AAEP includes both the VMM domain and the static physical
-      # domain so VM and non-VM traffic ride the same trunk.
-      - name: PC_FI_A
-        type: pc
+      # Real vPCs to the UCS Fabric Interconnects (dual-homed across 101/102).
+      # VPC_FI-A on eth1/6 (FI-A), VPC_FI-B on eth1/7 (FI-B).
+      - name: VPC_FI-A
+        type: vpc
         aaep: fi-aaep
         link_level_policy: 10G
         cdp_policy: cdp-enabled
         lldp_policy: lldp-enabled
-        port_channel_policy: mac-pinning
+        port_channel_policy: lacp-active
 
-      - name: PC_FI_B
-        type: pc
+      - name: VPC_FI-B
+        type: vpc
         aaep: fi-aaep
         link_level_policy: 10G
         cdp_policy: cdp-enabled
         lldp_policy: lldp-enabled
-        port_channel_policy: mac-pinning
+        port_channel_policy: lacp-active
 
-    # VMM port range trimmed from 1-48 to 8-48 to reserve eth1/6 and eth1/7
-    # for the FI uplink profiles below (avoids selector collision on the
-    # same ports). Eth1/1-5 is held in reserve.
+    # Both FI uplinks live on the SAME interface profile applied to the 101/102
+    # switch profile. Because the policy groups are type: vpc, applying one
+    # profile to both leaves forms a vPC per FI. eth1/6 = FI-A, eth1/7 = FI-B.
+    # Eth1/1-5 and 1/8-48 are held in reserve (no host ports on the leaves --
+    # ESXi attaches behind the FIs, not directly to the leaves).
     leaf_interface_profiles:
       - name: leaf-101-102-intprof
         interface_selectors:
-#           - name: vmm-host-ports
-#             policy_group: vpc-vmm-hosts
-#             port_blocks:
-#               - name: block1
-#                 from_port: 8
-#                 to_port: 48
-
-      - name: leaf-101-fi-intprof
-        interface_selectors:
           - name: fi-a-uplink
-            policy_group: PC_FI_A
+            policy_group: VPC_FI-A
             port_blocks:
               - name: block1
                 from_port: 6
                 to_port: 6
-
-      - name: leaf-102-fi-intprof
-        interface_selectors:
           - name: fi-b-uplink
-            policy_group: PC_FI_B
+            policy_group: VPC_FI-B
             port_blocks:
               - name: block1
                 from_port: 7
                 to_port: 7
 
-    # Existing combined profile preserved for VMM. Two new per-leaf profiles
-    # added for the FI uplinks (one per leaf, since FI-A and FI-B home to
-    # different leaves under Design A).
     leaf_switch_profiles:
       - name: leaf-101-102-prof
         selectors:
@@ -256,23 +263,3 @@ apic:
                 to: 102
         interface_profiles:
           - leaf-101-102-intprof
-
-      - name: leaf-101-prof
-        selectors:
-          - name: leaf-101-sel
-            node_blocks:
-              - name: block1
-                from: 101
-                to: 101
-        interface_profiles:
-          - leaf-101-fi-intprof
-
-      - name: leaf-102-prof
-        selectors:
-          - name: leaf-102-sel
-            node_blocks:
-              - name: block1
-                from: 102
-                to: 102
-        interface_profiles:
-          - leaf-102-fi-intprof

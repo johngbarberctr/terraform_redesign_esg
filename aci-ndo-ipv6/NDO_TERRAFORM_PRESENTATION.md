@@ -287,10 +287,15 @@ A cleanup script (`backups/remove_all_rcc_bindings.json`) was also created to re
 
 ### Step 7: Domain Binding Decisions
 
-Two types of EPG domain bindings were applied:
+EPG domain bindings (current model):
 
-- **PhysDom_ACI_IPv6** (Physical Domain): Applied to ALL EPGs at both sites -- required for bare-metal and physical server connectivity
-- **VMware VMM Domain** (variable `vmm_domain_name`): Applied only to **EPG-NAC at Site2** -- the only service that required VMware virtual machine connectivity at the K site
+- **VMware VMM Domain** (per-fabric): All `AppProf-AFR-PROD-V6` EPG domain
+  associations bind to the per-fabric VMM domain — `Kelley-VDS1` on Site1/Kelley
+  and `Del-Din-VDS1` on Site2/Del-Din. APIC dynamically assigns the VLAN and
+  creates the vCenter port-group over the FI uplinks; no static ports required.
+- **Previously**: these EPGs used the `PhysDom_ACI_IPv6` physical domain (with a
+  VMM domain only on EPG-NAC at Site2). That physical binding has been replaced
+  by the per-fabric VMM domain across all EPGs.
 
 ### Consolidated EUR Tenant (Future)
 
@@ -388,7 +393,7 @@ After template-level definitions, each BD/EPG is deployed to sites:
                                                 │
 ┌───────────────────────────┐     ┌─────────────▼─────────────────────┐
 │  mso_schema_site_bd       │     │  mso_schema_site_anp_epg_domain   │
-│  (Site2)                  │     │  (PhysDom_ACI_IPv6 + VMM domain)  │
+│  (Site2)                  │     │  (per-fabric VMM domain)          │
 └───────────────────────────┘     └───────────────────────────────────┘
 ```
 
@@ -832,5 +837,6 @@ nohup ~/gitlab-runner/gitlab-runner run &
 
 | Domain Type | Name | Applies To |
 |-------------|------|-----------|
-| Physical | PhysDom_ACI_IPv6 | All EPGs at both sites |
-| VMware VMM | (var.vmm_domain_name) | EPG-NAC at Site2 site |
+| VMware VMM | `Kelley-VDS1` | All AppProf-AFR-PROD-V6 EPGs on Site1/Kelley |
+| VMware VMM | `Del-Din-VDS1` | All AppProf-AFR-PROD-V6 EPGs on Site2/Del-Din |
+| ~~Physical~~ | ~~PhysDom_ACI_IPv6~~ | Replaced by per-fabric VMM domains (was: all EPGs) |

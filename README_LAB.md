@@ -320,22 +320,28 @@ walkthrough including port classification rules and FEX-to-leaf mapping.
 ## Phase 3 — APIC-direct fabric (`aci-apic/`)
 
 Builds access policies and MCP Instance Policies (per fabric, with per-fabric
-keys). Manages the UCS Fabric Interconnect uplink access policies (Design A):
-`fi-static-vlan-pool` (213 VLANs), `phys-fi-domain`, `fi-aaep`,
-`PC_FI_A`/`PC_FI_B` PC policy groups (LACP active), and per-leaf
-interface/switch profiles for leaves 101/102 (Kelley) and 101/102 (Del-Din);
-and the legacy IPv4 infrastructure objects: `VLAN_All_Combined` static pool
-(5 broad ranges, ~2148 VLANs), `PhysDom_ACI_Nexus` physical domain,
-`L3_Dom_ND` routed domain, and `AAEP_ACI_Nexus` (used by all N5K migration
-VPC/PC policy groups). Independent of Phase 2 — could technically run in
+keys). Manages the UCS Fabric Interconnect uplink access policies as **real
+vPCs (dual-homed across leaves 101 + 102)**: `fi-static-vlan-pool` (213 VLANs),
+`phys-fi-domain`, `fi-aaep`, `VPC_FI-A`/`VPC_FI-B` vPC policy groups (LACP
+active), and **one shared** `leaf-101-102-intprof` whose `fi-a-uplink`
+(eth1/6) and `fi-b-uplink` (eth1/7) selectors form a vPC per FI across both
+leaves; plus the legacy IPv4 infrastructure objects: `VLAN_All_Combined`
+static pool (5 broad ranges, ~2148 VLANs), `PhysDom_ACI_Nexus` physical
+domain, `L3_Dom_ND` routed domain, and `AAEP_ACI_Nexus` (used by all N5K
+migration VPC/PC policy groups). Only eth1/6-7 connect to the FIs — ESXi
+attaches behind the FIs, not directly to the leaves, so there are no host
+ports on the leaves. Independent of Phase 2 — could technically run in
 parallel — but in practice do it after.
 
-> **VMM skipped — already in APIC.** The VMM domain objects (`vmm-vlan-pool`,
-> `phys-vmm-domain`, `vmm-aaep`, `vpc-vmm-hosts`, `vmm-host-ports`,
-> `APCG-VDS1`/`APCK-VDS1` domain definitions) are commented out in all
-> `access-policies.nac.yaml` files because AFRICOM already has a VMM domain
-> and configuration in APIC. vCenter env vars are **not required** for this
-> phase. The `fi-aaep` still carries `phys-fi-domain` for non-VM traffic.
+> **VMM domain pre-exists in APIC; `fi-aaep` now binds it.** The VMM domain
+> *object* (`Kelley-VDS1` / `Del-Din-VDS1`) is already configured in APIC, so
+> the `vmm-vlan-pool` / `phys-vmm-domain` / domain-definition blocks stay
+> commented out (Terraform does not create the domain). The `fi-aaep` now
+> **references** the existing VMM domain by name (`Kelley-VDS1` for Site1 /
+> Kelley, `Del-Din-VDS1` for Site2 / Del Din) alongside `phys-fi-domain`, so
+> the VDS trunks to ESXi over the FI vPCs and EPGs get dynamic VLANs. Because
+> the domain is only referenced (not created), vCenter env vars are **not
+> required** for this phase.
 
 > **No Python venv needed for this phase.** `make` calls bash scripts and
 > `terraform` only. The scripts use `python3` stdlib (`json`, `os`, `sys`) for
@@ -364,9 +370,10 @@ make apply
 ```
 
 After Phase 3, on each APIC: `fi-static-vlan-pool` (static, 213 VLANs),
-`phys-fi-domain`, `fi-aaep` (carries `phys-fi-domain` only — no VMM binding),
-`PC_FI_A` and `PC_FI_B` PC policy groups (LACP active), per-leaf interface
-profiles for the FI uplinks (eth1/6 on leaf-101, eth1/7 on leaf-102), and the
+`phys-fi-domain`, `fi-aaep` (carries `phys-fi-domain` **and** the existing VMM
+domain `Kelley-VDS1`/`Del-Din-VDS1`), `VPC_FI-A` and `VPC_FI-B` vPC policy
+groups (LACP active), one shared `leaf-101-102-intprof` applied to both leaves
+101/102 (forming a vPC per FI on eth1/6 = FI-A and eth1/7 = FI-B), and the
 legacy IPv4 objects: `VLAN_All_Combined` static pool, `PhysDom_ACI_Nexus`,
 `L3_Dom_ND`, and `AAEP_ACI_Nexus`.
 
@@ -422,7 +429,7 @@ App_Profiles` reflect an abandoned design).
 
 After Phase 4: 2 VRFs (`VRF-AFR-DEL.Services-V2`, `VRF-DMZ-V2`), 39 BDs, 39 EPGs are live on
 Kelley and Del-Din; each EPG is bound to the per-fabric VMM domain from Phase 3
-(`APCG-VDS1` on Kelley, `APCK-VDS1` on Del-Din), so 39 port-groups should now
+(`Kelley-VDS1` on Kelley, `Del-Din-VDS1` on Del-Din), so 39 port-groups should now
 exist on each VDS in vCenter.
 
 ### Phase 4b — ESG layer (re-apply `aci-apic/`)
@@ -569,16 +576,16 @@ strategy rationale).
 
 | Where | Check |
 |---|---|
-| Kelley APIC GUI — FI uplinks | `Fabric → Access Policies → Pools → VLAN → fi-static-vlan-pool` exists (static, 213 VLANs). `fi-aaep` references both `phys-fi-domain` and `APCG-VDS1`. `Interfaces → Leaf Interfaces → Policy Groups → PC_FI_A` and `PC_FI_B` exist (type PC, LACP active). `Profiles → leaf-101-fi-intprof` and `leaf-102-fi-intprof` exist with `fi-a-uplink`/`fi-b-uplink` selectors on ports eth1/6 and eth1/7 respectively. |
+| Kelley APIC GUI — FI uplinks | `Fabric → Access Policies → Pools → VLAN → fi-static-vlan-pool` exists (static, 213 VLANs). `fi-aaep` references both `phys-fi-domain` and `Kelley-VDS1`. `Interfaces → Leaf Interfaces → Policy Groups → VPC` contains `VPC_FI-A` and `VPC_FI-B` (type **vPC**, LACP active). `Profiles → leaf-101-102-intprof` (one profile, applied to both leaves 101/102) has `fi-a-uplink` (eth1/6) and `fi-b-uplink` (eth1/7) selectors, so each FI forms a vPC dual-homed across 101 and 102. |
 | Del-Din APIC GUI — FI uplinks | Same as Kelley. `leaf-101-fi-intprof` (port 6) and `leaf-102-fi-intprof` (port 7). |
 | Kelley APIC GUI — legacy objects | `Pools → VLAN → VLAN_All_Combined` exists (static, 5 ranges: 5-54, 66-67, 80-998, 1000-2176, 2205). `Domains → Physical → PhysDom_ACI_Nexus` references `VLAN_All_Combined`. `Domains → L3 → L3_Dom_ND` references `VLAN_All_Combined`. `Global Policies → AEP → AAEP_ACI_Nexus` references both `PhysDom_ACI_Nexus` and `L3_Dom_ND`. |
 | Del-Din APIC GUI — legacy objects | Same names and structure as Kelley — `VLAN_All_Combined`, `PhysDom_ACI_Nexus`, `L3_Dom_ND`, `AAEP_ACI_Nexus`. |
 | Kelley APIC GUI | `Tenants → AFR-DEL.Services → Application Profiles → AppProf-NetCentric-V2 / AppProf-DMZ-V2` shows 39 EPGs (36 + 3) |
 | Kelley APIC GUI (ESG layer) | `Tenants → AFR-DEL.Services → Application Profiles → AppProf-AppCentric-V2 → Endpoint Security Groups` shows `ESG-All-Internal-V2` (in `VRF-AFR-DEL.Services-V2`) and `ESG-All-DMZ-V2` (in `VRF-DMZ-V2`); each ESG's `Operational → Endpoints` lists the same endpoints as the corresponding EPGs sum |
 | Del-Din APIC GUI | Same as Kelley — both NDO ANPs (39 EPGs) and the APIC-direct AppCentric ANP (2 ESGs) |
-| Each EPG's "Domains" tab | Per-fabric VMM domain (`APCG-VDS1` or `APCK-VDS1`) bound, `Resolution Immediacy = Immediate` |
+| Each EPG's "Domains" tab | Per-fabric VMM domain (`Kelley-VDS1` or `Del-Din-VDS1`) bound, `Resolution Immediacy = Immediate` |
 | Each EPG's "Static Ports" tab | Phase 6 bindings present with the right leaf/port/VLAN |
-| vCenter | 39 port-groups under each of `APCG-VDS1` / `APCK-VDS1` |
+| vCenter | 39 port-groups under each of `Kelley-VDS1` / `Del-Din-VDS1` |
 | Phase 5 Phase-Two outcome (if done) | `AppProf-AFR-PROD-V6` ANP visible in `Tenants → AFR-DEL.Services → Application Profiles` with 39 IPv6 EPGs |
 
 If anything is missing on the APIC: re-check that you clicked **Deploy to

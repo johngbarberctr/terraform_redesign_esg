@@ -24,10 +24,29 @@ data/
 make render
 ```
 
+## VMM domains and FI uplinks (current model)
+
+The base fabric data (`nac-aci-kelley/`, `nac-aci-deldin/`) is on the redesign model:
+
+- Per-fabric VMware VMM domains: **`Kelley-VDS1`** (Kelley) and **`Del-Din-VDS1`** (Del Din),
+  each adopting the existing per-fabric VDS in vCenter (`dvs_version: unmanaged`).
+- FI uplinks as vPCs **`VPC_FI-A`** / **`VPC_FI-B`** across Leaf-101 + Leaf-102 on
+  eth1/6 (FI-A) and eth1/7 (FI-B), landing on **`fi-aaep`**.
+- `fi-aaep` carries both the VMM domain (dynamic VLANs from `vmm-vlan-pool`) and
+  `phys-fi-domain`. EPGs bound to the VMM domain get a dynamic VLAN + vCenter
+  port-group automatically — no static port bindings required.
+
 ## TODO before first apply
 
 - Populate VLAN pool ranges in kelley/deldin access-policies.nac.yaml (`moquery -c fvnsEncapBlk`)
-- Replace `TODO-VMM-DOMAIN-KELLEY` / `TODO-VMM-DOMAIN-DELDIN` with actual VMM domain names (`moquery -c vmmDomP`)
+- **Prod overrides mirror the base design.** `nac-aci-kelley-prod/` and
+  `nac-aci-deldin-prod/` access-policies are now identical in design to their
+  lab/base counterparts (`Kelley-VDS1` / `Del-Din-VDS1` on `fi-aaep`, `VPC_FI-A`
+  / `VPC_FI-B` vPCs on eth1/6-7). The only prod/lab differences are environment
+  values (APIC / vCenter / NDO IPs and device credentials), which live in
+  `prod.tfvars` and CI variables — not in the access-policies YAML. Keep the
+  `-prod` files in sync with the base files. (Confirm the prod VMM domain name
+  with `moquery -c vmmDomP` if it ever differs.)
 - Confirm port assignments in leaf interface profiles
 - Populate ESG stubs in `nac-aci-shared/tenant-afrdel-esgs.nac.yaml` after vzAny removal
 
