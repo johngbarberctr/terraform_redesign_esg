@@ -1,10 +1,58 @@
 # Session Handoff — sac-johbarbe-AFRICOM-terraform-esg-nac-ndo
-**Last updated:** 2026-06-27
+**Last updated:** 2026-06-28
+**Session focus (2026-06-27 → 28):** VMware VMM integration + UCS-FI uplink redesign. Renamed FI port-channels to `VPC_FI-A`/`VPC_FI-B`, made them **real vPCs** (eth1/6-7 dual-homed across leaves 101+102), pointed all EPGs at per-fabric VMM domains (`Kelley-VDS1`/`Del-Din-VDS1`), sanitized all public IPv4 → private, then **retired FI/VMM from `aci-apic`** so `africom-aci-apic` is the single owner, and renumbered the IPv6 binding subsystem's placeholder leaves to 101/102. (Details in the top section below.) **NOTE: this repo now pushes to GitHub (`github` remote), not local GitLab.**
 **Session focus (2026-06-26 → 27):** RAN the `aci-ndo-ipv6` migration to completion — `VRF-RCC` → `AFR-PROD-V6`. Recovered a partial/failed apply through three CI/lifecycle fixes. **DONE in NDO; pending manual "Deploy to sites".** (Details in the top section below.)
 **Session focus (2026-06-25):** `aci-ndo-ipv6` cleanup so its GitLab CI plans clean: L3Out renames, NDO template remap, deferred APIC-direct stages, and a full `RCC` → `AFRICOM`/`AFR-PROD-V6` rebrand of the IPv6 layer. (Companion consolidation work happened in the `nac-ndo` sibling repo — see its own session-state.md.)
 **Session focus (2026-06-17 afternoon):** VRF consolidation (11 → 1, placeholder `AFR-PROD`), template rename (5→4) documentation cleanup — all changes in nac-ndo sibling repo.
 **Session focus (2026-06-17 morning):** nac-ndo pipeline failure debugging and CI revert — no ESG repo code changes this session.
 **Session focus (2026-06-16):** AFRICOM NIPR implementation plan corrections, design review PPTX fixes, Phase 0/1 automation, documentation updates.
+
+---
+
+## What happened this session (2026-06-27 → 28) — VMM integration + FI vPC redesign + aci-apic FI/VMM retirement
+
+Goal across the session: wire EPGs into the VMware VMM integration that had been skipped, standardize the UCS Fabric Interconnect uplink naming/topology, sanitize public IPs, and consolidate ownership of the FI/VMM access policies into a single Terraform stack.
+
+### Accomplished (all committed + pushed)
+
+**Earlier in the session (commits `c912d70`, `2dd2ea7`, pushed to GitHub main):**
+1. **VPC channel rename → `VPC_FI-A` / `VPC_FI-B`** across both repos (407 occurrences each in `nac-ndo` schema; access policies in ESG).
+2. **VMware VMM integration enabled.** EPGs now associate to per-fabric VMM domains **`Kelley-VDS1`** (site1/Kelley) and **`Del-Din-VDS1`** (site2/Del Din). The VMM domain *objects* pre-exist in APIC — Terraform only *references* them (no vCenter creds needed to bind).
+   - `nac-ndo` schema `AppProf-NetCentric` EPGs: switched to `vmware_vmm_domains`, and **all `static_ports` blocks removed** (405) — they are VMM-only now. Static-path bindings are reserved for bare-metal only.
+   - `aci-ndo-ipv6/bds_epgs.tf`: 76 `mso_schema_site_anp_epg_domain` resources for `AppProf-AFR-PROD-V6` changed from `physicalDomain`/`PhysDom_ACI_IPv6` → `vmmDomain`/`VMware` with `Kelley-VDS1` (37) / `Del-Din-VDS1` (37).
+3. **FI uplinks made real vPCs** (`type: vpc`, LACP active) on **eth1/6 = FI-A, eth1/7 = FI-B**, dual-homed across **leaves 101 + 102** via one shared `leaf-101-102-intprof`. Only eth1/6-7 connect to the FIs; ESXi attaches *behind* the FIs (no host ports on the leaves).
+4. **All public IPv4 → private** (RFC1918 `10.5x.x.x`, last two octets preserved) across both repos, including `.tf.disabled` direct-APIC files. Left existing RFC1918 + `0.0.0.0`/`128.0.0.0` untouched.
+
+**This turn (commit `b3e4a80`, pushed to GitHub main):**
+5. **Retired FI/VMM from `aci-apic`** — all four `aci-apic/data/nac-aci-site{1,2}{,-prod}/access-policies.nac.yaml` rewritten to manage **only legacy IPv4 / N5K-migration objects**: `VLAN_All_Combined`, `PhysDom_ACI_Nexus`, `L3_Dom_ND`, `AAEP_ACI_Nexus`, + the shared CDP/LLDP/PC/link-level interface policies the `VPC_D*` groups reference. Removed `fi-static-vlan-pool`, `phys-fi-domain`, `fi-aaep`, `VPC_FI-A/B`, FI leaf interface/switch profiles, and all commented VMM blocks. **`africom-aci-apic/` is now the single owner of FI/VMM.**
+6. **Renumbered the IPv6 binding subsystem's placeholder leaves** 152/153 (Kelley) + 119/191 (Del Din) → **101/102** in `aci-ndo-ipv6/README.md`, `scripts/README.md`, `docs/DESIGN.md`, `docs/REDESIGN.md`, and `docs/build_{executive_summary,redesign}_pptx.py`. Kept the existing PC structure (did NOT convert PC→vPC there).
+7. **Doc corrections** to reflect single FI/VMM ownership: `aci-apic/README.md`, `README_LAB.md` Phase 3 + Phase 7 verify row, `docs/DESIGN.md` (production-config + "what gets created" sections).
+
+Validation: all 4 retired YAMLs parse clean (only legacy objects present, FI/VMM tokens absent); both edited PPTX scripts `py_compile` clean.
+
+### Decisions made this session and why
+
+| Decision | Rationale |
+|----------|-----------|
+| `africom-aci-apic/` is the **single owner** of FI vPCs + VMM; `aci-apic/` keeps only legacy IPv4/ESG | Both stacks target the same Kelley/Del-Din APICs. Two Terraform states defining the same FI/VMM MOs fight over them. User explicitly approved fully retiring FI/VMM from `aci-apic`. |
+| **Kept** the CDP/LLDP/PC/link-level interface policies in `aci-apic` (didn't delete) | They're generic and may be referenced by the legacy `VPC_D*` migration groups. Deleting an in-use APIC policy via Terraform would throw an "object in use" error. |
+| EPGs are **VMM-only**; static ports reserved for bare-metal | User: the FI/ESXi path is VMM — APIC assigns a dynamic VLAN + port-group in vCenter when the EPG is created. AppProf-NetCentric EPGs should have NO static port mappings. |
+| Prod design == lab design (only IPs/creds/usernames differ, via tfvars/CI) | User directive. `-prod` data dirs are byte-identical to base except the header line. |
+| IPv6 subsystem leaves renumbered to **101/102 "for now"** (PC structure preserved, not vPC) | User said 152/153/119/191 were "old leaf numbers for a different customer" and "can change to 101,102 for now, but may change again." They did not ask to convert that subsystem PC→vPC. |
+| Left the **NXOS N5K-migration repo** and the **NDO schema-backup JSON** untouched | NXOS repo's 152/153/119/191 are real, interdependent topology (FEX maps, vPC pairs, EPG node assignments) — a different concern. The `aci-ndo-ipv6/schema_backup_*.json` is a point-in-time NDO export, not config. |
+
+### Do NOT repeat next session (this repo)
+
+- **Do NOT reintroduce FI/VMM objects into `aci-apic/`** (`fi-static-vlan-pool`, `phys-fi-domain`, `fi-aaep`, `VPC_FI-A/B`, FI leaf profiles). Those live ONLY in `africom-aci-apic/` now. `aci-apic` = legacy IPv4 + ESG only.
+- **Do NOT re-add `static_ports` to `AppProf-NetCentric` EPGs** (nac-ndo schema) — they are VMM-only by design. Static paths are for bare-metal only.
+- **Do NOT renumber leaves in the NXOS N5K repo** (`sac-johbarbe-AFRICOM-nxos-n5k`) — 152/153/119/191 are real topology there, not placeholders.
+- **Do NOT edit `aci-ndo-ipv6/schema_backup_*.json`** — it's a historical NDO state export.
+- **This repo pushes to GitHub now** (`github` → `git@github.com:johngbarberctr/terraform_redesign_esg.git`), NOT local GitLab. `git push github HEAD:main`. (Older sections below say "gitlab main" — that's stale for this repo.)
+- **VMM domain names are settled:** `Kelley-VDS1` (Kelley/site1) and `Del-Din-VDS1` (Del Din/site2). These supersede the old `APCG-VDS1`/`APCK-VDS1` and the `TODO-VMM-DOMAIN-*` placeholders.
+
+### Next concrete step (this repo)
+
+**Resolve the `dump_bindings.py` leaf collision.** Renumbering the FI/compute leaves to 101/102 collides with the script's `--exclude-leaves 101,102` "border leaves" default (now both include and exclude = 101,102). Confirm the **real AFRICOM border-leaf node IDs** and set `--exclude-leaves` accordingly (or drop the `--leaves` include filter if 101/102 are the only compute leaves). Flagged inline in `scripts/README.md`. After that, the operational path is unchanged: NDO "Deploy to sites" for the `AFRICOM` schema, then `africom-aci-apic/` apply for the FI/VMM access policies.
 
 ---
 
@@ -288,7 +336,7 @@ The Phase 0 script and Phase 1 NAC YAML files exist on disk but have never been 
 - **Tenant rename `EUR` → `AFR-DEL.Services` is COMPLETE** across all AFRICOM files in both nac-ndo and ESG repos. Do not reintroduce `EUR` as a tenant name in any AFRICOM file. VRF/EPG/object names (`EUR-AIM`, `EUR-E`, `Any_EUR-*`, `Tenant_EUR_V2`, etc.) are intentionally unchanged — those are actual ACI object names.
 - **Do not use tenant `EUR`** in AFRICOM context. AFRICOM tenant is `AFR-DEL.Services`.
 - **Do not use RCC-E ESG zone names** (ESG-AIM, ESG-AIS, etc.) or VRF names (VRF-AFR-DEL.Services-V2) in AFRICOM context.
-- **Do not modify `aci-apic/`, `aci-ndo/`** — preserved RCC-E working state. (NOTE: `aci-ndo-ipv6/` was INTENTIONALLY rebranded on 2026-06-25 — see top section. It is no longer "keep as-is".)
+- **Do not modify `aci-ndo/`** — preserved RCC-E working state. (NOTE: `aci-ndo-ipv6/` was INTENTIONALLY rebranded on 2026-06-25, and `aci-apic/` access-policies were INTENTIONALLY reduced to legacy-IPv4-only on 2026-06-28 — see top section. Both are no longer "keep as-is".)
 - **`docs/AFRICOM/AFRICOM_Implementation_Plan.docx`** is a binary file in a gitignored path. Do not regenerate it unless the .md changes — conversion requires a temp venv with `python-docx`.
 
 ---
@@ -497,7 +545,7 @@ scripts/            Standalone Python operational tools (NOT Terraform helpers)
 
 **`africom-aci-apic/scripts/`** = Terraform shell helpers (`render-vmm-yaml.sh`, etc.) called during terraform plan/apply — NOT the same as `scripts/`.
 
-**Do not modify `aci-apic/`, `aci-ndo/` — these are preserved RCC-E work.** (`aci-ndo-ipv6/` was rebranded 2026-06-25 — see top section.)
+**Do not modify `aci-ndo/` — preserved RCC-E work.** (`aci-ndo-ipv6/` was rebranded 2026-06-25; `aci-apic/` access-policies were reduced to legacy-IPv4-only on 2026-06-28 — see top section. Both no longer "keep as-is".)
 
 ---
 
