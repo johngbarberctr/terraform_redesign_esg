@@ -110,7 +110,7 @@ NDO
 
 The existing EUR tenant in NDO had **216 Bridge Domains**, all named by VLAN number: `BD-V0005`, `BD-V0006`, `BD-V0009`, `BD-V0010`, `BD-V0015`, ... `BD-V2000`. Each BD had a matching `EPG-Vxxxx`. These were essentially a **1:1 VLAN-to-BD mapping** -- every VLAN on the fabric had its own BD and EPG, with no indication of what service the VLAN actually carried.
 
-The 216 BDs were spread across 7 VRFs (EUR-E, EUR-AIS, EUR-AIV, EUR-AIZ, EUR-AIM, EUR-AIP, EUR-AOV) with IPv4 subnets like `136.215.132.1/24`. Many were pure L2 BDs (79 had no subnet at all), while others carried IPv4 gateway subnets.
+The 216 BDs were spread across 7 VRFs (EUR-E, EUR-AIS, EUR-AIV, EUR-AIZ, EUR-AIM, EUR-AIP, EUR-AOV) with IPv4 subnets like `10.52.132.1/24`. Many were pure L2 BDs (79 had no subnet at all), while others carried IPv4 gateway subnets.
 
 The challenge: **VLAN numbers tell you nothing about what the service is.** `BD-V0015` could be DNS, NAC, or anything. The VLAN-based naming was inherited from the legacy network and carried forward into ACI without redesign.
 

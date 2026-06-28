@@ -68,7 +68,7 @@ with deploy_bindings.py, or use --target-schema parity warnings to spot
 the mismatches and fix them in bulk.
 
 Example:
-  export NDO_HOST=155.155.32.30 NDO_USER=admin
+  export NDO_HOST=10.51.32.30 NDO_USER=admin
   ./dump_bindings.py --output current_bindings.json
   # review current_bindings.json, then:
   ./deploy_bindings.py current_bindings.json --no-vault --dry-run

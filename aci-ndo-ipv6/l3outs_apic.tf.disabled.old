@@ -32,13 +32,13 @@
 variable "apic_g_url" {
   description = "APIC URL for Site G (Grafenwoehr)"
   type        = string
-  default     = "https://155.155.32.20"  # Change this
+  default     = "https://10.51.32.20"  # Change this
 }
 
 variable "apic_k_url" {
   description = "APIC URL for Site K (Kaiserslautern)"
   type        = string
-  default     = "https://155.155.33.20"  # Change this
+  default     = "https://10.51.33.20"  # Change this
 }
 
 variable "apic_username" {
@@ -167,7 +167,7 @@ resource "aci_logical_node_to_fabric_node" "l3out_rcc_e_g_node_101" {
   provider                  = aci.apic_g
   logical_node_profile_dn   = aci_logical_node_profile.l3out_rcc_e_g_node_profile.id
   tdn                       = "topology/pod-1/node-101"
-  rtr_id                    = "155.155.59.251"  # Change this - Router ID for node 101
+  rtr_id                    = "10.51.59.251"  # Change this - Router ID for node 101
   rtr_id_loop_back          = "no"
 }
 
@@ -176,7 +176,7 @@ resource "aci_logical_node_to_fabric_node" "l3out_rcc_e_g_node_102" {
   provider                  = aci.apic_g
   logical_node_profile_dn   = aci_logical_node_profile.l3out_rcc_e_g_node_profile.id
   tdn                       = "topology/pod-1/node-102"
-  rtr_id                    = "155.155.59.252"  # Change this - Router ID for node 102
+  rtr_id                    = "10.51.59.252"  # Change this - Router ID for node 102
   rtr_id_loop_back          = "no"
 }
 
@@ -342,7 +342,7 @@ resource "aci_logical_node_to_fabric_node" "l3out_rcc_e_k_node_101" {
   provider                  = aci.apic_k
   logical_node_profile_dn   = aci_logical_node_profile.l3out_rcc_e_k_node_profile.id
   tdn                       = "topology/pod-1/node-101"
-  rtr_id                    = "155.155.59.253"  # Change this - Router ID for node 101
+  rtr_id                    = "10.51.59.253"  # Change this - Router ID for node 101
   rtr_id_loop_back          = "no"
 }
 
@@ -351,7 +351,7 @@ resource "aci_logical_node_to_fabric_node" "l3out_rcc_e_k_node_102" {
   provider                  = aci.apic_k
   logical_node_profile_dn   = aci_logical_node_profile.l3out_rcc_e_k_node_profile.id
   tdn                       = "topology/pod-1/node-102"
-  rtr_id                    = "155.155.59.254"  # Change this - Router ID for node 102
+  rtr_id                    = "10.51.59.254"  # Change this - Router ID for node 102
   rtr_id_loop_back          = "no"
 }
 

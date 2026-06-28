@@ -151,7 +151,7 @@ These stay in VRF-EUR because:
 
 ### 3. Why 39 BDs/EPGs (matching IPv6 RCC)
 
-The IPv6 RCC design (`ndo-terraform-nac/136.215.4.96/bds_epgs.tf`) defines 39 functionally named BDs/EPGs in a single VRF with vzAny. This naming scheme replaces the numeric VLAN-based names with human-readable categories:
+The IPv6 RCC design (`ndo-terraform-nac/10.52.4.96/bds_epgs.tf`) defines 39 functionally named BDs/EPGs in a single VRF with vzAny. This naming scheme replaces the numeric VLAN-based names with human-readable categories:
 
 | Legacy (IPv4) | V2 redesign (will be dual-stack) |
 |----------------|---------------------------------|
@@ -169,10 +169,10 @@ This is a **brownfield-safe** design. Every existing IPv4 subnet is preserved un
 Example -- BD-APP-SVR contains 32 subnets from 39 legacy BDs:
 ```
 BD-APP-SVR (VRF-EUR):
-  155.155.236.65/26    (was BD-V0572 / APCE_EUR_APPS)
-  155.155.172.1/24     (was BD-V0372 / APCG_EUR_APPS)
-  155.155.108.1/24     (was BD-V0272 / APCK_EUR_APPS)
-  136.215.37.129/26    (was BD-V0455 / APCK_RDS)
+  10.51.236.65/26    (was BD-V0572 / APCE_EUR_APPS)
+  10.51.172.1/24     (was BD-V0372 / APCG_EUR_APPS)
+  10.51.108.1/24     (was BD-V0272 / APCK_EUR_APPS)
+  10.52.37.129/26    (was BD-V0455 / APCK_RDS)
   ... 28 more subnets
 ```
 
@@ -256,7 +256,7 @@ Is ACI the IP gateway for this segment?
 | `aci-redesign/data/nac-aci-shared/tenant-eur-esgs.nac.yaml` | Source of truth (ESG layer): the third ANP `AppProf-AppCentric-V2` and the two Phase-2 ESGs (`ESG-All-Internal-V2`, `ESG-All-DMZ-V2`). Loaded APIC-direct by both Site1 and Site2 modules in `aci-redesign/apic-vmware/main.tf`. |
 | `aci-redesign/DESIGN.md` | Design rationale + the canonical "Naming convention" section explaining `-V2`; full Phase-2 deploy playbook |
 | `docs/reports/bd_mapping_analysis.txt` | Full mapping of all 215 legacy BDs to the 39 functional BDs |
-| `ndo-terraform-nac/136.215.4.96/bds_epgs.tf` | IPv6 RCC design (source of the 39-BD naming structure) |
+| `ndo-terraform-nac/10.52.4.96/bds_epgs.tf` | IPv6 RCC design (source of the 39-BD naming structure) |
 | `ndo-terraform/generate_ipv6_bindings3.py` | IPv4-to-IPv6 EPG mapping (canonical source) |
 | `aci-redesign/README.md` | Lab deployment instructions and directory structure |
 

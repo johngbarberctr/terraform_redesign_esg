@@ -109,9 +109,9 @@ shared scripts and the AFRICOM NIPR implementation documentation.
 | --------------------------- | ------------------------------------------------------------------------------------------- |
 | **Mac path**                | `/Users/johbarbe/DC/ACI/ndo-terraform-nac/`                                                 |
 | **Git remotes**             | `localhost:8080/root/ndo_terraform` · `localhost:8080/Administrator/ndo_terraform`          |
-| **Cursor workspace labels** | `LAB - IPv4 NAC Terraform` (root) · `PROD - IPv6 RCC (136.215.4.96)` (sub-dir)             |
-| **Purpose**                 | NAC-style Terraform for NDO at multiple production sites. Houses the canonical IPv6 RCC build under `136.215.4.96/` (39 BDs, 39 EPGs in `AFR-PROD-V6`, L3Outs, External EPGs). |
-| **Production target**       | NDO at `136.215.4.96`                                                                       |
+| **Cursor workspace labels** | `LAB - IPv4 NAC Terraform` (root) · `PROD - IPv6 RCC (10.52.4.96)` (sub-dir)             |
+| **Purpose**                 | NAC-style Terraform for NDO at multiple production sites. Houses the canonical IPv6 RCC build under `10.52.4.96/` (39 BDs, 39 EPGs in `AFR-PROD-V6`, L3Outs, External EPGs). |
+| **Production target**       | NDO at `10.52.4.96`                                                                       |
 | **Note**                    | Similar name to the old `ndo-terraform` helper folder — entirely separate repo and purpose. |
 
 ---
@@ -162,7 +162,7 @@ shared scripts and the AFRICOM NIPR implementation documentation.
 | Workspace | File location | Folders mapped |
 |-----------|--------------|----------------|
 | `ACI_LAB` | `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/ACI_LAB.code-workspace` | `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/`, `sac-johbarbe-AFRICOM-terraform-nac-ndo/`, `sac-johbarbe-AFRICOM-nxos-n5k/` |
-| `ACI_PRODUCTION` | `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/ACI_PRODUCTION.code-workspace` | `ndo-terraform-nac/136.215.4.96/`, `n5k/Snake/PRODUCTION/` |
+| `ACI_PRODUCTION` | `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/ACI_PRODUCTION.code-workspace` | `ndo-terraform-nac/10.52.4.96/`, `n5k/Snake/PRODUCTION/` |
 | `rcc-e` | `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/rcc-e.code-workspace` | RCC-E specific folders |
 
 ---

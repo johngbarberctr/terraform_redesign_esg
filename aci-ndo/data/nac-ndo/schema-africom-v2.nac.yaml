@@ -13,7 +13,7 @@
 #     (a third ANP, AppProf-AppCentric-V2, is created APIC-direct in
 #     ../nac-aci-shared/tenant-eur-esgs.nac.yaml -- it holds the Phase-2
 #     ESGs that overlay these EPGs; see "ESGs" note below)
-#   - VMware VMM bindings on every EPG to APCG-VDS1 on Kelley and APCK-VDS1
+#   - VMware VMM bindings on every EPG to Kelley-VDS1 on Kelley and Del-Din-VDS1
 #     on Del-Din (per-fabric VMM domains: each adopts its own pre-existing VDS
 #     in the shared vCenter rather than creating a new shared VDS)
 #
@@ -171,9 +171,9 @@ ndo:
             - name: BD-ACAS-SCANNERS-V2
               vrf: { name: VRF-AFR-DEL.Services-V2 }
               subnets:
-                - ip: 136.215.194.1/27
+                - ip: 10.52.194.1/27
                   scope: public
-                - ip: 136.215.66.1/27
+                - ip: 10.52.66.1/27
                   scope: public
 
             # ── BD-AD-V2 ─────────────────────────────────────────────────────
@@ -181,11 +181,11 @@ ndo:
             - name: BD-AD-V2
               vrf: { name: VRF-AFR-DEL.Services-V2 }
               subnets:
-                - ip: 136.215.193.1/26
+                - ip: 10.52.193.1/26
                   scope: public
-                - ip: 155.155.136.1/26
+                - ip: 10.51.136.1/26
                   scope: public
-                - ip: 155.155.72.1/26
+                - ip: 10.51.72.1/26
                   scope: public
 
             # ── BD-ADM-DCO-V2 ────────────────────────────────────────────────
@@ -193,7 +193,7 @@ ndo:
             - name: BD-ADM-DCO-V2
               vrf: { name: VRF-AFR-DEL.Services-V2 }
               subnets:
-                - ip: 155.155.230.97/28
+                - ip: 10.51.230.97/28
                   scope: public
 
             # ── BD-ADFS-V2 (no legacy IPv4 predecessor) ──────────────────────
@@ -205,69 +205,69 @@ ndo:
             - name: BD-APP-SVR-V2
               vrf: { name: VRF-AFR-DEL.Services-V2 }
               subnets:
-                - ip: 155.155.236.65/26
+                - ip: 10.51.236.65/26
                   scope: public
-                - ip: 155.155.172.1/24
+                - ip: 10.51.172.1/24
                   scope: public
-                - ip: 155.155.108.1/24
+                - ip: 10.51.108.1/24
                   scope: public
-                - ip: 136.215.37.129/26
+                - ip: 10.52.37.129/26
                   scope: public
-                - ip: 155.155.231.1/27
+                - ip: 10.51.231.1/27
                   scope: public
-                - ip: 136.215.3.1/24
+                - ip: 10.52.3.1/24
                   scope: public
-                - ip: 206.39.28.193/27
+                - ip: 10.53.28.193/27
                   scope: public
-                - ip: 155.155.224.1/23
+                - ip: 10.51.224.1/23
                   scope: public
-                - ip: 136.215.137.1/25
+                - ip: 10.52.137.1/25
                   scope: public
-                - ip: 206.39.28.161/28
+                - ip: 10.53.28.161/28
                   scope: public
-                - ip: 206.39.28.177/28
+                - ip: 10.53.28.177/28
                   scope: public
-                - ip: 155.155.230.65/27
+                - ip: 10.51.230.65/27
                   scope: public
-                - ip: 136.215.161.1/27
+                - ip: 10.52.161.1/27
                   scope: public
-                - ip: 155.155.234.65/27
+                - ip: 10.51.234.65/27
                   scope: public
-                - ip: 136.215.64.193/26
+                - ip: 10.52.64.193/26
                   scope: public
-                - ip: 155.155.120.129/27
+                - ip: 10.51.120.129/27
                   scope: public
-                - ip: 155.155.71.129/27
+                - ip: 10.51.71.129/27
                   scope: public
-                - ip: 155.155.230.1/27
+                - ip: 10.51.230.1/27
                   scope: public
-                - ip: 155.155.236.193/26
+                - ip: 10.51.236.193/26
                   scope: public
-                - ip: 155.155.64.1/23
+                - ip: 10.51.64.1/23
                   scope: public
-                - ip: 155.155.64.10/23
+                - ip: 10.51.64.10/23
                   scope: public
-                - ip: 155.155.128.1/23
+                - ip: 10.51.128.1/23
                   scope: public
-                - ip: 155.155.128.9/23
+                - ip: 10.51.128.9/23
                   scope: public
-                - ip: 155.155.226.1/27
+                - ip: 10.51.226.1/27
                   scope: public
-                - ip: 155.155.238.1/27
+                - ip: 10.51.238.1/27
                   scope: public
-                - ip: 136.215.97.1/28
+                - ip: 10.52.97.1/28
                   scope: public
-                - ip: 155.155.84.1/23
+                - ip: 10.51.84.1/23
                   scope: public
-                - ip: 136.215.64.1/25
+                - ip: 10.52.64.1/25
                   scope: public
-                - ip: 136.215.66.129/26
+                - ip: 10.52.66.129/26
                   scope: public
-                - ip: 155.155.236.1/27
+                - ip: 10.51.236.1/27
                   scope: public
-                - ip: 155.155.94.129/26
+                - ip: 10.51.94.129/26
                   scope: public
-                - ip: 155.155.94.193/26
+                - ip: 10.51.94.193/26
                   scope: public
 
             # ── BD-BACKUP-SVR-V2 ─────────────────────────────────────────────
@@ -275,13 +275,13 @@ ndo:
             - name: BD-BACKUP-SVR-V2
               vrf: { name: VRF-AFR-DEL.Services-V2 }
               subnets:
-                - ip: 155.155.234.129/27
+                - ip: 10.51.234.129/27
                   scope: public
-                - ip: 136.215.162.1/23
+                - ip: 10.52.162.1/23
                   scope: public
-                - ip: 136.215.34.1/27
+                - ip: 10.52.34.1/27
                   scope: public
-                - ip: 136.215.128.193/26
+                - ip: 10.52.128.193/26
                   scope: public
 
             # ── BD-C2C-SCANNERS-V2 (no legacy IPv4 predecessor) ──────────────
@@ -292,33 +292,33 @@ ndo:
             - name: BD-CFG-MGMT-V2
               vrf: { name: VRF-AFR-DEL.Services-V2 }
               subnets:
-                - ip: 155.155.20.1/25
+                - ip: 10.51.20.1/25
                   scope: public
-                - ip: 155.155.30.1/26
+                - ip: 10.51.30.1/26
                   scope: public
-                - ip: 155.155.60.1/26
+                - ip: 10.51.60.1/26
                   scope: public
-                - ip: 155.155.20.129/25
+                - ip: 10.51.20.129/25
                   scope: public
-                - ip: 136.215.132.1/24
+                - ip: 10.52.132.1/24
                   scope: public
-                - ip: 136.215.135.1/24
+                - ip: 10.52.135.1/24
                   scope: public
-                - ip: 136.215.4.1/24
+                - ip: 10.52.4.1/24
                   scope: public
-                - ip: 136.215.6.129/25
+                - ip: 10.52.6.129/25
                   scope: public
-                - ip: 206.39.28.1/25
+                - ip: 10.53.28.1/25
                   scope: public
-                - ip: 155.155.62.249/29
+                - ip: 10.51.62.249/29
                   scope: public
-                - ip: 155.155.62.241/29
+                - ip: 10.51.62.241/29
                   scope: public
-                - ip: 155.155.68.1/24
+                - ip: 10.51.68.1/24
                   scope: public
-                - ip: 155.155.130.1/24
+                - ip: 10.51.130.1/24
                   scope: public
-                - ip: 155.155.250.1/23
+                - ip: 10.51.250.1/23
                   scope: public
 
             # ── BD-DB-SVR-V2 ─────────────────────────────────────────────────
@@ -326,21 +326,21 @@ ndo:
             - name: BD-DB-SVR-V2
               vrf: { name: VRF-AFR-DEL.Services-V2 }
               subnets:
-                - ip: 155.155.80.1/25
+                - ip: 10.51.80.1/25
                   scope: public
-                - ip: 155.155.144.1/25
+                - ip: 10.51.144.1/25
                   scope: public
-                - ip: 136.215.35.1/27
+                - ip: 10.52.35.1/27
                   scope: public
-                - ip: 136.215.160.129/26
+                - ip: 10.52.160.129/26
                   scope: public
-                - ip: 155.155.228.1/27
+                - ip: 10.51.228.1/27
                   scope: public
-                - ip: 136.215.160.1/25
+                - ip: 10.52.160.1/25
                   scope: public
-                - ip: 136.215.98.1/25
+                - ip: 10.52.98.1/25
                   scope: public
-                - ip: 136.215.32.129/26
+                - ip: 10.52.32.129/26
                   scope: public
 
             # ── BD-DHCP-SVR-V2 (no legacy IPv4 predecessor) ──────────────────
@@ -360,11 +360,11 @@ ndo:
             - name: BD-FILE-SVR-V2
               vrf: { name: VRF-AFR-DEL.Services-V2 }
               subnets:
-                - ip: 136.215.165.1/25
+                - ip: 10.52.165.1/25
                   scope: public
-                - ip: 136.215.37.1/25
+                - ip: 10.52.37.1/25
                   scope: public
-                - ip: 155.155.235.129/26
+                - ip: 10.51.235.129/26
                   scope: public
 
             # ── BD-FMWR-SVR-V2 (no legacy IPv4 predecessor) ──────────────────
@@ -380,11 +380,11 @@ ndo:
             - name: BD-LB-V2
               vrf: { name: VRF-AFR-DEL.Services-V2 }
               subnets:
-                - ip: 155.155.240.1/26
+                - ip: 10.51.240.1/26
                   scope: public
-                - ip: 136.215.224.129/26
+                - ip: 10.52.224.129/26
                   scope: public
-                - ip: 136.215.96.129/26
+                - ip: 10.52.96.129/26
                   scope: public
 
             # ── BD-LMR-V2 (no legacy IPv4 predecessor) ───────────────────────
@@ -396,17 +396,17 @@ ndo:
             - name: BD-MECM-V2
               vrf: { name: VRF-AFR-DEL.Services-V2 }
               subnets:
-                - ip: 136.215.192.129/27
+                - ip: 10.52.192.129/27
                   scope: public
-                - ip: 136.215.196.1/27
+                - ip: 10.52.196.1/27
                   scope: public
-                - ip: 136.215.66.193/27
+                - ip: 10.52.66.193/27
                   scope: public
-                - ip: 136.215.65.129/28
+                - ip: 10.52.65.129/28
                   scope: public
-                - ip: 136.215.193.129/28
+                - ip: 10.52.193.129/28
                   scope: public
-                - ip: 136.215.192.1/25
+                - ip: 10.52.192.1/25
                   scope: public
 
             # ── BD-NAC-V2 (no legacy IPv4 predecessor) ───────────────────────
@@ -418,7 +418,7 @@ ndo:
             - name: BD-NMS-V2
               vrf: { name: VRF-AFR-DEL.Services-V2 }
               subnets:
-                - ip: 206.39.28.249/29
+                - ip: 10.53.28.249/29
                   scope: public
 
             # ── BD-OCSP-V2 (no legacy IPv4 predecessor) ──────────────────────
@@ -430,7 +430,7 @@ ndo:
             - name: BD-PATCH-V2
               vrf: { name: VRF-AFR-DEL.Services-V2 }
               subnets:
-                - ip: 136.215.64.129/27
+                - ip: 10.52.64.129/27
                   scope: public
 
             # ── BD-PKI-SRV-V2 ────────────────────────────────────────────────
@@ -438,7 +438,7 @@ ndo:
             - name: BD-PKI-SRV-V2
               vrf: { name: VRF-AFR-DEL.Services-V2 }
               subnets:
-                - ip: 155.155.230.129/26
+                - ip: 10.51.230.129/26
                   scope: public
 
             # ── BD-PRINT-SVR-V2 (no legacy IPv4 predecessor) ─────────────────
@@ -470,11 +470,11 @@ ndo:
             - name: BD-SYSLOG-V2
               vrf: { name: VRF-AFR-DEL.Services-V2 }
               subnets:
-                - ip: 155.155.234.1/26
+                - ip: 10.51.234.1/26
                   scope: public
-                - ip: 155.155.237.129/25
+                - ip: 10.51.237.129/25
                   scope: public
-                - ip: 155.155.237.1/25
+                - ip: 10.51.237.1/25
                   scope: public
 
             # ── BD-SYSMAN-V2 (no legacy IPv4 predecessor) ────────────────────
@@ -486,7 +486,7 @@ ndo:
             - name: BD-VHOST-MGMT-V2
               vrf: { name: VRF-AFR-DEL.Services-V2 }
               subnets:
-                - ip: 136.207.132.1/24
+                - ip: 10.55.132.1/24
                   scope: public
 
             # ── BD-VVOIP-MGMT-V2 ─────────────────────────────────────────────
@@ -494,19 +494,19 @@ ndo:
             - name: BD-VVOIP-MGMT-V2
               vrf: { name: VRF-AFR-DEL.Services-V2 }
               subnets:
-                - ip: 136.207.176.1/26
+                - ip: 10.55.176.1/26
                   scope: public
-                - ip: 136.215.176.1/26
+                - ip: 10.52.176.1/26
                   scope: public
-                - ip: 136.215.177.129/27
+                - ip: 10.52.177.129/27
                   scope: public
-                - ip: 136.207.177.129/27
+                - ip: 10.55.177.129/27
                   scope: public
-                - ip: 136.215.178.1/24
+                - ip: 10.52.178.1/24
                   scope: public
-                - ip: 136.215.78.1/24
+                - ip: 10.52.78.1/24
                   scope: public
-                - ip: 6.64.1.1/27
+                - ip: 10.56.1.1/27
                   scope: public
 
             # ── BD-VVOIP-PROXY-V2 ────────────────────────────────────────────
@@ -514,34 +514,34 @@ ndo:
             - name: BD-VVOIP-PROXY-V2
               vrf: { name: VRF-AFR-DEL.Services-V2 }
               subnets:
-                - ip: 155.155.82.1/27
+                - ip: 10.51.82.1/27
                   scope: public
 
             # ── BD-WEB-SVR-V2 ────────────────────────────────────────────────
             - name: BD-WEB-SVR-V2
               vrf: { name: VRF-AFR-DEL.Services-V2 }
               subnets:
-                - ip: 206.39.28.129/27
+                - ip: 10.53.28.129/27
                   scope: public
-                - ip: 136.215.226.1/25
+                - ip: 10.52.226.1/25
                   scope: public
-                - ip: 155.155.71.1/25
+                - ip: 10.51.71.1/25
                   scope: public
-                - ip: 155.155.96.1/27
+                - ip: 10.51.96.1/27
                   scope: public
-                - ip: 155.155.235.1/25
+                - ip: 10.51.235.1/25
                   scope: public
-                - ip: 136.215.225.1/25
+                - ip: 10.52.225.1/25
                   scope: public
-                - ip: 155.155.160.1/27
+                - ip: 10.51.160.1/27
                   scope: public
-                - ip: 155.155.236.129/26
+                - ip: 10.51.236.129/26
                   scope: public
-                - ip: 136.215.98.129/25
+                - ip: 10.52.98.129/25
                   scope: public
-                - ip: 155.155.239.129/27
+                - ip: 10.51.239.129/27
                   scope: public
-                - ip: 155.155.239.65/27
+                - ip: 10.51.239.65/27
                   scope: public
 
             # ─── DMZ BDs (VRF-DMZ-V2) ────────────────────────────────────────
@@ -555,11 +555,11 @@ ndo:
             - name: BD-FWEB-PROXY-V2
               vrf: { name: VRF-DMZ-V2 }
               subnets:
-                - ip: 139.139.1.129/26
+                - ip: 10.54.1.129/26
                   scope: public
-                - ip: 139.139.1.65/26
+                - ip: 10.54.1.65/26
                   scope: public
-                - ip: 139.139.251.1/28
+                - ip: 10.54.251.1/28
                   scope: public
 
             # ── BD-RWEB-PROXY-V2 (no legacy IPv4 predecessor) ────────────────
@@ -569,8 +569,8 @@ ndo:
           # ─────────────────────────────────────────────────────────────────────
           # Application Profiles and EPGs
           # BD refs are in-template, so no schema/template fields needed.
-          # Each EPG associates to Kelley via VMM domain APCG-VDS1 and to Del-Din
-          # via APCK-VDS1 (the VMM domain objects themselves are created
+          # Each EPG associates to Kelley via VMM domain Kelley-VDS1 and to Del-Din
+          # via Del-Din-VDS1 (the VMM domain objects themselves are created
           # APIC-direct in ../apic-vmware/, one per fabric, each adopting its
           # pre-existing VDS in the shared vCenter).
           # ─────────────────────────────────────────────────────────────────────
@@ -592,12 +592,12 @@ ndo:
                   sites: &epg_sites_internal
                     - name: Kelley
                       vmware_vmm_domains:
-                        - name: APCG-VDS1
+                        - name: Kelley-VDS1
                           deployment_immediacy: immediate
                           resolution_immediacy: immediate
                     - name: Del-Din
                       vmware_vmm_domains:
-                        - name: APCK-VDS1
+                        - name: Del-Din-VDS1
                           deployment_immediacy: immediate
                           resolution_immediacy: immediate
 

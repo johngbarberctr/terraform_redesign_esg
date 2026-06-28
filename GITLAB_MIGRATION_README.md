@@ -53,7 +53,7 @@ git push local-gitlab main
 ```
 ├── .ci/                    # CI helper scripts (GitLab comments, Webex notifications)
 ├── .gitlab-ci.yml          # CI/CD pipeline (validate → plan → deploy → test → notify)
-├── 136.215.4.96/           # PRODUCTION IPv6 RCC workspace
+├── 10.52.4.96/           # PRODUCTION IPv6 RCC workspace
 │   ├── bds_epgs.tf
 │   ├── l3outs_ndo.tf
 │   ├── main.tf
@@ -131,7 +131,7 @@ The VS Code workspace file `ACI_PRODUCTION.code-workspace` references production
 
 | Workspace Folder | Repo | Path |
 |---|---|---|
-| PROD - IPv6 RCC (136.215.4.96) | root/ndo_terraform | `136.215.4.96/` |
+| PROD - IPv6 RCC (10.52.4.96) | root/ndo_terraform | `10.52.4.96/` |
 | PROD - N5K Migration & Leaf Replacement | root/n5k_replacement | `Snake/PRODUCTION/` |
 
 ---

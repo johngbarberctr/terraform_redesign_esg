@@ -9,7 +9,7 @@
 | Environment | NDO Host | APIC Site G | APIC Site K | Username | Password |
 |-------------|----------|-------------|-------------|----------|----------|
 | **LAB** | 198.18.133.100 | 198.18.133.11 | 198.18.133.12 | admin | C1sco12345 |
-| **PRODUCTION** | 155.155.32.30 | 155.155.32.20 | 155.155.33.20 | svc.rcc.nmd.dc | (vault) |
+| **PRODUCTION** | 10.51.32.30 | 10.51.32.20 | 10.51.33.20 | svc.rcc.nmd.dc | (vault) |
 
 ### Servers
 
@@ -17,7 +17,7 @@
 |--------|-----|-------------|---------|
 | Local Mac | - | LAB | Development, testing |
 | Snake | - | PRODUCTION | N5K migration, ACI leaf replacement |
-| Terraform Server | 136.215.4.96 | PRODUCTION | IPv6 RCC NAC deployment |
+| Terraform Server | 10.52.4.96 | PRODUCTION | IPv6 RCC NAC deployment |
 
 ---
 
@@ -30,7 +30,7 @@
 | **Setup baseline ACI fabric** | `Snake/LAB/N5K/` | `Snake/PRODUCTION/N5K/` |
 | **Migrate from N5K switches** | `Snake/LAB/N5K/` | `Snake/PRODUCTION/N5K/` |
 | **Replace ACI leaf switches** | `Snake/LAB/aci-lf-rplc/` | `Snake/PRODUCTION/aci-lf-rplc/` |
-| **Deploy IPv6 RCC infrastructure** | `ndo-terraform/` | `ndo_terraform_nac/136.215.4.96/` |
+| **Deploy IPv6 RCC infrastructure** | `ndo-terraform/` | `ndo_terraform_nac/10.52.4.96/` |
 | **Deploy IPv4 fabric + bindings** | `ndo_terraform/` | N/A |
 | **Deploy IPv4 NAC module (266 EPGs)** | `ndo_terraform_nac/` | N/A |
 
@@ -235,7 +235,7 @@ Includes GitLab CI/CD pipeline, test suite, and schema definitions.
 | `.gitlab-ci.yml`, `.ci/` | GitLab CI/CD pipeline |
 | `tests/`, `scripts/` | Test suite and utilities |
 | `schemas/` | APIC and NDO schema definitions |
-| `136.215.4.96/` | PRODUCTION IPv6 RCC (Direct Terraform) |
+| `10.52.4.96/` | PRODUCTION IPv6 RCC (Direct Terraform) |
 
 **Usage:**
 ```bash
@@ -266,20 +266,20 @@ Configuration is defined in **`.tf` files** with explicit resource definitions.
 
 | File | Purpose | LAB | PRODUCTION |
 |------|---------|-----|------------|
-| `main.tf` | Provider config (direct) | ✅ ndo-terraform | ✅ 136.215.4.96 |
-| `variables.tf` | Variable definitions | ✅ ndo-terraform | ✅ 136.215.4.96 |
-| `terraform.tfvars` | Variable values | ✅ ndo-terraform | ✅ 136.215.4.96 |
-| `bds_epgs.tf` | VRF, 37 BDs, 37 EPGs | ✅ ndo-terraform | ✅ 136.215.4.96 |
-| `l3outs_ndo.tf` | L3Out config | ✅ ndo-terraform | ✅ 136.215.4.96 |
-| `l3outs_apic.tf` | APIC L3Out details | ✅ ndo-terraform | ✅ 136.215.4.96 |
-| `generate_ipv6_bindings3.py` | Deploy IPv6 bindings | ✅ ndo-terraform | ✅ 136.215.4.96 |
+| `main.tf` | Provider config (direct) | ✅ ndo-terraform | ✅ 10.52.4.96 |
+| `variables.tf` | Variable definitions | ✅ ndo-terraform | ✅ 10.52.4.96 |
+| `terraform.tfvars` | Variable values | ✅ ndo-terraform | ✅ 10.52.4.96 |
+| `bds_epgs.tf` | VRF, 37 BDs, 37 EPGs | ✅ ndo-terraform | ✅ 10.52.4.96 |
+| `l3outs_ndo.tf` | L3Out config | ✅ ndo-terraform | ✅ 10.52.4.96 |
+| `l3outs_apic.tf` | APIC L3Out details | ✅ ndo-terraform | ✅ 10.52.4.96 |
+| `generate_ipv6_bindings3.py` | Deploy IPv6 bindings | ✅ ndo-terraform | ✅ 10.52.4.96 |
 
 **Usage:**
 ```bash
 # Set environment variables
 export MSO_USERNAME="svc.rcc.nmd.dc"
 export MSO_PASSWORD="<password>"
-export MSO_URL="https://155.155.32.30"
+export MSO_URL="https://10.51.32.30"
 
 terraform init
 terraform plan
@@ -360,7 +360,7 @@ python3 generate_ipv6_bindings3.py deploy
     ├── tests/, scripts/                       ← Test suite and utilities
     ├── schemas/                               ← APIC and NDO schema definitions
     │
-    └── 136.215.4.96/                          ← PRODUCTION IPv6 RCC (Direct TF)
+    └── 10.52.4.96/                          ← PRODUCTION IPv6 RCC (Direct TF)
         ├── main.tf                               155.155.X.X IPs
         ├── variables.tf
         ├── terraform.tfvars
@@ -384,7 +384,7 @@ python3 generate_ipv6_bindings3.py deploy
 
 | Folder Name | Path | Purpose |
 |-------------|------|---------|
-| PROD - IPv6 RCC (136.215.4.96) | `~/ndo_terraform_nac/136.215.4.96/` | IPv6 RCC production deployment |
+| PROD - IPv6 RCC (10.52.4.96) | `~/ndo_terraform_nac/10.52.4.96/` | IPv6 RCC production deployment |
 | PROD - N5K Migration & Leaf Replacement | `Snake/PRODUCTION/` | Production N5K migration |
 
 ### Quick Reference: Directory Names
@@ -394,7 +394,7 @@ python3 generate_ipv6_bindings3.py deploy
 | `~/ndo_terraform/` | LAB IPv4 fabric & binding deployment | Ansible + Python REST API |
 | `~/ndo_terraform_nac/` | IPv4 NAC module (266 EPGs) + GitLab CI | Terraform NAC module (YAML) |
 | `ndo-terraform/` | LAB IPv6 RCC (37 EPGs) | Direct Terraform resources (.tf) |
-| `~/ndo_terraform_nac/136.215.4.96/` | PROD IPv6 RCC (37 EPGs) | Direct Terraform resources (.tf) |
+| `~/ndo_terraform_nac/10.52.4.96/` | PROD IPv6 RCC (37 EPGs) | Direct Terraform resources (.tf) |
 
 ---
 
@@ -441,13 +441,13 @@ python3 generate_ipv6_bindings3.py deploy
 ### Workflow 3: IPv6 RCC Deployment (PRODUCTION)
 
 ```
-1. SSH to 136.215.4.96 (Terraform server)
+1. SSH to 10.52.4.96 (Terraform server)
 2. cd ~/terraform_redesign_ipv6/  (or wherever files are deployed)
 3. Activate venv: source ~/terraform/bin/activate
 4. Set environment variables:
    - export MSO_USERNAME="svc.rcc.nmd.dc"
    - export MSO_PASSWORD="<password>"
-   - export MSO_URL="https://155.155.32.30"
+   - export MSO_URL="https://10.51.32.30"
 5. Deploy infrastructure:
    - terraform init
    - terraform plan

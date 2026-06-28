@@ -589,7 +589,7 @@ def design_decisions_slide():
         ["VRF-DMZ-V2",
          "Keeps EUR-AOV-UC-DMZ and EUR-ARMY-ENT-SVR-DMZ routing-isolated - DMZ must never share a routing table with internal."],
         ["VRF-RCC (IPv6)",
-         "Unchanged. Managed separately in ndo-terraform-nac/136.215.4.96/. No IPv6 refactor in this redesign."],
+         "Unchanged. Managed separately in ndo-terraform-nac/10.52.4.96/. No IPv6 refactor in this redesign."],
         ["Descriptive naming",
          "BD-DNS-MGMT / EPG-DNS-MGMT replace numeric BD-V0005 / EPG-V0005. Same conventions as the IPv6 RCC model."],
         ["vzAny permit-all (initial)",
@@ -623,10 +623,10 @@ def no_ip_change_slide():
              size=13, bold=True, color=WHITE,
              anchor=MSO_ANCHOR.MIDDLE)
     mapping = [
-        ("155.155.236.65/26", "was BD-V0572 / APCE_EUR_APPS"),
-        ("155.155.172.1/24", "was BD-V0372 / APCG_EUR_APPS"),
-        ("155.155.108.1/24", "was BD-V0272 / APCK_EUR_APPS"),
-        ("136.215.37.129/26", "was BD-V0455 / APCK_RDS"),
+        ("10.51.236.65/26", "was BD-V0572 / APCE_EUR_APPS"),
+        ("10.51.172.1/24", "was BD-V0372 / APCG_EUR_APPS"),
+        ("10.51.108.1/24", "was BD-V0272 / APCK_EUR_APPS"),
+        ("10.52.37.129/26", "was BD-V0455 / APCK_RDS"),
         ("…", "28 more subnets absorbed under BD-APP-SVR"),
     ]
     for i, (net, origin) in enumerate(mapping):
