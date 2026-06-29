@@ -193,19 +193,19 @@ Files with `.disabled` or `.offline` extensions are inactive Terraform configs k
 
 Without shared state, the pipeline starts with a blank `terraform.tfstate` and tries to create all resources from scratch. NDO rejects these with `Duplicate Resource: …` / `already exists` errors. The GitLab HTTP backend stores state centrally so all CI runs (and any humans choosing the HTTP backend) share the same view.
 
-The HTTP backend is authenticated with the per-job `${CI_JOB_TOKEN}` for CI runs (no PAT to provision), and you avoid it on a laptop by using `local_override.tf` (see [Step 5](#5-pick-a-terraform-state-backend)). State lives at `${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/ndo-terraform-ipv6` — the slot name is project-unique so it never collides with the lab/prod nac-prod slot or with the `aci-redesign-ndo` slot.
+The HTTP backend is authenticated with the per-job `${CI_JOB_TOKEN}` for CI runs (no PAT to provision), and you avoid it on a laptop by using `local_override.tf` (see [Step 5](#5-pick-a-terraform-state-backend)). State lives at `${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/aci-ndo-ipv6` — the slot name is project-unique so it never collides with the lab/prod nac-prod slot or with the `aci-redesign-ndo` slot.
 
 ### Initial State Migration (Already Done)
 
-This was run once to push existing local state to GitLab. The state slot is now `ndo-terraform-ipv6` (renamed from the legacy `ndo-terraform`). You'd only re-run this if the GitLab state slot has been wiped and you have a known-good local `terraform.tfstate` to push:
+This was run once to push existing local state to GitLab. The state slot is now `aci-ndo-ipv6` (renamed from the legacy `ndo-terraform`). You'd only re-run this if the GitLab state slot has been wiped and you have a known-good local `terraform.tfstate` to push:
 
 ```bash
 # Mint a short-lived PAT (User Settings → Access Tokens, scope=api,
 # expiry=1 day). Revoke it immediately after the migration completes.
 terraform init -migrate-state -force-copy \
-  -backend-config="address=${GITLAB_URL}/api/v4/projects/${PROJECT_ID}/terraform/state/ndo-terraform-ipv6" \
-  -backend-config="lock_address=${GITLAB_URL}/api/v4/projects/${PROJECT_ID}/terraform/state/ndo-terraform-ipv6/lock" \
-  -backend-config="unlock_address=${GITLAB_URL}/api/v4/projects/${PROJECT_ID}/terraform/state/ndo-terraform-ipv6/lock" \
+  -backend-config="address=${GITLAB_URL}/api/v4/projects/${PROJECT_ID}/terraform/state/aci-ndo-ipv6" \
+  -backend-config="lock_address=${GITLAB_URL}/api/v4/projects/${PROJECT_ID}/terraform/state/aci-ndo-ipv6/lock" \
+  -backend-config="unlock_address=${GITLAB_URL}/api/v4/projects/${PROJECT_ID}/terraform/state/aci-ndo-ipv6/lock" \
   -backend-config="username=YOUR_GITLAB_USERNAME" \
   -backend-config="password=YOUR_SHORT_LIVED_PAT" \
   -backend-config="lock_method=POST" \
@@ -267,7 +267,7 @@ The recommended path on the production server is to **let CI run the apply** —
 **Step 1: Go to the project directory**
 
 ```bash
-cd ~/terraform-esg/ndo-terraform-ipv6
+cd ~/DC/ACI/sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/aci-ndo-ipv6
 ```
 
 **Step 2: Decide your backend** — same choice as on a laptop, see [Step 5 above](#5-pick-a-terraform-state-backend). For most server work, prefer a local override; for shared state, run the migration recipe in [Initial State Migration](#initial-state-migration-already-done) (mint a short-lived PAT, do the operation, revoke).
@@ -361,14 +361,14 @@ git push to a branch or merge request
        --> terraform plan -out=plan.tfplan -parallelism=3 -refresh=false
        --> saves plan.tfplan, plan.txt, plan.json, plan_gitlab.json as artifacts
     |
-    v   (only if branch is `main` or PROJECT=ndo-terraform-ipv6)
+    v   (only if branch is `main` or PROJECT=aci-ndo-ipv6)
 [deploy / apply] --> terraform init
                  --> terraform apply -parallelism=3 plan.tfplan
                  --> tail-prints the manual NDO-UI deploy step
                  --> when: manual  (button in the GitLab UI; never auto)
 
 [destroy] --> manual trigger only (separate job; not currently exposed by
-              ndo-terraform-ipv6/.gitlab-ci.yml — destroys go through CLI
+              aci-ndo-ipv6/.gitlab-ci.yml — destroys go through CLI
               only, on purpose)
 ```
 
@@ -421,7 +421,7 @@ The runner is a user-local binary on the RHEL server (no sudo, no systemd). Ther
 
 | Server | Hostname | Projects |
 |--------|----------|----------|
-| `apckw059aau0096` | aci-automation-runner | ndo-terraform, aci-redesign |
+| `apckw059aau0096` | aci-automation-runner | terraform_redesign_esg, ndo_terraform |
 | `APCKW059AAU0018` | — | n5k, aci-lf-rplc |
 
 This project (`ndo-terraform`) runs on **`apckw059aau0096`**.
@@ -618,6 +618,10 @@ grep -E "paths-10[12]|protpaths-101-102" ipv6_rcc_port_bindings_lab_*.json
 
 ### Port Binding Patterns
 
+> **Note:** these `VPC_D*` static-binding patterns are pre-VMM (Design B)
+> history. The current IPv6 model is VMM domains — see the banner under
+> [Automation Scripts](#automation-scripts).
+
 **Standard Pattern (most EPGs):**
 
 ```
@@ -654,6 +658,17 @@ XX = service category:
 ---
 
 ## Automation Scripts
+
+> **Legacy / superseded by VMM.** The IPv6 RCC EPGs are now attached to the
+> fabric via **VMware VMM domains** (`Kelley-VDS1` / `Del-Din-VDS1`) —
+> `mso_schema_site_anp_epg_domain` resources in [`bds_epgs.tf`](bds_epgs.tf).
+> With the VMM domain on the `fi-aaep` access policy, APIC programs each
+> EPG's VLAN onto the FI vPC uplinks (`VPC_FI-A`/`VPC_FI-B`, eth1/6-7)
+> **dynamically**, so the static port-binding scripts below
+> (`generate_ipv6_bindings3.py`, `deploy_bindings_rcc.py`) are **no longer
+> in the deploy path**. They are kept for history and one-off edge cases.
+> (This is distinct from `../scripts/deploy_bindings.py`, which is still
+> current for the V2 redesign's FI-uplink static bindings.)
 
 ### generate_ipv6_bindings3.py
 
@@ -726,7 +741,7 @@ The per-template/site filter (which drops Del-Din bindings from `Kelley_Unique` 
 A standalone unit-test suite covers the override loader, shorthand expansion, template-filter behavior, and PC-member conflict detection. No NDO connectivity or credentials required:
 
 ```bash
-cd ndo-terraform-ipv6
+cd aci-ndo-ipv6
 python3 -m unittest test_generate_ipv6_bindings3 -v
 ```
 

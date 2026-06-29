@@ -30,21 +30,23 @@ pipeline that contains a plaintext credential in tracked YAML.
 
 ## Repository contents
 
-This repo contains **four Terraform roots** plus shared scripts and docs.
-The fifth root in the deployment order — `sac-johbarbe-AFRICOM-terraform-nac-ndo/` — lives
+This repo contains **five Terraform roots** plus shared scripts and docs.
+The foundational root in the deployment order — `sac-johbarbe-AFRICOM-terraform-nac-ndo/` — lives
 in a **sibling repo** at `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/`.
+
+The roots split across two programs: the **RCC-E / ESG redesign** (`aci-apic`,
+`aci-ndo`, `aci-ndo-ipv6`) and **AFRICOM NIPR** (`africom-aci-apic`,
+`africom-aci-ndo`).
 
 | Path | Terraform root? | What it owns | Reference |
 |------|-----------------|--------------|-----------|
-| `aci-redesign/apic-vmware/` | yes (lab APIC) | Per-fabric APIC access policies, MCP, VMware VMM domains for Kelley and Del-Din | [`aci-redesign/apic-vmware/README.md`](aci-redesign/apic-vmware/README.md) (+ [`README_LAB.md`](aci-redesign/apic-vmware/README_LAB.md)) |
-| `aci-redesign/apic-vmware-prod/` | yes (prod APIC) | Same shape as `apic-vmware/`, but Design A (UCS-FI) and prod credentials, separate state | [`aci-redesign/apic-vmware-prod/README.md`](aci-redesign/apic-vmware-prod/README.md) |
-| `aci-redesign/ndo/` | yes (lab NDO redesign) | Schema `AFRICOM-V2`, single template `Tenant_EUR_V2` (2 VRFs, 39 BDs/EPGs, 2 contracts; all tenant-scoped objects suffixed `-V2` to coexist with the legacy `AFRICOM` schema in tenant `AFR-DEL.Services`) | [`aci-redesign/ndo/README.md`](aci-redesign/ndo/README.md) (+ [`README_LAB.md`](aci-redesign/ndo/README_LAB.md)) |
-| `ndo-terraform-ipv6/` | yes (IPv6 RCC layer) | `AppProf-AFR-PROD-V6` ANP + 39 IPv6 EPGs + L3Outs into existing `L2_Stretched` template | [`ndo-terraform-ipv6/README.md`](ndo-terraform-ipv6/README.md) (+ [`README_LAB.md`](ndo-terraform-ipv6/README_LAB.md)) |
-| `aci-redesign/scripts/` | no (Python tools) | Bindings push helpers (`dump_bindings.py`, `deploy_bindings.py`, `generate_fi_bindings.py`) | [`aci-redesign/scripts/README.md`](aci-redesign/scripts/README.md) |
-| `aci-redesign/data/` | no (NAC YAML inputs) | Per-fabric YAML consumed by the four Terraform roots above | [`aci-redesign/data/_archive/README.md`](aci-redesign/data/_archive/README.md), [`nac-aci-shared/README.md`](aci-redesign/data/nac-aci-shared/README.md) |
-| `aci-redesign/` | n/a | Design rationale (2-VRF model, BD/EPG consolidation) | [`aci-redesign/DESIGN.md`](aci-redesign/DESIGN.md) |
-| `docs/` | no | Architecture diagrams, reports, deployment guides | [`docs/README.md`](docs/README.md) |
-| `data/` | no | Legacy NAC YAML and archived migration phase configs | — |
+| `aci-apic/` | yes (APIC, lab + prod) | RCC-E redesign per-fabric APIC access policies, MCP, VMware VMM domains for Kelley and Del-Din (Design A UCS-FI vPCs). One root drives both environments via `lab.tfvars` / `prod.tfvars` (state slots `aci-redesign` / `aci-redesign-prod`). | [`aci-apic/README.md`](aci-apic/README.md) |
+| `aci-ndo/` | yes (NDO, IPv4 redesign) | Schema `AFRICOM-V2`, single template `Tenant_EUR_V2` (2 VRFs, 39 BDs/EPGs, 2 contracts; all tenant-scoped objects suffixed `-V2` to coexist with the legacy `AFRICOM` schema in tenant `AFR-DEL.Services`) | [`aci-ndo/README.md`](aci-ndo/README.md) |
+| `aci-ndo-ipv6/` | yes (NDO, IPv6 RCC layer) | `AppProf-AFR-PROD-V6` ANP + 39 IPv6 EPGs added to the `Stretched_Services` template, associated to the per-fabric VMware VMM domains (`Kelley-VDS1`/`Del-Din-VDS1`) | [`aci-ndo-ipv6/README.md`](aci-ndo-ipv6/README.md) (+ [`README_LAB.md`](aci-ndo-ipv6/README_LAB.md)) |
+| `africom-aci-apic/` | yes (APIC, AFRICOM NIPR) | AFRICOM NIPR per-fabric APIC access policies (Phase 0–2): FI vPC uplinks `VPC_FI-A`/`VPC_FI-B` on eth1/6-7, VMM domains `Kelley-VDS1`/`Del-Din-VDS1` on `fi-aaep`, fabric settings | [`africom-aci-apic/README.md`](africom-aci-apic/README.md) ← **start here for AFRICOM NIPR** |
+| `africom-aci-ndo/` | yes (NDO, AFRICOM NIPR V2) | AFRICOM NIPR V2 NDO schema (Phase 7B); ESG lift-and-shift and vzAny removal | see [`PROJECT_MAP.md`](PROJECT_MAP.md) |
+| `scripts/` | no (Python tools) | Validation + binding helpers (`validate_fabric.py`, `deploy_bindings.py`, `dump_bindings.py`, `generate_fi_bindings.py`, `check_fi_bindings_parity.py`) | [`scripts/README.md`](scripts/README.md) |
+| `docs/` | no | Architecture diagrams, design rationale, reports | [`docs/README.md`](docs/README.md), [`docs/DESIGN.md`](docs/DESIGN.md) |
 
 The sibling repo is the foundational layer:
 
@@ -53,7 +55,7 @@ The sibling repo is the foundational layer:
 | `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/` (separate git repo) | Tenant `AFR-DEL.Services`, schema `AFRICOM` with 4 templates (`VRF`, `Stretched_Services`, `Kelley_Unique`, `Del_Din_Unique`), 1 prod VRF (`AFR-PROD`), 266 BDs, 265 EPGs, 2 L3Outs (`L3Out-Kelley`, `L3Out-Del-Din`), 407 per-fabric VMM domain associations (`Kelley-VDS1`/`Del-Din-VDS1`, VMM-only) |
 
 That stack creates the `Any` filter under `AFRICOM/VRF` that
-`aci-redesign/ndo/`'s schema cross-references. **It must be deployed
+`aci-ndo/`'s schema cross-references. **It must be deployed
 first** — the runbook in [`README_LAB.md`](README_LAB.md) makes this Phase 1.
 
 ---
@@ -65,7 +67,7 @@ first** — the runbook in [`README_LAB.md`](README_LAB.md) makes this Phase 1.
 | [`README_LAB.md`](README_LAB.md) | **Start here** — end-to-end deployment runbook (lab) |
 | [`PROJECT_MAP.md`](PROJECT_MAP.md) | Server / hostname / file-path / CI cross-reference |
 | [`PROJECTS_LISTING.md`](PROJECTS_LISTING.md) | Inventory of every Mac project + git remotes |
-| [`aci-redesign/DESIGN.md`](aci-redesign/DESIGN.md) | 2-VRF redesign rationale, BD/EPG consolidation, ESG plan |
+| [`docs/DESIGN.md`](docs/DESIGN.md) | 2-VRF redesign rationale, BD/EPG consolidation, ESG plan |
 | [`docs/README.md`](docs/README.md) | Architecture diagrams + design reports |
 
 ---
@@ -86,7 +88,7 @@ cd terraform_redesign_esg
 
 # Python venv (one-time). Canonical name on this laptop is ~/dc_redesign.
 # Activate it before every session (or after every shell restart) before
-# running any of the scripts in aci-redesign/scripts/ or ndo-terraform-ipv6/.
+# running any of the scripts in scripts/ or aci-ndo-ipv6/.
 python3 -m venv ~/dc_redesign
 source ~/dc_redesign/bin/activate
 pip install requests urllib3 PyYAML
@@ -103,7 +105,7 @@ cd my-new-ipv6-project
 
 # Python venv (one-time). On the prod RHEL 8 host the venv is named ~/ansvenv
 # (NOT ~/dc_redesign, which is the laptop name). Activate it before running any
-# of the scripts in aci-redesign/scripts/ or ndo-terraform-ipv6/.
+# of the scripts in scripts/ or aci-ndo-ipv6/.
 python3 -m venv ~/ansvenv
 source ~/ansvenv/bin/activate
 pip install requests urllib3 PyYAML
@@ -111,8 +113,8 @@ pip install requests urllib3 PyYAML
 
 Production cutover follows the same phase order as lab. Per-stack production
 deltas live in each stack's `README.md` (look for "Lab vs production"
-sections); the multi-team coordinated cutover is in
-[`aci-redesign/README.md`](aci-redesign/README.md).
+sections); the end-to-end coordinated cutover runbook is in
+[`README_LAB.md`](README_LAB.md).
 
 ---
 
@@ -139,32 +141,32 @@ git push gitlab main    # remote name is 'gitlab' for both lab and prod
 
 Each Terraform root in this repo owns a per-project `.gitlab-ci.yml` with
 the same 3-stage shape: **`validate → plan → apply (manual)`**. The root
-`terraform-esg/.gitlab-ci.yml` is a thin orchestrator that defines shared
+repo-root `.gitlab-ci.yml` is a thin orchestrator that defines shared
 CI/CD variables, the `.tf-job` template, and `include:`s each per-project
 file.
 
 | Project | Per-project CI file | Apply targets | Manual NDO-UI step after apply? | Live in CI today? |
 |---------|---------------------|---------------|--------------------------------|------|
-| `aci-redesign/apic-vmware/` | [`aci-redesign/apic-vmware/.gitlab-ci.yml`](aci-redesign/apic-vmware/.gitlab-ci.yml) | Lab APIC fabrics (Kelley + Del-Din) | No — APIC has it | Dormant — file untracked; activate per [Enabling and disabling per-project pipelines](#enabling-and-disabling-per-project-pipelines) |
-| `aci-redesign/apic-vmware-prod/` | [`aci-redesign/apic-vmware-prod/.gitlab-ci.yml`](aci-redesign/apic-vmware-prod/.gitlab-ci.yml) | Prod APIC fabrics | No — APIC has it | Dormant — file untracked |
-| `aci-redesign/ndo/` | [`aci-redesign/ndo/.gitlab-ci.yml`](aci-redesign/ndo/.gitlab-ci.yml) | NDO schema `AFRICOM-V2` | **Yes** — Deploy `Tenant_EUR_V2` to Kelley/Del-Din | **Yes** |
-| `ndo-terraform-ipv6/` | [`ndo-terraform-ipv6/.gitlab-ci.yml`](ndo-terraform-ipv6/.gitlab-ci.yml) | NDO schema `AFRICOM / L2_Stretched` (extends) | **Yes** — Re-deploy `L2_Stretched` | **Yes** |
+| `aci-apic/` | [`aci-apic/.gitlab-ci.yml`](aci-apic/.gitlab-ci.yml) | Lab + prod APIC fabrics (Kelley + Del-Din) | No — APIC has it | **Yes** |
+| `aci-ndo/` | [`aci-ndo/.gitlab-ci.yml`](aci-ndo/.gitlab-ci.yml) | NDO schema `AFRICOM-V2` | **Yes** — Deploy `Tenant_EUR_V2` to Kelley/Del-Din | **Yes** |
+| `aci-ndo-ipv6/` | [`aci-ndo-ipv6/.gitlab-ci.yml`](aci-ndo-ipv6/.gitlab-ci.yml) | NDO schema `AFRICOM / Stretched_Services` (extends) | **Yes** — Re-deploy `Stretched_Services` | **Yes** |
+| `africom-aci-apic/` | [`africom-aci-apic/.gitlab-ci.yml`](africom-aci-apic/.gitlab-ci.yml) | AFRICOM NIPR APIC fabrics (Phase 0–2 settings) | No — APIC has it | **Yes** |
 
 The sibling foundational stack lives in its own repo with its own root CI:
 
 | Sibling repo | Per-project CI file | Apply targets | Manual NDO-UI step? |
 |--------------|---------------------|---------------|---------------------|
-| `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/` | `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/.gitlab-ci.yml` | NDO tenant `AFR-DEL.Services` + schema `AFRICOM` (5 templates) | **Yes** — Deploy 5 templates in strict order |
+| `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/` | `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/.gitlab-ci.yml` | NDO tenant `AFR-DEL.Services` + schema `AFRICOM` (4 templates) | **Yes** — Deploy 4 templates in strict order |
 
 ### How to trigger a single-project pipeline
 
 - **Auto** — push or open an MR that changes that project's directory (or
-  the shared inputs it consumes, e.g. `aci-redesign/data/nac-ndo/` for
+  the shared inputs it consumes, e.g. `aci-ndo/data/nac-ndo/` for
   the redesign NDO project). The `rules: changes:` in each per-project
   file scopes the pipeline to that project alone.
 - **Manual (UI)** — GitLab UI → **Run pipeline** → set the `PROJECT` variable
   to one of: `apic-vmware`, `apic-vmware-prod`, `aci-redesign-ndo`,
-  `ndo-terraform-ipv6`. Only that project's jobs queue up.
+  `aci-ndo-ipv6`, `africom-apic`, `africom-apic-prod`. Only that project's jobs queue up.
 - **Manual (empty commit)** — triggers the full pipeline without touching any
   project files, useful when re-running from a clean working tree:
 
@@ -185,18 +187,18 @@ pipeline only loads if its `.gitlab-ci.yml` is **present in the repo**:
 
 ```yaml
 include:
-  - local: aci-redesign/apic-vmware/.gitlab-ci.yml
+  - local: aci-apic/.gitlab-ci.yml
     rules:
-      - exists: [aci-redesign/apic-vmware/.gitlab-ci.yml]
-  - local: aci-redesign/apic-vmware-prod/.gitlab-ci.yml
+      - exists: [aci-apic/.gitlab-ci.yml]
+  - local: aci-ndo/.gitlab-ci.yml
     rules:
-      - exists: [aci-redesign/apic-vmware-prod/.gitlab-ci.yml]
-  - local: aci-redesign/ndo/.gitlab-ci.yml
+      - exists: [aci-ndo/.gitlab-ci.yml]
+  - local: aci-ndo-ipv6/.gitlab-ci.yml
     rules:
-      - exists: [aci-redesign/ndo/.gitlab-ci.yml]
-  - local: ndo-terraform-ipv6/.gitlab-ci.yml
+      - exists: [aci-ndo-ipv6/.gitlab-ci.yml]
+  - local: africom-aci-apic/.gitlab-ci.yml
     rules:
-      - exists: [ndo-terraform-ipv6/.gitlab-ci.yml]
+      - exists: [africom-aci-apic/.gitlab-ci.yml]
 ```
 
 To **enable** a project: keep its per-project `.gitlab-ci.yml` committed;
@@ -210,9 +212,10 @@ written but is not yet operationally ready): `git rm` its
 from the next pipeline run; everything else keeps working. Restore by
 re-committing the file.
 
-This is how `aci-redesign/apic-vmware/` and
-`aci-redesign/apic-vmware-prod/` (lab and prod APIC roots, deferred for
-now) sit dormant in the repo without breaking the umbrella pipeline.
+This is how a per-project root whose CI is written but not yet
+operationally ready (e.g. `africom-aci-ndo/`, or a prod APIC root before
+its `*_PROD` CI variables are populated) can sit dormant in the repo
+without breaking the umbrella pipeline.
 
 ### Required CI/CD variables (Settings → CI/CD → Variables)
 
@@ -222,7 +225,7 @@ them onto the `TF_VAR_*` variables Terraform expects.
 
 | Variable | Purpose | Masked + Protected |
 |----------|---------|--------------------|
-| `NDO_USERNAME` / `NDO_URL` | NDO connection (used by `aci-redesign/ndo/` and `ndo-terraform-ipv6/`) | No |
+| `NDO_USERNAME` / `NDO_URL` | NDO connection (used by `aci-ndo/` and `aci-ndo-ipv6/`) | No |
 | `NDO_PASSWORD` | NDO password | Yes |
 | `KELLEY_APIC_URL` / `KELLEY_APIC_USERNAME` | Lab Kelley APIC | No |
 | `KELLEY_APIC_PASSWORD` / `KELLEY_MCP_KEY` | Lab Kelley secrets | Yes |
@@ -301,7 +304,7 @@ Re-run any time — only variables whose env var is set are touched.
 
 #### Provisioning the `_PROD` APIC variables (production cutover)
 
-`apic-vmware-prod/.gitlab-ci.yml` reads 8 `_PROD`-suffixed APIC variables
+`aci-apic/.gitlab-ci.yml`'s prod blocks read 8 `_PROD`-suffixed APIC variables
 (`KELLEY_APIC_URL_PROD`, `KELLEY_APIC_USERNAME_PROD`,
 `KELLEY_APIC_PASSWORD_PROD`, `KELLEY_MCP_KEY_PROD`, and the four matching
 `DELDIN_*_PROD`). There are two patterns for populating them; both are
@@ -416,7 +419,7 @@ Every Terraform root in this repo declares `backend "http" {}` so CI can
 push state to the GitLab HTTP backend at
 `${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/<state-name>`.
 State names are project-unique (`aci-redesign-ndo`,
-`ndo-terraform-ipv6`, etc.) so two pipelines can never collide on the
+`aci-ndo-ipv6`, etc.) so two pipelines can never collide on the
 same state file or lock.
 
 **For laptop runs** you opt out of the HTTP backend with a gitignored
@@ -479,6 +482,6 @@ Excluded via `.gitignore` — must be created locally:
 | `.terraform/` | Provider cache |
 | `vault.yml` / `vault_pass.txt` | Ansible Vault |
 | `.env` | Per-stack credential block (e.g. `sac-johbarbe-AFRICOM-terraform-nac-ndo`) |
-| `backend.hcl` / `local_override.tf` | Local backend config (e.g. `ndo-terraform-ipv6`) |
+| `backend.hcl` / `local_override.tf` | Local backend config (e.g. `aci-ndo-ipv6`) |
 | `data/nac-aci-{kelley,deldin}-rendered/` | VMM YAML rendered from `TF_VAR_vcenter_*` |
 | `*.json` (generated) | Bindings JSONs from `dump_bindings.py` / `generate_fi_bindings.py` |

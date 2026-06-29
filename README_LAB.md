@@ -178,7 +178,7 @@ GITLAB_PROJECT=team/sac-johbarbe-AFRICOM-terraform-esg-nac-ndo \
 
 You'll be prompted for the *production* NDO password, APIC admin password, and vCenter creds. Everything else (URLs, usernames, NDO_DOMAIN, etc.) is auto-discovered from your local tfvars/`.env`. No `--prod` flag is needed in this pattern because there is no name collision between lab and prod variables — they live on different GitLab servers.
 
-**Pattern B — Same GitLab project hosts both lab and prod CI.** This is what `apic-vmware-prod/.gitlab-ci.yml` is designed for: it reads `KELLEY_APIC_PASSWORD_PROD` (etc.) so both lab and prod APIC variables can coexist on one project. For this pattern, run the lab bootstrap first to populate the 18 lab variables, then re-run the wrapper with `--prod` to add the 8 `_PROD` APIC variables alongside them:
+**Pattern B — Same GitLab project hosts both lab and prod CI.** This is what the prod blocks in `aci-apic/.gitlab-ci.yml` are designed for: they read `KELLEY_APIC_PASSWORD_PROD` (etc.) so both lab and prod APIC variables can coexist on one project. For this pattern, run the lab bootstrap first to populate the 18 lab variables, then re-run the wrapper with `--prod` to add the 8 `_PROD` APIC variables alongside them:
 
 ```bash
 cd ~/DC/ACI/sac-johbarbe-AFRICOM-terraform-esg-nac-ndo
@@ -635,7 +635,7 @@ If you swap between laptop and CI mid-session, you'll get state-lineage mismatch
   `README_LAB.md` covers this.
 - **APIC reachable but `terraform plan` fails on `aaaLogin`** → password
   expired, IP changed, or `TF_VAR_*_apic_password` not exported in current
-  shell. Run `make auth-check` in `apic-vmware/`.
+  shell. Run `make auth-check` in `aci-apic/`.
 - **NDO returns "VRF EUR-X must be deployed on Fabric Y before BD …"** →
   Phase 2 was done out of order. Undeploy and redeploy in the table order.
 - **`Error: "error in remove for path: '/templates/0/bds/N/subnets/M':
@@ -682,7 +682,7 @@ operational deltas live in:
 
 - `sac-johbarbe-AFRICOM-terraform-nac-ndo/README.md` — production NDO target
 - `aci-apic/README.md` — production APIC root (separate
-  Terraform state from `apic-vmware/`)
+  Terraform state from `aci-apic/`)
 - `docs/REDESIGN.md` "Production cutover runbook" — coordinated UCS /
   vCenter / network-team cutover sequence (separate from the lab build)
 

@@ -1,13 +1,13 @@
 # nac-aci-shared
 
 YAML loaded by **both** APIC-direct fabric modules in
-`../../apic-vmware/main.tf` (Kelley and Del-Din).
+`../../main.tf` (Kelley and Del-Din).
 
 ## What lives here
 
 | File | Purpose |
 | --- | --- |
-| `modules.nac.yaml` | Disable the wrapper's built-in MCP sub-module; MCP is managed inline in `apic-vmware/main.tf`. |
+| `modules.nac.yaml` | Disable the wrapper's built-in MCP sub-module; MCP is managed inline in `aci-apic/main.tf`. |
 
 ## What does NOT live here anymore
 

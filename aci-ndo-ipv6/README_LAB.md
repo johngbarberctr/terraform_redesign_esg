@@ -1,4 +1,4 @@
-# ndo-terraform-ipv6 — Lab Runbook
+# aci-ndo-ipv6 — Lab Runbook
 
 Lab-only walkthrough for the IPv6 RCC Terraform stack against the dCloud / lab Nexus Dashboard Orchestrator. Production has its own runbook (forthcoming `README_PROD.md`); do not copy values between the two.
 
@@ -10,7 +10,7 @@ If you've never run Terraform before, you can follow this top-to-bottom and end 
 
 Manages the legacy IPv6 schema in NDO via the `mso` provider. One template, one VRF, ~360 resources (Bridge Domains, EPGs, contracts) defined in `bds_epgs.tf`. State lives in a local file (`terraform.tfstate`) on your laptop — no GitLab token, no remote backend.
 
-This stack is the IPv6 layer that complements the redesigned IPv4 stack in `../aci-redesign/ndo/`. Both can be active at the same time on the same lab fabrics; they share VRFs and tenants but own disjoint sets of BDs, EPGs, and L3Outs.
+This stack is the IPv6 layer that complements the redesigned IPv4 stack in `../aci-ndo/`. Both can be active at the same time on the same lab fabrics; they share VRFs and tenants but own disjoint sets of BDs, EPGs, and L3Outs.
 
 | Thing | Lab value |
 |---|---|
@@ -19,10 +19,10 @@ This stack is the IPv6 layer that complements the redesigned IPv4 stack in `../a
 | MSO provider `platform` | `"nd"` |
 | VRF template name | `VRF` (lab — the `var.vrf_template_name` default; production overrides to `UpgradeTemplate1`, selected via `TF_VARS_FILE`). |
 | Terraform state (laptop) | local file (this directory) via `local_override.tf` |
-| Terraform state (CI) | GitLab HTTP backend at `…/projects/<project_id>/terraform/state/ndo-terraform-ipv6`, authenticated with `${CI_JOB_TOKEN}` |
+| Terraform state (CI) | GitLab HTTP backend at `…/projects/<project_id>/terraform/state/aci-ndo-ipv6`, authenticated with `${CI_JOB_TOKEN}` |
 | GitLab CI/CD | wired for both lab and prod against the same `.gitlab-ci.yml`; per-project CI variables (`NDO_URL` / `NDO_USERNAME` / `NDO_PASSWORD`) are set independently on each GitLab project. See [`README.md` → "CI/CD Pipeline"](README.md#cicd-pipeline). |
 
-> **You can run this stack from CI.** Push to a branch / open MR for plan; merge to `main` (or run pipeline manually with `PROJECT=ndo-terraform-ipv6`) for plan + apply (apply is a manual button — never auto). State stays in the GitLab HTTP slot. The walkthrough below is the **laptop** path, which is what most operators use day-to-day for this stack because of the long plan times (~30 minutes) and the desire to eyeball the diff before clicking apply.
+> **You can run this stack from CI.** Push to a branch / open MR for plan; merge to `main` (or run pipeline manually with `PROJECT=aci-ndo-ipv6`) for plan + apply (apply is a manual button — never auto). State stays in the GitLab HTTP slot. The walkthrough below is the **laptop** path, which is what most operators use day-to-day for this stack because of the long plan times (~30 minutes) and the desire to eyeball the diff before clicking apply.
 
 ---
 
@@ -132,7 +132,7 @@ If you still can't find the endpoint after expanding `System Settings`, the expl
 This file makes Terraform use a local state file instead of GitLab. It's gitignored (`*_override.tf`) so it never leaves your laptop and CI never sees it.
 
 ```bash
-cd ~/DC/ACI/terraform-esg/ndo-terraform-ipv6
+cd ~/DC/ACI/sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/aci-ndo-ipv6
 ls local_override.tf  # should exist
 ```
 
@@ -199,7 +199,7 @@ Skip this step if NDO already contains the IPv6 schema and `bds_epgs.tf` matches
 **Drop the stale state and start fresh:**
 
 ```bash
-cd ~/DC/ACI/terraform-esg/ndo-terraform-ipv6
+cd ~/DC/ACI/sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/aci-ndo-ipv6
 mv terraform.tfstate terraform.tfstate.pre-ipv6-rebuild-$(date +%F)
 mv terraform.tfstate.backup terraform.tfstate.backup.pre-ipv6-rebuild-$(date +%F) 2>/dev/null || true
 terraform plan -var-file=lab.tfvars -refresh=false -parallelism=3 -out=plan.tfplan
@@ -223,7 +223,7 @@ You want `Plan: <some number> to add, 0 to change, 0 to destroy.` If you see any
 ## Daily workflow
 
 ```bash
-cd ~/DC/ACI/terraform-esg/ndo-terraform-ipv6
+cd ~/DC/ACI/sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/aci-ndo-ipv6
 terraform plan -var-file=lab.tfvars -refresh=false -parallelism=3 -out=plan.tfplan
 terraform apply -parallelism=3 plan.tfplan
 ```
@@ -261,9 +261,9 @@ terraform plan -refresh=true -parallelism=3 \
 
 The full lab workflow looks roughly like:
 
-1. `aci-redesign/ndo/` — deploy the redesigned IPv4 schema to NDO (creates VRFs, BDs, EPGs).
-2. `aci-redesign/apic-vmware/` — deploy the APIC + VMware VMM domain pieces.
-3. **`ndo-terraform-ipv6/` (this stack)** — deploy IPv6 BDs, EPGs, and contracts from `bds_epgs.tf`. **L3Outs and VLAN pools are intentionally deferred** to step 6 (see "Deferred — re-enable after bindings" below).
+1. `aci-ndo/` — deploy the redesigned IPv4 schema to NDO (creates VRFs, BDs, EPGs).
+2. `aci-apic/` — deploy the APIC + VMware VMM domain pieces.
+3. **`aci-ndo-ipv6/` (this stack)** — deploy IPv6 BDs, EPGs, and contracts from `bds_epgs.tf`. **L3Outs and VLAN pools are intentionally deferred** to step 6 (see "Deferred — re-enable after bindings" below).
 4. NDO UI — manually deploy the templates Terraform created (this stack uses `deploy_templates = false`).
 5. `../scripts/deploy_bindings.py` (or equivalent) — push static port bindings that NAC YAML doesn't model. Activate the shared Python venv first: `source ~/dc_redesign/bin/activate` (bootstrap is in [`../README.md`](../README.md) "One-time setup"; the script needs `requests` / `urllib3` / `PyYAML`).
 6. **Re-enable the deferred files in this directory, in order:** `l3outs_ndo.tf.disabled` → wait for NDO sync to APIC → `l3outs_apic.tf.disabled` → `vlans_apic.tf.disabled`. See **"Deferred — re-enable after bindings"** under "What's in this directory" for the rename / uncomment / apply sequence.
@@ -404,7 +404,7 @@ git check-ignore -v local_override.tf
 # expected: .gitignore:18:*_override.tf	local_override.tf
 ```
 
-If the rule is missing, your `.gitignore` was clobbered — restore from `git show HEAD:ndo-terraform-ipv6/.gitignore`.
+If the rule is missing, your `.gitignore` was clobbered — restore from `git show HEAD:aci-ndo-ipv6/.gitignore`.
 
 ---
 

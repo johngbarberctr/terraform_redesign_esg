@@ -23,7 +23,7 @@ plan see [`../docs/AFRICOM/AFRICOM_Implementation_Plan.md`](../docs/AFRICOM/AFRI
 | `dump_bindings.py` | Export existing NDO binding paths to JSON (seed file for `deploy_bindings.py`) |
 | `check_fi_bindings_parity.py` | Verify FI binding manifest (`fi_epg_manifest.json`) matches the NDO V2 schema |
 | `generate_fi_bindings.py` | Regenerate `fi_epg_manifest.json` from the NDO V2 schema |
-| `deploy_bindings_rcc.py` | Deploy bindings for the IPv6 RCC tenant (variant of `deploy_bindings.py`) |
+| `deploy_bindings_rcc.py` | **Legacy / superseded by VMM** — deploys static port bindings for the IPv6 RCC tenant (variant of `deploy_bindings.py`; single-site, hardcoded template `L2_Stretched`, schema `AFRICOM`). The IPv6 RCC layer is now VMM-domain-based in `aci-ndo-ipv6/bds_epgs.tf`, so the hardcoded names reflect the pre-VMM era. |
 | `check_rcc_bindings.py` | Verify RCC bindings |
 | `get_epg_endpoints.py` | Pull per-EPG endpoint lists from APIC |
 | `analyze_bd_mapping.py` | Analyse BD-to-EPG mappings in the redesign schema |
@@ -137,10 +137,10 @@ fails with `ModuleNotFoundError: No module named 'yaml'` (or `requests`).
 ## Recommended cutover sequence
 
 This is the post-deploy bindings flow that runs once Terraform has provisioned
-the redesign tenant tree (`aci-redesign/ndo/` apply + manual NDO UI deploy).
+the redesign tenant tree (`aci-ndo/` apply + manual NDO UI deploy).
 There are two paths — pick one based on which fabric topology you have:
 
-### Path A — dump from the IPv6 RCC schema (lab default; requires `ndo-terraform-ipv6/` already deployed)
+### Path A — dump from the IPv6 RCC schema (lab default; requires `aci-ndo-ipv6/` already deployed)
 
 1. `dump_bindings.py` — pull existing bindings from the IPv6 RCC schema
    (`AFRICOM` / `AppProf-AFR-PROD-V6`) into a JSON file matching `bindings.example.json`.
@@ -151,7 +151,7 @@ There are two paths — pick one based on which fabric topology you have:
    schema `AFRICOM-V2` / template `Tenant_EUR_V2`.
 4. Click **Deploy** in the NDO UI to push the new `staticPorts` to the APICs.
 
-### Path B — generate from FI topology (production default; `ndo-terraform-ipv6/` not required)
+### Path B — generate from FI topology (production default; `aci-ndo-ipv6/` not required)
 
 1. `generate_fi_bindings.py` — read the prod schema + an FI VLAN map, emit
    `fi_bindings.json` containing all bindings on the four FI port-channels.
@@ -171,7 +171,7 @@ into a starter file for `AFRICOM-V2`.
 
 > The dumper does not auto-rewrite EPG names. Source EPGs from
 > `AFRICOM/AppProf-AFR-PROD-V6` come without the `-V2` suffix; the V2 redesign
-> EPGs are suffixed (see `aci-redesign/DESIGN.md` "Naming convention").
+> EPGs are suffixed (see `../docs/DESIGN.md` "Naming convention").
 > Either pre-edit the bindings JSON to rename source EPGs to their `-V2`
 > equivalents (e.g. `EPG-WEB-SVR` → `EPG-WEB-SVR-V2`) before pushing,
 > or rely on the `--target-schema` parity warnings to surface mismatches
@@ -215,7 +215,7 @@ and prompts for the password.
 ### Usage
 
 ```bash
-cd aci-redesign/scripts
+cd scripts
 export NDO_HOST=<ndo-ip>
 export NDO_USER=admin
 
@@ -308,7 +308,7 @@ Each binding dict:
 ### Usage
 
 ```bash
-cd aci-redesign/scripts
+cd scripts
 
 # Lab: read everything from the JSON, no vault.
 ./deploy_bindings.py bindings.json --no-vault --dry-run
@@ -332,7 +332,7 @@ Always run `--dry-run` first against a new bindings file.
 - Does not deploy templates to sites. That's a manual click in the NDO UI
   (or `deploy_templates = true` in `../ndo/main.tf`).
 - Does not configure access policies, AAEP, VPC policy groups, or anything
-  on the APIC interface side. Those are APIC-direct in `../apic-vmware/`.
+  on the APIC interface side. Those are APIC-direct in `../aci-apic/`.
 - Does not delete bindings. It is additive only -- it skips bindings that
   already exist on NDO. To remove, edit in the NDO UI or extend the script
   with `op: remove` patches.
@@ -343,8 +343,8 @@ Always run `--dry-run` first against a new bindings file.
 | --- | --- |
 | `/Users/johbarbe/DC/NXOS/n5k/deploy_bindings_python_v2_prod.py` | Original. Production migration tool, schema `AFRICOM`. |
 | `/Users/johbarbe/DC/NXOS/n5k/deploy_bindings_python_v2_lab.py` | Lab variant of the n5k tool. |
-| `/Users/johbarbe/DC/ACI/terraform-esg/scripts/deploy_bindings_rcc.py` | The IPv6-era equivalent (single-site, hardcoded template `L2_Stretched`, schema `AFRICOM`). |
-| `aci-redesign/scripts/deploy_bindings.py` | This file. V2 redesign default schema, host required from JSON. |
+| `scripts/deploy_bindings_rcc.py` | The IPv6-era equivalent (single-site, hardcoded template `L2_Stretched`, schema `AFRICOM`). Legacy — IPv6 RCC layer is now VMM-domain-based. |
+| `scripts/deploy_bindings.py` | This file. V2 redesign default schema, host required from JSON. |
 
 ## `generate_fi_bindings.py`
 
@@ -376,7 +376,7 @@ path — no creds, no VLANs, safe to commit. CI uses this to detect
 schema/binding drift via `check_fi_bindings_parity.py`.
 
 ```bash
-cd aci-redesign/scripts
+cd scripts
 
 # Production default:
 ./generate_fi_bindings.py \
@@ -425,6 +425,6 @@ a parity check against the committed manifest, so a local run surfaces
 drift the same way CI does.
 
 ```bash
-cd aci-redesign/scripts
+cd scripts
 python3 -m unittest test_fi_bindings -v
 ```
