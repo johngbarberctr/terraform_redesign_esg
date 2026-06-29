@@ -1652,7 +1652,7 @@ resource "mso_schema_template_anp_epg" "epg_patch" {
 
 
 # ============================================================================
-# SITE ASSOCIATIONS - L2_Stretched
+# SITE ASSOCIATIONS - Stretched_Services
 # ============================================================================
 
 resource "mso_schema_site_anp" "site_anp_site1_stretched" {
@@ -2504,7 +2504,7 @@ resource "mso_schema_site_anp_epg" "site_epg_syslog_k" {
 # SITE BD CONFIGURATIONS - Host Route Enabled
 # ============================================================================
 
-# L2_Stretched BDs - Site1 Site (29 BDs)
+# Stretched_Services BDs - Site1 Site (29 BDs)
 resource "mso_schema_site_bd" "bd_nac_g" {
   schema_id     = data.mso_schema.existing.id
   bd_name       = mso_schema_template_bd.bd_nac.name
@@ -2797,7 +2797,7 @@ resource "mso_schema_site_bd" "bd_patch_g" {
 }
 
 
-# L2_Stretched BDs - Site2 Site (29 BDs - same structure)
+# Stretched_Services BDs - Site2 Site (29 BDs - same structure)
 resource "mso_schema_site_bd" "bd_nac_k" {
   schema_id     = data.mso_schema.existing.id
   bd_name       = mso_schema_template_bd.bd_nac.name
@@ -3107,7 +3107,7 @@ resource "mso_schema_site_bd" "bd_backup_svr_k_site" {
   host_route    = true
 }
 
-# L2_Non-Stretched BDs - Both Sites
+# Stretched_Services (was L2_Non-Stretched) BDs - Both Sites
 resource "mso_schema_site_bd" "bd_db_svr_g" {
   schema_id     = data.mso_schema.existing.id
   bd_name       = mso_schema_template_bd.bd_db_svr.name
@@ -3145,7 +3145,7 @@ resource "mso_schema_site_bd" "bd_syslog_k_site" {
 # Per-fabric VMware VMM domains: Kelley-VDS1 (Site1/Kelley), Del-Din-VDS1 (Site2/Del-Din)
 # ============================================================================
 
-# L2_Stretched EPGs - Site1 (29 domains)
+# Stretched_Services EPGs - Site1 (29 domains)
 resource "mso_schema_site_anp_epg_domain" "epg_nac_domain_g" {
   schema_id            = data.mso_schema.existing.id
   template_name        = "Stretched_Services"
@@ -3649,7 +3649,7 @@ resource "mso_schema_site_anp_epg_domain" "epg_patch_domain_g" {
 }
 
 
-# L2_Stretched EPGs - Site2 (29 domains - identical structure)
+# Stretched_Services EPGs - Site2 (29 domains - identical structure)
 resource "mso_schema_site_anp_epg_domain" "epg_nac_domain_k" {
   schema_id            = data.mso_schema.existing.id
   template_name        = "Stretched_Services"
@@ -4153,7 +4153,7 @@ resource "mso_schema_site_anp_epg_domain" "epg_patch_domain_k" {
 }
 
 
-# Site1-Specific_Only EPG Domain
+# Kelley_Unique EPG Domain
 resource "mso_schema_site_anp_epg_domain" "epg_gef_mgmt_domain_g" {
   schema_id            = data.mso_schema.existing.id
   template_name        = "Kelley_Unique"
@@ -4168,7 +4168,7 @@ resource "mso_schema_site_anp_epg_domain" "epg_gef_mgmt_domain_g" {
   depends_on           = [mso_schema_site_anp_epg.site_epg_gef_mgmt_g]
 }
 
-# Site2-Specific_Only EPG Domain
+# Del_Din_Unique EPG Domain
 resource "mso_schema_site_anp_epg_domain" "epg_backup_svr_domain_k" {
   schema_id            = data.mso_schema.existing.id
   template_name        = "Del_Din_Unique"
@@ -4183,7 +4183,7 @@ resource "mso_schema_site_anp_epg_domain" "epg_backup_svr_domain_k" {
   depends_on           = [mso_schema_site_anp_epg.site_epg_backup_svr_k]
 }
 
-# L2_Non-Stretched EPG Domains - Site1
+# Stretched_Services (was L2_Non-Stretched) EPG Domains - Site1
 resource "mso_schema_site_anp_epg_domain" "epg_db_svr_domain_g" {
   schema_id            = data.mso_schema.existing.id
   template_name        = "Stretched_Services"
@@ -4212,7 +4212,7 @@ resource "mso_schema_site_anp_epg_domain" "epg_syslog_domain_g" {
   depends_on           = [mso_schema_site_anp_epg.site_epg_syslog_g]
 }
 
-# L2_Non-Stretched EPG Domains - Site2
+# Stretched_Services (was L2_Non-Stretched) EPG Domains - Site2
 resource "mso_schema_site_anp_epg_domain" "epg_db_svr_domain_k" {
   schema_id            = data.mso_schema.existing.id
   template_name        = "Stretched_Services"

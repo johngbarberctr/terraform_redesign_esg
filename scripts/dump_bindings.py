@@ -11,7 +11,7 @@ review/edit, push.
 Why this exists:
   * The V2 redesign (schema AFRICOM-V2 / AppProf-NetCentric-V2 + AppProf-DMZ-V2)
     has the SAME 39 EPG functions as the IPv6 redesign in AFRICOM / AppProf-RCC,
-    just suffixed -V2 on the target side (see aci-redesign/DESIGN.md
+    just suffixed -V2 on the target side (see docs/DESIGN.md
     "Naming convention" for why).
   * Dual-stack hosts land on the same physical interfaces, so the IPv6
     binding paths (leaf, port, vPC) are reusable for V2.

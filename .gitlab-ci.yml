@@ -1,6 +1,6 @@
 # terraform-esg root pipeline orchestrator
 #
-# This file is intentionally thin. The four in-repo Terraform projects
+# This file is intentionally thin. The in-repo Terraform projects
 # each own their own pipeline definition (validate / plan / apply manual)
 # in a per-project `.gitlab-ci.yml`. This orchestrator:
 #
@@ -11,11 +11,12 @@
 #   4. Owns the cross-project FI-binding parity check (it spans the NDO
 #      schema YAML and the scripts/ tools).
 #
-# Per-project files:
-#   aci-redesign/apic-vmware/.gitlab-ci.yml         lab APIC root
-#   aci-redesign/apic-vmware-prod/.gitlab-ci.yml    prod APIC root
-#   aci-redesign/ndo/.gitlab-ci.yml                 IPv4 redesign tenant tree (NDO)
-#   ndo-terraform-ipv6/.gitlab-ci.yml               IPv6 RCC layer (NDO)
+# Per-project files (wired into the `include:` block below):
+#   aci-apic/.gitlab-ci.yml          APIC-direct root, lab + prod (state slots
+#                                    aci-redesign / aci-redesign-prod)
+#   aci-ndo/.gitlab-ci.yml           IPv4 redesign tenant tree (NDO)
+#   aci-ndo-ipv6/.gitlab-ci.yml      IPv6 RCC layer (NDO)
+#   africom-aci-apic/.gitlab-ci.yml  AFRICOM NIPR APIC (Phase 0-2)
 #
 # Sibling foundational stack (Phase 1 in the canonical runbook) lives in
 # its OWN repo and has its OWN root .gitlab-ci.yml:
@@ -31,7 +32,9 @@
 #           apic-vmware
 #           apic-vmware-prod
 #           aci-redesign-ndo
-#           ndo-terraform-ipv6
+#           aci-ndo-ipv6
+#           africom-apic
+#           africom-apic-prod
 #   - apply jobs are ALWAYS `when: manual`; no project ever auto-applies.
 #
 # Runner support:
@@ -61,7 +64,7 @@ variables:
     description: "Manually trigger one project's jobs only. One of: apic-vmware | apic-vmware-prod | aci-redesign-ndo | aci-ndo-ipv6 | africom-apic | africom-apic-prod. Leave empty for changes-driven runs."
     value: ""
   NDO_USERNAME:
-    description: "NDO username (used by aci-redesign/ndo and ndo-terraform-ipv6)"
+    description: "NDO username (used by aci-ndo and aci-ndo-ipv6)"
   NDO_PASSWORD:
     description: "NDO password (Masked)"
   NDO_URL:
@@ -99,7 +102,7 @@ variables:
   DELDIN_MCP_KEY_PROD:
     description: "Prod Del-Din MCP Instance Policy key (Masked + Protected)"
   VCENTER_HOSTNAME_IP:
-    description: "vCenter IP/FQDN (shared by both APIC roots; if your prod vCenter is a different instance, add VCENTER_HOSTNAME_IP_PROD and update apic-vmware-prod/.gitlab-ci.yml)"
+    description: "vCenter IP/FQDN (shared by both APIC roots; if your prod vCenter is a different instance, add VCENTER_HOSTNAME_IP_PROD and update the prod blocks in aci-apic/.gitlab-ci.yml)"
   VCENTER_DATACENTER:
     description: "vCenter datacenter name"
   VCENTER_DVS_VERSION:

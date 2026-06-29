@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
 """
+LEGACY / superseded by VMM. The IPv6 RCC EPGs are now attached to the fabric
+via VMware VMM domains (Kelley-VDS1 / Del-Din-VDS1) in aci-ndo-ipv6/bds_epgs.tf,
+so this static-binding generator is no longer in the deploy path. The template
+names used below (L2_Stretched / L2_Non-Stretched / Site*-Specific_Only) reflect
+the pre-consolidation schema; the live schema uses Stretched_Services /
+Kelley_Unique / Del_Din_Unique. Kept for historical reference.
+
 NDO IPv6 Binding Generator - Intelligent Mapping
 Maps each IPv6 EPG to the most appropriate IPv4 EPG based on function
 """

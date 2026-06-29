@@ -403,7 +403,7 @@ class NDOBindingDeployer:
                 resolved_cache_key = self.epg_name_lookup[name_key]
                 resolved_template = resolved_cache_key.split('/')[1]
             else:
-                resolved_template = binding.get('template', 'L2_Stretched')
+                resolved_template = binding.get('template', 'Tenant_EUR_V2')
             
             key = (site, resolved_template, epg)
             grouped_bindings[key].append(binding)

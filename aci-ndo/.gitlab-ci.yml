@@ -16,7 +16,7 @@
 # >>>     Tenant_AFR-DEL.Services_V2 -> Deploy to sites -> [Kelley, Del-Din]
 #
 # Phase-1 prerequisite: tenant AFR-DEL.Services and the cross-schema-referenced filter
-# `Any` under AFRICOM/VRF_Template MUST already exist in NDO. They are
+# `Any` under AFRICOM/VRF MUST already exist in NDO. They are
 # created by the sibling repo ~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/ (its own
 # pipeline). If you run this project's apply before Phase 1 has been
 # applied AND its templates manually deployed, plan will fail to resolve

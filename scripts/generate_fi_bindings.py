@@ -9,10 +9,10 @@ Design A redesign, ready to be PATCHed into NDO via ``deploy_bindings.py``.
 
 Source of truth for the FI topology (Design A, single-homed PCs):
 
-    aci-redesign/data/nac-aci-site1-prod/access-policies.nac.yaml lines 11-14, 202-243
+    aci-apic/data/nac-aci-site1-prod/access-policies.nac.yaml lines 11-14, 202-243
         Site1: PC_FI_A on Leaf-152 eth1/6, PC_FI_B on Leaf-153 eth1/7
 
-    aci-redesign/data/nac-aci-site2-prod/access-policies.nac.yaml lines 13-14, 186-226
+    aci-apic/data/nac-aci-site2-prod/access-policies.nac.yaml lines 13-14, 186-226
         Site2: PC_FI_A on Leaf-119 eth1/6, PC_FI_B on Leaf-191 eth1/7
 
 These four port-channels are single-homed (one leaf each), so the binding
@@ -24,7 +24,7 @@ Why this script exists
 
 The ``netascode/nac-ndo`` Terraform module does not model ``staticPorts[]``
 on EPGs (see the inline note near the top of
-``aci-redesign/data/nac-ndo/schema-africom-v2.nac.yaml``). So the EPG shells
+``aci-ndo/data/nac-ndo/schema-africom-v2.nac.yaml``). So the EPG shells
 get created by Terraform but the per-port bindings have to be PATCHed in
 afterwards via the REST API.
 
@@ -69,8 +69,8 @@ from typing import Any
 # Design A FI topology -- hardcoded with citations.
 #
 # Cross-reference any change here with:
-#   aci-redesign/data/nac-aci-site1-prod/access-policies.nac.yaml
-#   aci-redesign/data/nac-aci-site2-prod/access-policies.nac.yaml
+#   aci-apic/data/nac-aci-site1-prod/access-policies.nac.yaml
+#   aci-apic/data/nac-aci-site2-prod/access-policies.nac.yaml
 # -----------------------------------------------------------------------------
 FI_TOPOLOGY: dict[str, dict[str, int]] = {
     "Site1": {"PC_FI_A": 152, "PC_FI_B": 153},
@@ -265,7 +265,7 @@ def generate_bindings(
     Return (bindings, missing_vlans, skipped_vmm_epgs).
 
     When ``physical_only`` is True, EPGs whose schema entry has ``has_vmm``
-    True are skipped. This implements Approach 1 in aci-redesign/README.md
+    True are skipped. This implements Approach 1 in README_LAB.md
     ("VLAN strategy -- read this before pushing"): for the lab cutover and
     for any production model that wants VMM dynamic VLAN learning to handle
     every VDS-backed EPG, only static-bind the physical-endpoint EPGs that
@@ -317,7 +317,7 @@ def main() -> int:
         description="Generate Design A UCS-FI static-port bindings JSON.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
-            "Output JSON is consumable by aci-redesign/scripts/deploy_bindings.py.\n"
+            "Output JSON is consumable by scripts/deploy_bindings.py.\n"
             "Run deploy_bindings.py --dry-run first; then for real."
         ),
     )
@@ -390,7 +390,7 @@ def main() -> int:
             "that's EPG-LB-V2, EPG-LMR-V2, EPG-VHOST-MGMT-V2 (F5 / LMR "
             "gateways / ESXi vmkernel -- physical endpoints that cannot "
             "ride a VDS port-group). Implements Approach 1 in "
-            "aci-redesign/README.md 'VLAN strategy -- read this before "
+            "README_LAB.md 'VLAN strategy -- read this before "
             "pushing': use this for the lab cutover, where VMM dynamic "
             "VLAN learning handles every VDS-backed EPG and only the "
             "physical EPGs need static binds. For prod, omit this flag "

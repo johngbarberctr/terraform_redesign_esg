@@ -1,18 +1,36 @@
 #!/usr/bin/env python3
 """
-Clear stuck migration state in NDO
+Clear stuck migration state in NDO.
+
+LEGACY / DESTRUCTIVE ONE-OFF — DO NOT RUN casually. This was a single-use
+helper from the pre-consolidation era to delete the old `VRF_Template`
+from schema `AFRICOM` (the schema has since been consolidated to templates
+VRF / Stretched_Services / Kelley_Unique / Del_Din_Unique). It issues
+destructive PUT operations that can reset a schema's templates. Kept for
+historical reference only — the `VRF_Template` / `L2_Stretched` names below
+reflect that obsolete schema layout.
+
+Connection details and the target schema id are read from the environment;
+nothing is hardcoded:
+    NDO_URL, NDO_USERNAME, NDO_PASSWORD, NDO_SCHEMA_ID
 """
 
+import os
+import sys
 import requests
 import json
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# Configuration
-NDO_URL = "https://10.196.209.170"
-NDO_USER = "admin"
-NDO_PASS = "cisco!123"
-SCHEMA_ID = "68a72e0b3bffb5d1e2ef0e58"
+# Configuration (env-sourced; no credentials in source)
+NDO_URL   = os.environ.get("NDO_URL", "")
+NDO_USER  = os.environ.get("NDO_USERNAME", "admin")
+NDO_PASS  = os.environ.get("NDO_PASSWORD", "")
+SCHEMA_ID = os.environ.get("NDO_SCHEMA_ID", "")
+
+if not (NDO_URL and NDO_PASS and SCHEMA_ID):
+    sys.exit("Set NDO_URL, NDO_PASSWORD, and NDO_SCHEMA_ID in the environment "
+             "before running this legacy helper.")
 
 def login():
     """Login to NDO"""

@@ -21,11 +21,11 @@ terraform {
 # pushes the resulting objects down to Kelley and Del-Din APICs.
 #
 # Sister roots:
-#   ../apic-vmware/      -- per-fabric APIC-direct (access policies, fabric
+#   ../aci-apic/      -- per-fabric APIC-direct (access policies, fabric
 #                           policies, MCP, AAEP, VPC, vmmDomP).
-#   ../../ndo-terraform/ -- legacy hand-written mso_schema_template_* HCL for
-#                           the IPv6 RCC schema. Untouched here. Migrating
-#                           that to the same nac-ndo YAML idiom is a follow-up.
+#   ../aci-ndo-ipv6/     -- hand-written mso_schema_template_* HCL for the
+#                           IPv6 RCC schema. Untouched here. Migrating that to
+#                           the same nac-ndo YAML idiom is a follow-up.
 #
 # YAML directory:
 #   ../data/nac-ndo/   ndo top-level with sites + tenants + schemas. The
@@ -68,7 +68,7 @@ terraform {
 #                                       deploy as part of `apply`.
 #
 # State migration: the APIC-direct tenant tree was orphaned out of the
-# ../apic-vmware/ state via `terraform state rm` (see README cutover section).
+# ../aci-apic/ state via `terraform state rm` (see README cutover section).
 # The objects still exist on the APICs; this root layers an NDO-managed
 # schema on top. NDO will absorb / collide with same-named APIC-local objects
 # on first deploy -- review the plan carefully and expect a maintenance

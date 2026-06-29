@@ -4,10 +4,10 @@
 # Site-specific L3Outs serving all BDs in AFR-PROD-V6
 #
 # Architecture (NDO-compliant):
-#   - L3Out-Kelley-V2 in Site1-Specific_Only template (Site G)
-#   - L3Out-Del-Din-V2 in Site2-Specific_Only template (Site K)
-#   - ExtEPG-Kelley-V2 in Site1-Specific_Only (Site G External EPG)
-#   - ExtEPG-Del-Din-V2 in Site2-Specific_Only (Site K External EPG)
+#   - L3Out-Kelley-V2 in Kelley_Unique template (Site G)
+#   - L3Out-Del-Din-V2 in Del_Din_Unique template (Site K)
+#   - ExtEPG-Kelley-V2 in Kelley_Unique (Site G External EPG)
+#   - ExtEPG-Del-Din-V2 in Del_Din_Unique (Site K External EPG)
 #
 # NOTE: NDO requires unique L3Out names across templates when deployed.
 # Site-local External EPGs reference their respective L3Outs.
@@ -51,7 +51,7 @@ resource "mso_schema_template_l3out" "l3out_rcc_e_k" {
 }
 
 # ============================================================================
-# EXTERNAL EPG - Site G (Site1-Specific_Only)
+# EXTERNAL EPG - Site G (Kelley_Unique)
 # ============================================================================
 
 resource "mso_schema_template_external_epg" "ext_epg_rcc_e_g" {
@@ -106,7 +106,7 @@ resource "mso_schema_template_external_epg_contract" "ext_epg_rcc_e_g_provider" 
 }
 
 # ============================================================================
-# EXTERNAL EPG - Site K (Site2-Specific_Only)
+# EXTERNAL EPG - Site K (Del_Din_Unique)
 # ============================================================================
 
 resource "mso_schema_template_external_epg" "ext_epg_rcc_e_k" {
@@ -162,7 +162,7 @@ resource "mso_schema_template_external_epg_contract" "ext_epg_rcc_e_k_provider" 
 
 # ============================================================================
 
-# BD-L3OUT ASSOCIATIONS - L2_Stretched BDs (Both Sites)
+# BD-L3OUT ASSOCIATIONS - Stretched_Services BDs (Both Sites)
 # ============================================================================
 
 # --- BD-NAC ---
@@ -823,7 +823,7 @@ resource "mso_schema_site_bd_l3out" "bd_patch_l3out_k" {
 # BD-L3OUT ASSOCIATIONS - Site-Specific BDs
 # ============================================================================
 
-# --- BD-GEF-MGMT (Site1-Specific_Only - Site G only) ---
+# --- BD-GEF-MGMT (Kelley_Unique - Site G only) ---
 resource "mso_schema_site_bd_l3out" "bd_gef_mgmt_l3out_g" {
   schema_id     = data.mso_schema.existing.id
   template_name = "Kelley_Unique"
@@ -833,7 +833,7 @@ resource "mso_schema_site_bd_l3out" "bd_gef_mgmt_l3out_g" {
   depends_on    = [mso_schema_site_bd.bd_gef_mgmt_g, mso_schema_template_l3out.l3out_rcc_e_g]
 }
 
-# --- BD-BACKUP-SVR (Site2-Specific_Only - Site K only) ---
+# --- BD-BACKUP-SVR (Del_Din_Unique - Site K only) ---
 resource "mso_schema_site_bd_l3out" "bd_backup_svr_l3out_k" {
   schema_id     = data.mso_schema.existing.id
   template_name = "Del_Din_Unique"
@@ -844,7 +844,7 @@ resource "mso_schema_site_bd_l3out" "bd_backup_svr_l3out_k" {
 }
 
 # ============================================================================
-# BD-L3OUT ASSOCIATIONS - L2_Non-Stretched BDs (Both Sites)
+# BD-L3OUT ASSOCIATIONS - Stretched_Services (was L2_Non-Stretched) BDs (Both Sites)
 # ============================================================================
 
 # --- BD-DB-SVR ---

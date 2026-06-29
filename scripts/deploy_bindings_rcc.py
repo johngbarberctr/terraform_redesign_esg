@@ -1,4 +1,14 @@
 #!/usr/bin/env python3
+"""
+LEGACY / superseded by VMM. Deploys static port bindings for the IPv6 RCC
+tenant (schema AFRICOM) -- a single-site variant of deploy_bindings.py.
+
+The IPv6 RCC layer is now attached to the fabric via VMware VMM domains
+(Kelley-VDS1 / Del-Din-VDS1) defined in aci-ndo-ipv6/bds_epgs.tf, so this
+static port-binding pusher is no longer in the deploy path. Kept for history
+and one-off edge cases. The template default has been updated from the old
+L2_Stretched to its consolidated successor Stretched_Services.
+"""
 import requests
 import json
 import time
@@ -121,7 +131,7 @@ class NDOBindingDeployer:
                         'bd_name': binding.get('bd_name'),
                         'vrf_name': binding.get('vrf_name'),
                         'site': 'Site1',  # Assuming Site1 site
-                        'template': 'L2_Stretched',  # Assuming L2_Stretched template
+                        'template': 'Stretched_Services',  # Assuming Stretched_Services template
                         'path': port.get('path'),
                         'deployment_immediacy': port.get('deployment_immediacy', 'immediate'),
                         'mode': port.get('mode', 'regular'),
@@ -273,7 +283,7 @@ class NDOBindingDeployer:
         grouped_bindings = defaultdict(list)
         
         for binding in filtered_bindings:
-            key = (binding['site'], binding.get('template', 'L2_Stretched'), binding['epg_name'])
+            key = (binding['site'], binding.get('template', 'Stretched_Services'), binding['epg_name'])
             grouped_bindings[key].append(binding)
         
         print(f"\nGrouped into {len(grouped_bindings)} EPG configurations")

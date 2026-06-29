@@ -9,10 +9,10 @@ Why this exists
 The V2 redesign deploys two coupled artifacts:
 
     1. Tenant tree (VRFs, BDs, EPGs, contracts) -- pushed via Terraform
-       from ``aci-redesign/data/nac-ndo/schema-africom-v2.nac.yaml``.
+       from ``aci-ndo/data/nac-ndo/schema-africom-v2.nac.yaml``.
 
     2. FI-uplink static-port bindings on PC_FI_A / PC_FI_B (Approach 2 in
-       aci-redesign/README.md "VLAN strategy") -- PATCHed into NDO via
+       README_LAB.md "VLAN strategy") -- PATCHed into NDO via
        ``deploy_bindings.py`` from a JSON file produced by
        ``generate_fi_bindings.py``.
 
@@ -70,7 +70,7 @@ from typing import Any
 
 # Reuse the schema parser from the generator. Both scripts live in the
 # same directory; running from anywhere else requires PYTHONPATH or an
-# explicit chdir, which the gitlab-ci job does (`cd aci-redesign/scripts`).
+# explicit chdir, which the gitlab-ci job does (`cd scripts`).
 import generate_fi_bindings as gen
 
 
