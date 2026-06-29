@@ -50,9 +50,9 @@ The sibling repo is the foundational layer:
 
 | Sibling repo | What it owns |
 |---|---|
-| `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/` (separate git repo) | Tenant `AFR-DEL.Services`, schema `AFRICOM` with 5 templates (`VRF_Template`, `L2_Stretched`, `L2_Non-Stretched`, `Kelley-Specific_Only`, `Del-Din-Specific_Only`), 11 prod VRFs, 266 BDs, 265 EPGs, 13 L3Outs, 812 VPC static-port bindings |
+| `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/` (separate git repo) | Tenant `AFR-DEL.Services`, schema `AFRICOM` with 4 templates (`VRF`, `Stretched_Services`, `Kelley_Unique`, `Del_Din_Unique`), 1 prod VRF (`AFR-PROD`), 266 BDs, 265 EPGs, 2 L3Outs (`L3Out-Kelley`, `L3Out-Del-Din`), 407 per-fabric VMM domain associations (`Kelley-VDS1`/`Del-Din-VDS1`, VMM-only) |
 
-That stack creates the `Any` filter under `AFRICOM/VRF_Template` that
+That stack creates the `Any` filter under `AFRICOM/VRF` that
 `aci-redesign/ndo/`'s schema cross-references. **It must be deployed
 first** — the runbook in [`README_LAB.md`](README_LAB.md) makes this Phase 1.
 
@@ -460,7 +460,7 @@ is gitignored too.
 
 | Project | GitLab repo | Purpose |
 |---|---|---|
-| `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/` | `root/ndo_terraform` | **Phase 1** of the deployment runbook in this repo's `README_LAB.md` — foundational NDO-NAC stack (tenant `AFR-DEL.Services`, schema `AFRICOM`, 5 templates, 812 VPC bindings) |
+| `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/` | `root/ndo_terraform` | **Phase 1** of the deployment runbook in this repo's `README_LAB.md` — foundational NDO-NAC stack (tenant `AFR-DEL.Services`, schema `AFRICOM`, 4 templates, 407 VMM domain associations, VMM-only) |
 | `~/DC/NXOS/n5k/` | `root/n5k_replacement` | N5K switch migration and ACI leaf replacement (separate workflow) |
 | `~/DC/NXOS/n5k/Snake/{LAB,PRODUCTION}/aci-lf-rplc/` | sub-dirs of `n5k_replacement` | Leaf-replacement bindings tool (post-migration) |
 

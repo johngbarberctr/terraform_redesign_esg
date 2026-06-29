@@ -202,7 +202,7 @@ cd ~/DC/ACI/sac-johbarbe-AFRICOM-terraform-esg-nac-ndo
 
 This repo creates **tenant `AFR-DEL.Services`**, **schema `AFRICOM`** with four templates
 (`VRF`, `Stretched_Services`, `Kelley_Unique`, `Del_Din_Unique`),
-1 VRF (`AFR-PROD`), 266 BDs, 265 EPGs, 2 L3Outs (`L3Out-Kelley`, `L3Out-Del-Din`), and 812 VPC static-port bindings.
+1 VRF (`AFR-PROD`), 266 BDs, 265 EPGs, 2 L3Outs (`L3Out-Kelley`, `L3Out-Del-Din`), and 407 per-fabric VMM domain associations (`Kelley-VDS1`/`Del-Din-VDS1`, VMM-only — no static ports).
 Phase 4 in `sac-johbarbe-AFRICOM-terraform-esg-nac-ndo/aci-ndo/` cross-references
 `AFRICOM / VRF / Any` (the filter), so this phase has to land first.
 

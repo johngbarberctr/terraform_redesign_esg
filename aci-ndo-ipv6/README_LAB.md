@@ -17,7 +17,7 @@ This stack is the IPv6 layer that complements the redesigned IPv4 stack in `../a
 | NDO endpoint | dCloud lab NDO (currently `https://198.18.133.100`) |
 | MSO provider `domain` | `"local"` |
 | MSO provider `platform` | `"nd"` |
-| VRF template name | `VRF_Template` (set via `lab.tfvars`; production uses `prod.tfvars` which sets `UpgradeTemplate1`. CI selects via `TF_VARS_FILE` — defaults to `lab.tfvars`.) |
+| VRF template name | `VRF` (lab — the `var.vrf_template_name` default; production overrides to `UpgradeTemplate1`, selected via `TF_VARS_FILE`). |
 | Terraform state (laptop) | local file (this directory) via `local_override.tf` |
 | Terraform state (CI) | GitLab HTTP backend at `…/projects/<project_id>/terraform/state/ndo-terraform-ipv6`, authenticated with `${CI_JOB_TOKEN}` |
 | GitLab CI/CD | wired for both lab and prod against the same `.gitlab-ci.yml`; per-project CI variables (`NDO_URL` / `NDO_USERNAME` / `NDO_PASSWORD`) are set independently on each GitLab project. See [`README.md` → "CI/CD Pipeline"](README.md#cicd-pipeline). |

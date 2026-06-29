@@ -250,7 +250,7 @@ Lab and production use **separate Terraform state files** against different NDO 
 
 | Setting | Lab | Production |
 |---|---|---|
-| VRF Template Name | `VRF_Template` | `UpgradeTemplate1` |
+| VRF Template Name | `VRF` | `UpgradeTemplate1` |
 | MSO Provider `domain` | `"local"` | omitted (`null`) |
 | MSO Provider `platform` | `"nd"` | omitted (`null`) |
 | NDO URL | Lab NDO | Production NDO |
@@ -372,7 +372,7 @@ git push to a branch or merge request
               only, on purpose)
 ```
 
-After clicking apply: NDO has the new ANP `AppProf-AFR-PROD-V6` and 39 IPv6 EPGs inside `AFRICOM / L2_Stretched`, but they are **not yet deployed to Kelley/Del-Din**. The apply job's tail log prints the exact NDO UI path: `Application Management → Schemas → AFRICOM → L2_Stretched → Deploy to sites → [Kelley, Del-Din]`. This is **a re-deploy** of `L2_Stretched` (Phase 1 already deployed it once with the original IPv4 content; this re-deploy adds the IPv6 layer).
+After clicking apply: NDO has the new ANP `AppProf-AFR-PROD-V6` and 39 IPv6 EPGs inside `AFRICOM / Stretched_Services`, but they are **not yet deployed to Kelley/Del-Din**. The apply job's tail log prints the exact NDO UI path: `Application Management → Schemas → AFRICOM → Stretched_Services → Deploy to sites → [Kelley, Del-Din]`. This is **a re-deploy** of `Stretched_Services` (Phase 1 already deployed it once with the original IPv4 content; this re-deploy adds the IPv6 layer).
 
 ### GitLab CI/CD Variables
 
@@ -611,11 +611,10 @@ grep -E "paths-10[12]|protpaths-101-102" ipv6_rcc_port_bindings_lab_*.json
 
 | Template | BDs | EPGs | Stretch | Sites | Purpose |
 |---|---|---|---|---|---|
-| UpgradeTemplate1 | 0 | 0 | N/A | N/A | VRF and contracts only |
-| L2_Stretched | 29 | 29 | Yes | Both | Production services |
-| Kelley-Specific_Only | 1 | 1 | No | Kelley | GEF Management |
-| Del-Din-Specific_Only | 1 | 1 | No | Del-Din | Backup Services |
-| L2_Non-Stretched | 2 | 2 | No | Both | Database, Logging |
+| VRF | 0 | 0 | N/A | N/A | VRF and contracts only (prod alias `UpgradeTemplate1`) |
+| Stretched_Services | 31 | 31 | Yes | Both | Production services (incl. former `L2_Non-Stretched`: Database, Logging) |
+| Kelley_Unique | 1 | 1 | No | Kelley | GEF Management |
+| Del_Din_Unique | 1 | 1 | No | Del-Din | Backup Services |
 
 ### Port Binding Patterns
 
@@ -674,7 +673,7 @@ python3 generate_ipv6_bindings3.py [mode] [--inherit-from-ipv4] [--ports-overrid
 
 **Defaults (no flags):** Design A direct port-channels only — `PC_FI_A` / `PC_FI_B` (`type='dpc'`) on Kelley leaves 101/102 and Del-Din leaves 101/102. The default code path never emits `type='port'` bindings; individual interface bindings come exclusively via `--ports-override`.
 
-The script auto-discovers RCC EPGs across all templates and applies template-aware filtering for base bindings: `Kelley-Specific_Only` → Kelley only, `Del-Din-Specific_Only` → Del-Din only, `L2_Stretched` / `L2_Non-Stretched` → both sites.
+The script auto-discovers RCC EPGs across all templates and applies template-aware filtering for base bindings: `Kelley_Unique` → Kelley only, `Del_Din_Unique` → Del-Din only, `Stretched_Services` → both sites.
 
 #### `--ports-override` file format
 
@@ -720,7 +719,7 @@ To bind to those PCs, use `type='dpc'` with path `topology/pod-1/paths-{leaf}/pa
 
 #### Override-vs-template-filter behavior
 
-The per-template/site filter (which drops Del-Din bindings from `Kelley-Specific_Only` etc.) applies only to **base** bindings (defaults or `--inherit-from-ipv4` inherited). Override bindings flow through verbatim — the operator already specified each entry's site, so honor that. If an override binding targets a site where the EPG doesn't exist, `deploy_bindings()` surfaces it under the `EPG instances not found in schema` warning at deploy time rather than silently dropping it during generation.
+The per-template/site filter (which drops Del-Din bindings from `Kelley_Unique` etc.) applies only to **base** bindings (defaults or `--inherit-from-ipv4` inherited). Override bindings flow through verbatim — the operator already specified each entry's site, so honor that. If an override binding targets a site where the EPG doesn't exist, `deploy_bindings()` surfaces it under the `EPG instances not found in schema` warning at deploy time rather than silently dropping it during generation.
 
 #### Tests
 
@@ -849,7 +848,7 @@ terraform state show data.mso_schema.existing    # get schema_id
 terraform state show data.mso_site.deldin         # get site_id
 
 terraform import mso_schema_template_bd_subnet.bd_example_subnet \
-  "<schema_id>/template/L2_Stretched/bd/BD-EXAMPLE/subnet/<ip>"
+  "<schema_id>/template/Stretched_Services/bd/BD-EXAMPLE/subnet/<ip>"
 ```
 
 ### Backup Before Major Changes
@@ -879,7 +878,7 @@ git add -A && git commit -m "Backup before changes" && git push
 | `bd_nms_subnet` commented out | Provider bug with leading-zero hex groups; managed manually |
 | `nohup` for SSH runs | Prevents timeouts from killing long Terraform operations |
 | `retry: max: 2` on pipeline | NDO auth errors are intermittent; retry usually succeeds |
-| `var.vrf_template_name` | Single codebase for lab (`VRF_Template`) and prod (`UpgradeTemplate1`) |
+| `var.vrf_template_name` | Single codebase for lab (`VRF`) and prod (`UpgradeTemplate1`) |
 
 ---
 

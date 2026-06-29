@@ -10,7 +10,7 @@ See `docs/DESIGN.md` for naming-convention rationale.
 
 Phase 1 (sibling repo `~/DC/ACI/sac-johbarbe-AFRICOM-terraform-nac-ndo/`) must have been
 applied and its templates manually deployed before running `plan` here.
-This root references the `Any` filter under `AFRICOM/VRF_Template` via a
+This root references the `Any` filter under `AFRICOM/VRF` via a
 cross-schema link; plan fails if that object doesn't exist in NDO.
 
 ## Data layout

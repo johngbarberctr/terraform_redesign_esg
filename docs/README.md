@@ -55,11 +55,10 @@ The deployment creates 39 Bridge Domains, 39 EPGs, L3Outs, External EPGs, and as
 
 | Template | Purpose | Sites |
 |----------|---------|-------|
-| `UpgradeTemplate1` | VRF and Contract definitions | Both |
-| `L2_Stretched` | L2 stretched BDs/EPGs (majority) | Both |
-| `L2_Non-Stretched` | Non-stretched BDs/EPGs | Both |
-| `Site1-Specific_Only` | Site G specific resources | Site1 only |
-| `Site2-Specific_Only` | Site K specific resources | Site2 only |
+| `VRF` | VRF and Contract definitions (prod alias `UpgradeTemplate1`) | Both |
+| `Stretched_Services` | Stretched + non-stretched BDs/EPGs (former `L2_Non-Stretched` merged in) | Both |
+| `Kelley_Unique` | Kelley (Site G) specific resources | Kelley only |
+| `Del_Din_Unique` | Del-Din (Site K) specific resources | Del-Din only |
 
 ---
 
@@ -107,16 +106,16 @@ attach the same VMM domain.
 
 | Object | Name | Template |
 |--------|------|----------|
-| VRF | `AFR-PROD-V6` | UpgradeTemplate1 |
-| Contract | `Any_AFR-PROD-V6` | UpgradeTemplate1 |
-| L3Out (Site G) | `L3Out-Kelley-V2` | Site1-Specific_Only |
-| L3Out (Site K) | `L3Out-Del-Din-V2` | Site2-Specific_Only |
-| External EPG (Site G) | `ExtEPG-Kelley-V2` | Site1-Specific_Only |
-| External EPG (Site K) | `ExtEPG-Del-Din-V2` | Site2-Specific_Only |
+| VRF | `AFR-PROD-V6` | VRF |
+| Contract | `Any_AFR-PROD-V6` | VRF |
+| L3Out (Site G) | `L3Out-Kelley-V2` | Kelley_Unique |
+| L3Out (Site K) | `L3Out-Del-Din-V2` | Del_Din_Unique |
+| External EPG (Site G) | `ExtEPG-Kelley-V2` | Kelley_Unique |
+| External EPG (Site K) | `ExtEPG-Del-Din-V2` | Del_Din_Unique |
 
 ### Bridge Domains & EPGs (39 total)
 
-#### L2_Stretched Template (35 BDs/EPGs)
+#### Stretched_Services Template — stretched BDs/EPGs (35)
 
 | BD/EPG Name | Function Code | IPv6 VLAN | Description |
 |-------------|---------------|-----------|-------------|
@@ -156,7 +155,7 @@ attach the same VMM domain.
 | FILE-SVR | b1 | 3069 | File Server |
 | ADM-DCO | a1 | 3163 | Admin DCO |
 
-#### L2_Non-Stretched Template (2 BDs/EPGs)
+#### Stretched_Services Template — formerly L2_Non-Stretched (2 BDs/EPGs)
 
 | BD/EPG Name | Function Code | IPv6 VLAN | Description |
 |-------------|---------------|-----------|-------------|
@@ -167,8 +166,8 @@ attach the same VMM domain.
 
 | BD/EPG Name | Template | IPv6 VLAN | Description |
 |-------------|----------|-----------|-------------|
-| GEF-MGMT | Site1-Specific_Only | 3062 | GEF Management (Site G) |
-| BACKUP-SVR | Site2-Specific_Only | 3070 | Backup Server (Site K) |
+| GEF-MGMT | Kelley_Unique | 3062 | GEF Management (Site G) |
+| BACKUP-SVR | Del_Din_Unique | 3070 | Backup Server (Site K) |
 
 ---
 
@@ -338,22 +337,20 @@ python3 remove_all_rcc_bindings.py --dry-run --show-all
 
 ```
 Schema: AFRICOM
-├── UpgradeTemplate1
+├── VRF
 │   ├── AFR-PROD-V6
 │   └── Contract: Any_AFR-PROD-V6
-├── L2_Stretched
-│   ├── BDs (35)
-│   ├── EPGs (35) in AppProf-AFR-PROD-V6
-│   └── Site deployments (Site1, Site2)
-├── L2_Non-Stretched
-│   ├── BDs (2)
-│   └── EPGs (2)
-├── Site1-Specific_Only
+├── Stretched_Services
+│   ├── BDs (37: 35 stretched + 2 former L2_Non-Stretched)
+│   ├── EPGs (37) in AppProf-AFR-PROD-V6
+│   │   └── former L2_Non-Stretched: DB-SVR, SYSLOG
+│   └── Site deployments (Kelley, Del-Din)
+├── Kelley_Unique
 │   ├── BD-GEF-MGMT
 │   ├── EPG-GEF-MGMT
 │   ├── L3Out-Kelley-V2
 │   └── ExtEPG-Kelley-V2
-└── Site2-Specific_Only
+└── Del_Din_Unique
     ├── BD-BACKUP-SVR
     ├── EPG-BACKUP-SVR
     ├── L3Out-Del-Din-V2
